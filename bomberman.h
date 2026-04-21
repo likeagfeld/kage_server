@@ -99,6 +99,15 @@ private:
 		InGame,
 	};
 
+	enum class BattleEndPhase
+	{
+		None,
+		SettledDeadBits,
+		CompletedDeadBits,
+		FinalState,
+		Done,
+	};
+
 	struct SyncPlayerState
 	{
 		bool roomJoined = false;
@@ -106,6 +115,7 @@ private:
 		bool rulesAccepted = false;
 		bool startAcked = false;
 		bool postMapMarkerSeen = false;
+		BattleEndPhase battleEndPhase = BattleEndPhase::None;
 	};
 
 	void updateSlots();
@@ -154,7 +164,8 @@ private:
 	void stopMatchEndTimer();
 	void handleMatchEndTimer(const std::error_code& ec);
 	void sendBattleStateCommandTo(Player *player, uint8_t command, uint32_t value, const char *reason) const;
-	void sendBattleEndSequenceTo(Player *player, const char *reason) const;
+	void sendBattleEndSequenceTo(Player *player, const char *reason);
+	void advanceBattleEndSequence(Player *player, SyncPlayerState& state, const char *reason);
 	void broadcastBattleEndSequence(const char *reason);
 
 	std::vector<int> slots;	// slots used by each player

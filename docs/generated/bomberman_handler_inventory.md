@@ -868,9 +868,23 @@ Implication:
   - following chunks `0x19` and `0x15` had seq `0`
   - clients never ACKed the first chunk, so `0x15` never reached the battle-end
     state machine as an independently reliable command
+- `21_13-13-50_BM_t` / `_out` validated the standalone-`0x15` hypothesis was
+  incomplete:
+  - the board stayed alive and both clients sent live traffic until the 10800
+    frame timer expired
+  - Kage sent standalone reliable server command `0x15`
+  - neither client ACKed `0x15`; Kage retried it four times and both players
+    timed out
+  - inbound `0x02` object tables were still all default-only, so no committed
+    bomb object appeared in the client-origin object lane
 - current Kage correction:
-  - timer expiry now sends server command `0x15` as its own reliable packet
-  - this targets the recovered `0x8C093B10` state-machine advance directly
-  - `0x16` and `0x19` remain mapped as settle/completed-bit handlers, but they
-    are no longer bundled ahead of `0x15` until the post-end handshake is
-    validated
+  - timer expiry now stops the in-game `0x1c` heartbeat and sends the recovered
+    battle-end family as ACK-stepped standalone reliable commands:
+    `0x16` settled dead bits, then `0x19` completed/dead bits, then `0x15`
+  - the sequence follows the decoded dispatcher around `0x8C093900`; no
+    `FLAG_CONTINUE` bundle is used, so every step receives its own reliable seq
+  - `0x02` is still peer-relayed, and Kage now also self-echoes only `0x02`
+    back to the originating player so the next A-button test can validate
+    whether the client needs its own object lane reflected before committing a
+    bomb; `0x01` and `0x03` remain peer-only because echoing all three
+    previously regressed live play

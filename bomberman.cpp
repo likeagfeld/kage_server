@@ -738,6 +738,7 @@ void BMRoom::resetMatchSync()
 		state.rulesAccepted = false;
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
+		state.battleEndPhase = BattleEndPhase::None;
 	}
 	syncState = SyncState::Idle;
 	gameTimeInfoSent = false;
@@ -811,6 +812,7 @@ void BMRoom::onRulesConfigured(Player *player, const uint8_t *p)
 		state.rulesAccepted = false;
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
+		state.battleEndPhase = BattleEndPhase::None;
 	}
 	gameTimeInfoSent = false;
 	syncPlayers[player->getId()].rulesAccepted = true;
@@ -875,8 +877,10 @@ bool BMRoom::beginStartBattle(Player *player)
 	{
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
+		state.battleEndPhase = BattleEndPhase::None;
 	}
 	gameTimeInfoSent = false;
+	battleEndSent = false;
 	syncPlayers[player->getId()].startAcked = true;
 
 	if (players.size() <= 1)
@@ -909,6 +913,14 @@ void BMRoom::rudpAcked(Player *player)
 			broadcastOwnerKeyholderSync("room_join_complete");
 			broadcastOccupiedSlotMask("room_join_complete");
 		}
+	}
+
+	if (syncState == SyncState::InGame && battleEndSent
+		&& state.battleEndPhase != BattleEndPhase::None
+		&& state.battleEndPhase != BattleEndPhase::Done)
+	{
+		advanceBattleEndSequence(player, state, "acked");
+		return;
 	}
 
 	if (syncState != SyncState::StartPending)
@@ -1193,6 +1205,9 @@ void BMRoom::startMatchEndTimer(uint32_t endFrame)
 {
 	stopMatchEndTimer();
 	battleEndSent = false;
+	refreshSyncPlayers();
+	for (auto& [id, state] : syncPlayers)
+		state.battleEndPhase = BattleEndPhase::None;
 	if (syncState != SyncState::InGame || players.empty() || endFrame == 0)
 		return;
 
@@ -1237,17 +1252,54 @@ void BMRoom::sendBattleStateCommandTo(Player *player, uint8_t command, uint32_t 
 	player->send(packet);
 }
 
-void BMRoom::sendBattleEndSequenceTo(Player *player, const char *reason) const
+void BMRoom::advanceBattleEndSequence(Player *player, SyncPlayerState& state, const char *reason)
 {
 	if (player == nullptr)
 		return;
 
-	// Packet-queue evidence showed a bundled reliable 0x16/0x19/0x15 packet left
-	// 0x15 with seq=0 behind an unacked first chunk. Send the state-machine
-	// transition as its own reliable packet so it can be acknowledged directly.
-	INFO_LOG(Game::Bomberman, "%s: battle end transition (%s) -> %s [%x]",
+	switch (state.battleEndPhase)
+	{
+	case BattleEndPhase::SettledDeadBits:
+		INFO_LOG(Game::Bomberman, "%s: battle end ack (%s) from %s [%x] cmd=16 -> cmd=19",
+			name.c_str(), reason != nullptr ? reason : "acked", player->getName().c_str(), player->getId());
+		state.battleEndPhase = BattleEndPhase::CompletedDeadBits;
+		player->notifyRoomOnAck();
+		sendBattleStateCommandTo(player, 0x19, 0, "completed_dead_bits");
+		break;
+
+	case BattleEndPhase::CompletedDeadBits:
+		INFO_LOG(Game::Bomberman, "%s: battle end ack (%s) from %s [%x] cmd=19 -> cmd=15",
+			name.c_str(), reason != nullptr ? reason : "acked", player->getName().c_str(), player->getId());
+		state.battleEndPhase = BattleEndPhase::FinalState;
+		player->notifyRoomOnAck();
+		sendBattleStateCommandTo(player, 0x15, 0, "final_state");
+		break;
+
+	case BattleEndPhase::FinalState:
+		state.battleEndPhase = BattleEndPhase::Done;
+		INFO_LOG(Game::Bomberman, "%s: battle end final ack (%s) from %s [%x]",
+			name.c_str(), reason != nullptr ? reason : "acked", player->getName().c_str(), player->getId());
+		break;
+
+	default:
+		break;
+	}
+}
+
+void BMRoom::sendBattleEndSequenceTo(Player *player, const char *reason)
+{
+	if (player == nullptr)
+		return;
+
+	refreshSyncPlayers();
+	SyncPlayerState& state = syncPlayers[player->getId()];
+	state.battleEndPhase = BattleEndPhase::SettledDeadBits;
+	// The binary dispatches 0x16, 0x19, and 0x15 as separate result-state
+	// handlers. Keep each one reliable and standalone so every step gets an ACK.
+	INFO_LOG(Game::Bomberman, "%s: battle end transition (%s) -> %s [%x] cmd=16",
 		name.c_str(), reason != nullptr ? reason : "end", player->getName().c_str(), player->getId());
-	sendBattleStateCommandTo(player, 0x15, 0, reason);
+	player->notifyRoomOnAck();
+	sendBattleStateCommandTo(player, 0x16, 0, "settled_dead_bits");
 }
 
 void BMRoom::broadcastBattleEndSequence(const char *reason)
@@ -1255,6 +1307,8 @@ void BMRoom::broadcastBattleEndSequence(const char *reason)
 	if (battleEndSent)
 		return;
 	battleEndSent = true;
+	stopInGameLiveness();
+	stopMatchEndTimer();
 	for (Player *player : players)
 		sendBattleEndSequenceTo(player, reason);
 }
@@ -1656,6 +1710,24 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 									defaultObjectTable ? "default" : "non-default", word, payloadSize);
 								logCount++;
 							}
+
+							Packet selfRelay;
+							selfRelay.init(Packet::REQ_GAME_DATA);
+							selfRelay.flags |= Packet::FLAG_RELAY;
+							if (flags & Packet::FLAG_RUDP)
+								selfRelay.flags |= Packet::FLAG_RUDP;
+							write32(selfRelay.data, selfRelay.startOffset + 4, player->getId());
+							selfRelay.writeData(&data[0x10], (int)payloadSize);
+							static std::map<uint32_t, uint32_t> loggedSelfObjectTables;
+							uint32_t& selfLogCount = loggedSelfObjectTables[player->getId()];
+							if (selfLogCount < 4)
+							{
+								INFO_LOG(Game::Bomberman,
+									"%s: echoing cmd=02 object table to sender word=%04x size=%zu",
+									player->getName().c_str(), word, payloadSize);
+								selfLogCount++;
+							}
+							player->send(selfRelay);
 						}
 						relayPacket.init(Packet::REQ_GAME_DATA);
 						relayPacket.flags |= Packet::FLAG_RELAY;

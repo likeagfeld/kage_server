@@ -2120,8 +2120,20 @@ Second follow-up correction from `21_12-31-15_BM_t` / `_out`:
   - following `0x19` and `0x15` chunks had sequence `0`
   - clients never ACKed the first chunk, so the battle-end state-machine
     command `0x15` was blocked behind it
-- timer expiry now sends server command `0x15` as a standalone reliable packet
-  targeting the recovered `0x8C093B10` battle-end state-machine handler
+- the following test `21_13-13-50_BM_t` / `_out` disproved the
+  standalone-`0x15` shortcut:
+  - board and live traffic stayed active until the 10800-frame timer expired
+  - Kage sent standalone reliable command `0x15`
+  - neither client ACKed it; the packet failed after four retries and both
+    clients timed out
+  - inbound `0x02` object tables still contained no non-default committed bomb
+    object while A press produced only the local yellow mark
+- Kage now sends the battle-end family as separate ACK-stepped reliable packets:
+  - command `0x16`, value `0`, settled dead bits
+  - after ACK, command `0x19`, value `0`, completed/dead bits
+  - after ACK, command `0x15`, no payload, final state-machine advance
+- Kage stops the in-game `0x1c` heartbeat before starting that end sequence so
+  the test isolates the battle-end ACK path
 
 Next validation:
 
@@ -2129,11 +2141,14 @@ Next validation:
   - press A after the board is fully live
   - confirm whether the yellow mark becomes a committed bomb/sprite
   - inspect fresh logs for `relaying cmd=02 non-default object table`
-  - if that log never appears, continue mapping the upstream input/request path
-    because the client still is not emitting a committed object record
+  - inspect fresh logs for `echoing cmd=02 object table to sender`
+  - if no non-default object record appears after the self-echo test, continue
+    mapping the upstream input/request path because the client still is not
+    emitting a committed object record
 - end test:
   - let the timer reach zero
-  - confirm logs show `match-end timer armed` and standalone
-    `battle state sync ... cmd=15`
+  - confirm logs show `match-end timer armed`
+  - confirm logs show `battle state sync ... cmd=16`, then an ACK-driven
+    `cmd=19`, then an ACK-driven `cmd=15`
   - confirm whether the client transitions to settle/results or emits a new
     post-end packet family

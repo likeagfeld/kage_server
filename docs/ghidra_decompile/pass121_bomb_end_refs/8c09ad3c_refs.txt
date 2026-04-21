@@ -1,0 +1,5 @@
+target=8c09ad3c
+symbol=FUN_8c09ad3c
+ref[0] from=8c09776e type=COMPUTED_CALL opIndex=0 function=FUN_8c09758c entry=8c09758c
+ref[1] from=8c0977d8 type=DATA opIndex=0 function=<none> entry=<none>
+count=2
