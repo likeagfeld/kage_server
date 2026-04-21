@@ -1,0 +1,6 @@
+target=8c1854f8
+symbol=s_All_Battle_End._Send_Signal_CLI__8c1854f8
+ref[0] from=8c076558 type=DATA opIndex=0 function=<none> entry=<none>
+ref[1] from=8c07640c type=DATA opIndex=0 function=FUN_8c076364 entry=8c076364
+ref[2] from=8c076404 type=PARAM opIndex=1 function=FUN_8c076364 entry=8c076364
+count=3

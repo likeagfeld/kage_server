@@ -838,11 +838,39 @@ Implication:
     players, preserving source id with `FLAG_RELAY`
   - after the post-map `0x14` Game Time Info gate, Kage arms a 10800-frame
     match-end timer
-  - on timer expiry, Kage sends ordered reliable server commands `0x16`,
-    `0x19`, and `0x15` to each player
+  - on timer expiry, the first implementation bundled reliable server commands
+    `0x16`, `0x19`, and `0x15` into one packet
   - decoded `0x02` object records were constant during the long A-press test;
     bomb placement must be recovered from the input/request path, not from a
     client-sent committed object record
-  - Kage now suppresses relay of default/empty `0x02` object tables so an idle
-    peer does not repeatedly overwrite a local bomb attempt with default object
-    state; non-default `0x02` object tables still relay for validation
+  - Kage briefly suppressed relay of default/empty `0x02` object tables so an
+    idle peer would not overwrite a local bomb attempt with default object state
+
+### 2026-04-21 latest live-object lane and end-transition correction
+
+- fresh `21_12-31-15_BM_t` / `_out` evidence changed two assumptions:
+  - inbound traffic contained `1797` `REQ_GAME_DATA 0x02` live-object packets
+  - every decoded `0x02` object table was still default-only:
+    `00001000` or `00000000`; there was no committed bomb object record
+  - outbound traffic contained `0` relayed `0x02` packets because the default
+    object-table suppression removed the entire `0x02` lane
+  - the binary receive handler for `0x02` copies more than object records: it
+    also consumes the compact player records and trailer bytes for that lane
+- current Kage correction:
+  - do not suppress default `0x02` packets anymore
+  - relay `0x02` peer-only again like `0x01` and `0x03`
+  - keep targeted logging that labels relayed `0x02` packets as default or
+    non-default, so the next A-button capture can prove whether a real object
+    record finally appears
+- the same outbound dump showed the match-end reliable packet was malformed for
+  Kage's queue semantics:
+  - the first chunk was command `0x16` with a reliable seq
+  - following chunks `0x19` and `0x15` had seq `0`
+  - clients never ACKed the first chunk, so `0x15` never reached the battle-end
+    state machine as an independently reliable command
+- current Kage correction:
+  - timer expiry now sends server command `0x15` as its own reliable packet
+  - this targets the recovered `0x8C093B10` state-machine advance directly
+  - `0x16` and `0x19` remain mapped as settle/completed-bit handlers, but they
+    are no longer bundled ahead of `0x15` until the post-end handshake is
+    validated

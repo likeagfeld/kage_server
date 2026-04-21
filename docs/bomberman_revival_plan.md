@@ -2101,14 +2101,39 @@ Follow-up correction:
   - those packets are ACKed but not relayed
   - any non-default `0x02` object table still relays normally
 
+Second follow-up correction from `21_12-31-15_BM_t` / `_out`:
+
+- the latest long-running test proved that the suppression was too broad:
+  - inbound contained `1797` command `0x02` packets
+  - decoded object records were still all default/empty, so no committed bomb
+    object was present
+  - outbound contained `0` command `0x02` packets, starving the client-side
+    `0x02` receive lane entirely
+- Kage now relays `0x02` peer-only again, matching the last proven
+  non-regressing live-state relay shape for `0x01` / `0x02` / `0x03`
+- Kage keeps logging whether each relayed `0x02` object table is default or
+  non-default so the next A-button test can prove whether a real object delta
+  appears
+- the same outbound dump also proved that the timer-end packet bundled three
+  reliable commands incorrectly:
+  - command `0x16` had the reliable sequence
+  - following `0x19` and `0x15` chunks had sequence `0`
+  - clients never ACKed the first chunk, so the battle-end state-machine
+    command `0x15` was blocked behind it
+- timer expiry now sends server command `0x15` as a standalone reliable packet
+  targeting the recovered `0x8C093B10` battle-end state-machine handler
+
 Next validation:
 
 - bomb test:
   - press A after the board is fully live
   - confirm whether the yellow mark becomes a committed bomb/sprite
-  - if not, inspect the fresh `0x02` object-record deltas around the A press
+  - inspect fresh logs for `relaying cmd=02 non-default object table`
+  - if that log never appears, continue mapping the upstream input/request path
+    because the client still is not emitting a committed object record
 - end test:
   - let the timer reach zero
-  - confirm logs show `match-end timer armed` and `battle end sequence`
+  - confirm logs show `match-end timer armed` and standalone
+    `battle state sync ... cmd=15`
   - confirm whether the client transitions to settle/results or emits a new
     post-end packet family

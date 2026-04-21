@@ -1,0 +1,5 @@
+target=8c17615c
+symbol=DAT_8c17615c
+ref[0] from=8c175f14 type=READ opIndex=0 function=FUN_8c175f04 entry=8c175f04
+ref[1] from=8c1760ea type=READ opIndex=0 function=<none> entry=<none>
+count=2

@@ -1,0 +1,7 @@
+target=8c1c2964
+symbol=PTR_s_CLIENTCLIENT_8c1c2964
+ref[0] from=8c131da8 type=PARAM opIndex=1 function=FUN_8c131c30 entry=8c131c30
+ref[1] from=8c1318f0 type=PARAM opIndex=1 function=<none> entry=<none>
+ref[2] from=8c131968 type=DATA opIndex=0 function=<none> entry=<none>
+ref[3] from=8c131f28 type=DATA opIndex=0 function=<none> entry=<none>
+count=4

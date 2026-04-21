@@ -153,7 +153,7 @@ private:
 	void startMatchEndTimer(uint32_t endFrame);
 	void stopMatchEndTimer();
 	void handleMatchEndTimer(const std::error_code& ec);
-	void appendBattleStateCommand(Packet& packet, uint8_t command, uint32_t value) const;
+	void sendBattleStateCommandTo(Player *player, uint8_t command, uint32_t value, const char *reason) const;
 	void sendBattleEndSequenceTo(Player *player, const char *reason) const;
 	void broadcastBattleEndSequence(const char *reason);
 

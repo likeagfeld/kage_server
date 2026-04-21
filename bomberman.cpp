@@ -1216,17 +1216,25 @@ void BMRoom::handleMatchEndTimer(const std::error_code& ec)
 	broadcastBattleEndSequence("match_timer_expired");
 }
 
-void BMRoom::appendBattleStateCommand(Packet& packet, uint8_t command, uint32_t value) const
+void BMRoom::sendBattleStateCommandTo(Player *player, uint8_t command, uint32_t value, const char *reason) const
 {
+	if (player == nullptr)
+		return;
+
 	UdpCommand cmd {};
 	cmd.command = command;
 	cmd.size = command == 0x15 ? 0 : 4;
+	Packet packet;
 	packet.init(Packet::REQ_CHAT);
 	packet.flags |= Packet::FLAG_RUDP;
 	packet.writeData(cmd.full);
 	packet.writeData((uint16_t)0);
 	if (cmd.size != 0)
 		packet.writeData(value);
+	INFO_LOG(Game::Bomberman, "%s: battle state sync (%s) -> %s [%x] cmd=%02x value=%08x",
+		name.c_str(), reason != nullptr ? reason : "battle", player->getName().c_str(), player->getId(),
+		command, value);
+	player->send(packet);
 }
 
 void BMRoom::sendBattleEndSequenceTo(Player *player, const char *reason) const
@@ -1234,15 +1242,12 @@ void BMRoom::sendBattleEndSequenceTo(Player *player, const char *reason) const
 	if (player == nullptr)
 		return;
 
-	Packet packet;
-	// Binary receive handlers: 0x16 consumes settled dead bits, 0x19 consumes
-	// completed dead bits, and 0x15 advances the battle end state machine.
-	appendBattleStateCommand(packet, 0x16, 0);
-	appendBattleStateCommand(packet, 0x19, 0);
-	appendBattleStateCommand(packet, 0x15, 0);
-	INFO_LOG(Game::Bomberman, "%s: battle end sequence (%s) -> %s [%x] deadbits=00000000",
+	// Packet-queue evidence showed a bundled reliable 0x16/0x19/0x15 packet left
+	// 0x15 with seq=0 behind an unacked first chunk. Send the state-machine
+	// transition as its own reliable packet so it can be acknowledged directly.
+	INFO_LOG(Game::Bomberman, "%s: battle end transition (%s) -> %s [%x]",
 		name.c_str(), reason != nullptr ? reason : "end", player->getName().c_str(), player->getId());
-	player->send(packet);
+	sendBattleStateCommandTo(player, 0x15, 0, reason);
 }
 
 void BMRoom::broadcastBattleEndSequence(const char *reason)
@@ -1633,21 +1638,25 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 						}
 						room->notePostMapMarker(player);
 					}
-					else if (cmd.command == 0x2 &&
-						isDefaultBombermanObjectTable(&data[0x10], payloadSize))
-					{
-						static std::map<uint32_t, uint32_t> suppressedDefaultObjectRelays;
-						uint32_t& suppressedCount = suppressedDefaultObjectRelays[player->getId()];
-						if (suppressedCount < 4)
-						{
-							INFO_LOG(Game::Bomberman,
-								"%s: suppressing default object-table relay cmd=02 word=%04x size=%zu",
-								player->getName().c_str(), word, payloadSize);
-							suppressedCount++;
-						}
-					}
 					else
 					{
+						if (cmd.command == 0x2)
+						{
+							const bool defaultObjectTable = isDefaultBombermanObjectTable(&data[0x10], payloadSize);
+							static std::map<uint32_t, uint32_t> loggedDefaultObjectTables;
+							static std::map<uint32_t, uint32_t> loggedNonDefaultObjectTables;
+							uint32_t& logCount = defaultObjectTable
+								? loggedDefaultObjectTables[player->getId()]
+								: loggedNonDefaultObjectTables[player->getId()];
+							if (logCount < 4)
+							{
+								INFO_LOG(Game::Bomberman,
+									"%s: relaying cmd=02 %s object table word=%04x size=%zu",
+									player->getName().c_str(),
+									defaultObjectTable ? "default" : "non-default", word, payloadSize);
+								logCount++;
+							}
+						}
 						relayPacket.init(Packet::REQ_GAME_DATA);
 						relayPacket.flags |= Packet::FLAG_RELAY;
 						if (flags & Packet::FLAG_RUDP)
