@@ -81,6 +81,25 @@ BombermanBotConfig loadBotConfig()
 	return config;
 }
 
+bool isDefaultBombermanObjectTable(const uint8_t *payload, size_t payloadSize)
+{
+	constexpr size_t objectTableOffset = 36; // cmd+word + 8 compact player records
+	constexpr size_t objectRecordCount = 28;
+	constexpr size_t objectRecordSize = 4;
+	if (payload == nullptr || payloadSize < objectTableOffset + objectRecordCount * objectRecordSize)
+		return false;
+
+	for (size_t i = 0; i < objectRecordCount; i++)
+	{
+		const uint8_t *record = payload + objectTableOffset + i * objectRecordSize;
+		const bool emptyRecord = record[0] == 0 && record[1] == 0 && record[2] == 0 && record[3] == 0;
+		const bool defaultRecord = record[0] == 0 && record[1] == 0 && record[2] == 0x10 && record[3] == 0;
+		if (!emptyRecord && !defaultRecord)
+			return false;
+	}
+	return true;
+}
+
 }
 
 BMRoom::BMRoom(Lobby& lobby, uint32_t id, const std::string& name, uint32_t attributes, Player *owner, asio::io_context& io_context)
@@ -1613,6 +1632,19 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 							recipient->send(relay);
 						}
 						room->notePostMapMarker(player);
+					}
+					else if (cmd.command == 0x2 &&
+						isDefaultBombermanObjectTable(&data[0x10], payloadSize))
+					{
+						static std::map<uint32_t, uint32_t> suppressedDefaultObjectRelays;
+						uint32_t& suppressedCount = suppressedDefaultObjectRelays[player->getId()];
+						if (suppressedCount < 4)
+						{
+							INFO_LOG(Game::Bomberman,
+								"%s: suppressing default object-table relay cmd=02 word=%04x size=%zu",
+								player->getName().c_str(), word, payloadSize);
+							suppressedCount++;
+						}
 					}
 					else
 					{

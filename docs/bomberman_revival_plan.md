@@ -2095,6 +2095,11 @@ Follow-up correction:
 - decoded `0x02` object records stayed constant during the prior A-press test,
   so bomb placement still needs the client input/request path mapped before
   Kage can generate a correct authoritative bomb object update
+- Kage now suppresses peer relay of default/empty `0x02` object tables:
+  - records matching `00000000` or `00001000` across the 28-entry object table
+    are treated as non-authoritative empty/default state
+  - those packets are ACKed but not relayed
+  - any non-default `0x02` object table still relays normally
 
 Next validation:
 

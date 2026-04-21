@@ -843,3 +843,6 @@ Implication:
   - decoded `0x02` object records were constant during the long A-press test;
     bomb placement must be recovered from the input/request path, not from a
     client-sent committed object record
+  - Kage now suppresses relay of default/empty `0x02` object tables so an idle
+    peer does not repeatedly overwrite a local bomb attempt with default object
+    state; non-default `0x02` object tables still relay for validation
