@@ -883,8 +883,16 @@ Implication:
     `0x16` settled dead bits, then `0x19` completed/dead bits, then `0x15`
   - the sequence follows the decoded dispatcher around `0x8C093900`; no
     `FLAG_CONTINUE` bundle is used, so every step receives its own reliable seq
-  - `0x02` is still peer-relayed, and Kage now also self-echoes only `0x02`
-    back to the originating player so the next A-button test can validate
-    whether the client needs its own object lane reflected before committing a
-    bomb; `0x01` and `0x03` remain peer-only because echoing all three
-    previously regressed live play
+- `21_13-49-06_BM_t` / `_out` tested the narrow `0x02` self-echo:
+  - outbound `0x02` doubled as expected because Kage sent both peer relay and
+    sender echo
+  - inbound object tables were still all default-only; no committed bomb object
+    appeared
+  - FARKUS2 stopped sending live traffic early and timed out before the 10800
+    frame match timer expired
+- current Kage correction:
+  - remove the `0x02` sender echo
+  - keep `0x01`, `0x02`, and `0x03` peer-only, preserving the last stable
+    live-state shape
+  - keep the ACK-stepped `0x16 -> 0x19 -> 0x15` timer-end sequence for the next
+    stable long-run test

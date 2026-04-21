@@ -1711,23 +1711,6 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 								logCount++;
 							}
 
-							Packet selfRelay;
-							selfRelay.init(Packet::REQ_GAME_DATA);
-							selfRelay.flags |= Packet::FLAG_RELAY;
-							if (flags & Packet::FLAG_RUDP)
-								selfRelay.flags |= Packet::FLAG_RUDP;
-							write32(selfRelay.data, selfRelay.startOffset + 4, player->getId());
-							selfRelay.writeData(&data[0x10], (int)payloadSize);
-							static std::map<uint32_t, uint32_t> loggedSelfObjectTables;
-							uint32_t& selfLogCount = loggedSelfObjectTables[player->getId()];
-							if (selfLogCount < 4)
-							{
-								INFO_LOG(Game::Bomberman,
-									"%s: echoing cmd=02 object table to sender word=%04x size=%zu",
-									player->getName().c_str(), word, payloadSize);
-								selfLogCount++;
-							}
-							player->send(selfRelay);
 						}
 						relayPacket.init(Packet::REQ_GAME_DATA);
 						relayPacket.flags |= Packet::FLAG_RELAY;

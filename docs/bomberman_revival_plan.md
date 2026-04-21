@@ -2135,16 +2135,27 @@ Second follow-up correction from `21_12-31-15_BM_t` / `_out`:
 - Kage stops the in-game `0x1c` heartbeat before starting that end sequence so
   the test isolates the battle-end ACK path
 
+Third follow-up correction from `21_13-49-06_BM_t` / `_out`:
+
+- the narrow `cmd=02` sender-echo test did not produce a bomb:
+  - outbound `cmd=02` doubled because Kage sent both peer relay and self echo
+  - inbound object tables remained default-only
+  - FARKUS2 stopped sending live traffic early and timed out before the
+    10800-frame match timer expired
+- Kage now removes the `cmd=02` sender echo and restores the stable peer-only
+  live-state shape for `0x01`, `0x02`, and `0x03`
+- the ACK-stepped battle-end sequence remains in place, but the latest run did
+  not reach timer expiry, so `0x16 -> 0x19 -> 0x15` still needs validation
+
 Next validation:
 
 - bomb test:
   - press A after the board is fully live
   - confirm whether the yellow mark becomes a committed bomb/sprite
   - inspect fresh logs for `relaying cmd=02 non-default object table`
-  - inspect fresh logs for `echoing cmd=02 object table to sender`
-  - if no non-default object record appears after the self-echo test, continue
-    mapping the upstream input/request path because the client still is not
-    emitting a committed object record
+  - if no non-default object record appears, continue mapping the upstream
+    input/request path because the client still is not emitting a committed
+    object record
 - end test:
   - let the timer reach zero
   - confirm logs show `match-end timer armed`
