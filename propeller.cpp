@@ -323,8 +323,7 @@ void PARoom::setInGame(Player *player, bool inGame) {
 
 void PARoom::gameStop(Player *player)
 {
-	std::error_code ec;
-	timer.cancel(ec);
+	timer.cancel();
 	timerStarted = false;
 	startState = 0;
 
@@ -905,3 +904,4 @@ void RankAcceptor::updateRank(const std::string& name, int kills, int wins, int 
 		stmt.step();
 	}
 }
+

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kage Server Console</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">Dreamcast Server Control</p>
+      <h1>Kage Server Console</h1>
+      <p class="lede">Build the Windows binary, save the public server IP, and start or stop the local server without leaving this page.</p>
+      <div class="hero-actions">
+        <button id="buildButton" class="primary">Build / Repair</button>
+        <button id="startButton">Start Server</button>
+        <button id="stopButton">Stop Server</button>
+      </div>
+      <p id="banner" class="banner">Loading current status...</p>
+    </section>
+
+    <section class="grid">
+      <article class="panel form-panel">
+        <div class="panel-head">
+          <h2>Runtime Config</h2>
+          <span id="configBadge" class="badge">Checking</span>
+        </div>
+        <label>
+          <span>SERVER_IP</span>
+          <input id="serverIp" type="text" placeholder="203.0.113.42">
+        </label>
+        <label>
+          <span>DATADIR</span>
+          <input id="dataDir" type="text" value="data">
+        </label>
+        <p id="ipHint" class="hint">Use the public IPv4 address players should reach.</p>
+        <button id="saveConfigButton" class="wide">Save Config</button>
+      </article>
+
+      <article class="panel status-panel">
+        <div class="panel-head">
+          <h2>Live Status</h2>
+          <span id="serverBadge" class="badge">Idle</span>
+        </div>
+        <dl class="status-list">
+          <div><dt>Binary</dt><dd id="binaryStatus">Checking...</dd></div>
+          <div><dt>Build</dt><dd id="buildStatus">Checking...</dd></div>
+          <div><dt>Server</dt><dd id="serverStatus">Checking...</dd></div>
+          <div><dt>Logs</dt><dd id="logPath">logs\kageserver.log</dd></div>
+          <div><dt>State File</dt><dd>tools\state\server.json</dd></div>
+        </dl>
+      </article>
+
+      <article class="panel ports-panel">
+        <div class="panel-head">
+          <h2>Ports & Helpers</h2>
+          <span class="badge fixed">Manual</span>
+        </div>
+        <ul class="ports">
+          <li>UDP 9090-9093</li>
+          <li>TCP 10100</li>
+          <li>TCP 20200</li>
+        </ul>
+        <div class="helper-buttons">
+          <button id="openLogsButton">Open Logs</button>
+          <button id="openConfigButton">Open Config Folder</button>
+          <button id="openFirewallButton">Open Firewall Script</button>
+        </div>
+      </article>
+    </section>
+
+    <section class="tool-grid">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>Bomberman Test Seats</h2>
+          <span id="bombermanBadge" class="badge">Waiting</span>
+        </div>
+        <div class="status-list compact">
+          <div><dt>Active Room</dt><dd id="bmRoomName">No Bomberman room yet</dd></div>
+          <div><dt>Owner</dt><dd id="bmOwner">-</dd></div>
+          <div><dt>Human Slots</dt><dd id="bmHumans">0</dd></div>
+          <div><dt>Bot Slots</dt><dd id="bmBots">0</dd></div>
+        </div>
+        <label>
+          <span>Desired Bot Count</span>
+          <input id="bmBotCount" type="number" min="0" max="7" value="0">
+        </label>
+        <label>
+          <span>Bot Name Prefix</span>
+          <input id="bmBotPrefix" type="text" value="CPU">
+        </label>
+        <div class="helper-buttons">
+          <button id="bmApplyButton" class="primary">Apply Bots</button>
+          <button id="bmAddButton">Add One</button>
+          <button id="bmRemoveButton">Remove One</button>
+          <button id="bmClearButton">Clear Bots</button>
+        </div>
+        <p class="hint">These are passive room seat fillers for Bomberman testing. They only apply after you click a bot action for an active room, and they are not gameplay AI yet.</p>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>Current Bot Names</h2>
+          <span class="badge fixed">Live</span>
+        </div>
+        <pre id="bmRoster">No bot seats applied.</pre>
+      </article>
+    </section>
+
+    <section class="log-grid">
+      <article class="panel log-panel">
+        <div class="panel-head">
+          <h2>Server Log Tail</h2>
+          <span class="badge fixed">Auto Refresh</span>
+        </div>
+        <pre id="serverLog">Waiting for log output...</pre>
+      </article>
+      <article class="panel log-panel">
+        <div class="panel-head">
+          <h2>Build Log Tail</h2>
+          <span class="badge fixed">Auto Refresh</span>
+        </div>
+        <pre id="buildLog">Waiting for build output...</pre>
+      </article>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

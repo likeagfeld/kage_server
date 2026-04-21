@@ -1,0 +1,4 @@
+target=8c189b40
+symbol=s_ROOM_QUERYUSERIN_FAILED_8c189b40
+ref[0] from=8c0e79c8 type=DATA opIndex=0 function=<none> entry=<none>
+count=1

@@ -1,0 +1,5 @@
+target=8c0e9128
+symbol=FUN_8c0e9128
+ref[0] from=8c0ea3d0 type=PARAM opIndex=1 function=FUN_8c0ea3a8 entry=8c0ea3a8
+ref[1] from=8c0ea450 type=DATA opIndex=0 function=<none> entry=<none>
+count=2

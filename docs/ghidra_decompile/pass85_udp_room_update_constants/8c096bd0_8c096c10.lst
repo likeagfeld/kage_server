@@ -1,0 +1,27 @@
+; range: 8c096bd0 - 8c096c10
+
+8c096bd0  01 89        bt 0x8c096bd6
+8c096bd2  a6 a2        bra 0x8c097122
+8c096bd4  09 00        _nop
+8c096bd6  1b a0        bra 0x8c096c10
+8c096bd8  00 e3        _mov #0x0,r3
+8c096bda  ec 22        undefined2 22ECh
+8c096bdc  b4 02        undefined2 02B4h
+8c096bde  c0 00        undefined2 00C0h
+8c096be0  cc 00        undefined2 00CCh
+8c096be2  dc 22        undefined2 22DCh
+8c096be4  e0 00        undefined2 00E0h
+8c096be6  5c 24        undefined2 245Ch
+8c096be8  4c 24        undefined2 244Ch
+8c096bea  00           ?? 00h
+8c096beb  00           ?? 00h
+8c096bec  62 2d 0e 8c  addr 8c0e2d62
+8c096bf0  70 53 0f 8c  addr 8c0f5370
+8c096bf4  00 00 00 40  undefined4 40000000h
+8c096bf8  fc 57 0f 8c  addr 8c0f57fc
+8c096bfc  06 77 0e 8c  addr 8c0e7706
+8c096c00  3c 58 0f 8c  addr 8c0f583c
+8c096c04  4a 58 0f 8c  addr 8c0f584a
+8c096c08  38 5a 0f 8c  addr 8c0f5a38
+8c096c0c  c6 58 0f 8c  addr 8c0f58c6
+8c096c10  d3 61        mov r13,r1

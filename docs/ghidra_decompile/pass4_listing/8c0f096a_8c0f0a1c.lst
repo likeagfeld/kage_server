@@ -1,0 +1,181 @@
+; range: 8c0f096a - 8c0f0a1c
+
+8c0f096a  22           ?? 22h    "
+8c0f096b  4f           ?? 4Fh    O
+8c0f096c  c4           ?? C4h
+8c0f096d  7f           ?? 7Fh    
+8c0f096e  12           ?? 12h
+8c0f096f  e0           ?? E0h
+8c0f0970  b5           ?? B5h
+8c0f0971  9c           ?? 9Ch
+8c0f0972  4c           ?? 4Ch    L
+8c0f0973  0e           ?? 0Eh
+8c0f0974  43           ?? 43h    C
+8c0f0975  67           ?? 67h    g
+8c0f0976  5a           ?? 5Ah    Z
+8c0f0977  dd           ?? DDh
+8c0f0978  f3           ?? F3h
+8c0f0979  64           ?? 64h    d
+8c0f097a  e3           ?? E3h
+8c0f097b  62           ?? 62h    b
+8c0f097c  c9           ?? C9h
+8c0f097d  22           ?? 22h    "
+8c0f097e  23           ?? 23h    #
+8c0f097f  66           ?? 66h    f
+8c0f0980  00           ?? 00h
+8c0f0981  42           ?? 42h    B
+8c0f0982  6c           ?? 6Ch    l
+8c0f0983  32           ?? 32h    2
+8c0f0984  d3           ?? D3h
+8c0f0985  65           ?? 65h    e
+8c0f0986  08           ?? 08h
+8c0f0987  42           ?? 42h    B
+8c0f0988  2c           ?? 2Ch    ,
+8c0f0989  35           ?? 35h    5
+8c0f098a  51           ?? 51h    Q
+8c0f098b  52           ?? 52h    R
+8c0f098c  0c           ?? 0Ch
+8c0f098d  74           ?? 74h    t
+8c0f098e  52           ?? 52h    R
+8c0f098f  66           ?? 66h    f
+8c0f0990  21           ?? 21h    !
+8c0f0991  1f           ?? 1Fh
+8c0f0992  52           ?? 52h    R
+8c0f0993  52           ?? 52h    R
+8c0f0994  d3           ?? D3h
+8c0f0995  65           ?? 65h    e
+8c0f0996  62           ?? 62h    b
+8c0f0997  2f           ?? 2Fh    /
+8c0f0998  22           ?? 22h    "
+8c0f0999  1f           ?? 1Fh
+8c0f099a  f2           ?? F2h
+8c0f099b  62           ?? 62h    b
+8c0f099c  2c           ?? 2Ch    ,
+8c0f099d  37           ?? 37h    7
+8c0f099e  e3           ?? E3h
+8c0f099f  62           ?? 62h    b
+8c0f09a0  c9           ?? C9h
+8c0f09a1  22           ?? 22h    "
+8c0f09a2  23           ?? 23h    #
+8c0f09a3  66           ?? 66h    f
+8c0f09a4  00           ?? 00h
+8c0f09a5  42           ?? 42h    B
+8c0f09a6  6c           ?? 6Ch    l
+8c0f09a7  32           ?? 32h    2
+8c0f09a8  08           ?? 08h
+8c0f09a9  42           ?? 42h    B
+8c0f09aa  2c           ?? 2Ch    ,
+8c0f09ab  35           ?? 35h    5
+8c0f09ac  51           ?? 51h    Q
+8c0f09ad  52           ?? 52h    R
+8c0f09ae  52           ?? 52h    R
+8c0f09af  66           ?? 66h    f
+8c0f09b0  21           ?? 21h    !
+8c0f09b1  14           ?? 14h
+8c0f09b2  f4           ?? F4h
+8c0f09b3  53           ?? 53h    S
+8c0f09b4  52           ?? 52h    R
+8c0f09b5  52           ?? 52h    R
+8c0f09b6  11           ?? 11h
+8c0f09b7  43           ?? 43h    C
+8c0f09b8  62           ?? 62h    b
+8c0f09b9  24           ?? 24h    $
+8c0f09ba  31           ?? 31h    1
+8c0f09bb  8f           ?? 8Fh
+8c0f09bc  22           ?? 22h    "
+8c0f09bd  14           ?? 14h
+8c0f09be  e3           ?? E3h
+8c0f09bf  62           ?? 62h    b
+8c0f09c0  c9           ?? C9h
+8c0f09c1  22           ?? 22h    "
+8c0f09c2  23           ?? 23h    #
+8c0f09c3  66           ?? 66h    f
+8c0f09c4  00           ?? 00h
+8c0f09c5  42           ?? 42h    B
+8c0f09c6  6c           ?? 6Ch    l
+8c0f09c7  32           ?? 32h    2
+8c0f09c8  d3           ?? D3h
+8c0f09c9  65           ?? 65h    e
+8c0f09ca  08           ?? 08h
+8c0f09cb  42           ?? 42h    B
+8c0f09cc  f3           ?? F3h
+8c0f09cd  64           ?? 64h    d
+8c0f09ce  2c           ?? 2Ch    ,
+8c0f09cf  35           ?? 35h    5
+8c0f09d0  51           ?? 51h    Q
+8c0f09d1  52           ?? 52h    R
+8c0f09d2  24           ?? 24h    $
+8c0f09d3  74           ?? 74h    t
+8c0f09d4  c9           ?? C9h
+8c0f09d5  2e           ?? 2Eh    .
+8c0f09d6  52           ?? 52h    R
+8c0f09d7  66           ?? 66h    f
+8c0f09d8  21           ?? 21h    !
+8c0f09d9  14           ?? 14h
+8c0f09da  52           ?? 52h    R
+8c0f09db  52           ?? 52h    R
+8c0f09dc  f3           ?? F3h
+8c0f09dd  65           ?? 65h    e
+8c0f09de  62           ?? 62h    b
+8c0f09df  24           ?? 24h    $
+8c0f09e0  30           ?? 30h    0
+8c0f09e1  75           ?? 75h    u
+8c0f09e2  22           ?? 22h    "
+8c0f09e3  14           ?? 14h
+8c0f09e4  e3           ?? E3h
+8c0f09e5  62           ?? 62h    b
+8c0f09e6  00           ?? 00h
+8c0f09e7  42           ?? 42h    B
+8c0f09e8  fb           ?? FBh
+8c0f09e9  50           ?? 50h    P
+8c0f09ea  ec           ?? ECh
+8c0f09eb  32           ?? 32h    2
+8c0f09ec  08           ?? 08h
+8c0f09ed  42           ?? 42h    B
+8c0f09ee  2c           ?? 2Ch    ,
+8c0f09ef  3d           ?? 3Dh    =
+8c0f09f0  d2           ?? D2h
+8c0f09f1  62           ?? 62h    b
+8c0f09f2  d1           ?? D1h
+8c0f09f3  56           ?? 56h    V
+8c0f09f4  22           ?? 22h    "
+8c0f09f5  25           ?? 25h    %
+8c0f09f6  d2           ?? D2h
+8c0f09f7  52           ?? 52h    R
+8c0f09f8  61           ?? 61h    a
+8c0f09f9  15           ?? 15h
+8c0f09fa  22           ?? 22h    "
+8c0f09fb  15           ?? 15h
+8c0f09fc  fd           ?? FDh
+8c0f09fd  52           ?? 52h    R
+8c0f09fe  7e           ?? 7Eh    ~
+8c0f09ff  05           ?? 05h
+8c0f0a00  23           ?? 23h    #
+8c0f0a01  66           ?? 66h    f
+8c0f0a02  00           ?? 00h
+8c0f0a03  42           ?? 42h    B
+8c0f0a04  6c           ?? 6Ch    l
+8c0f0a05  32           ?? 32h    2
+8c0f0a06  08           ?? 08h
+8c0f0a07  42           ?? 42h    B
+8c0f0a08  2c           ?? 2Ch    ,
+8c0f0a09  35           ?? 35h    5
+8c0f0a0a  52           ?? 52h    R
+8c0f0a0b  62           ?? 62h    b
+8c0f0a0c  2c           ?? 2Ch    ,
+8c0f0a0d  37           ?? 37h    7
+8c0f0a0e  52           ?? 52h    R
+8c0f0a0f  52           ?? 52h    R
+8c0f0a10  0b           ?? 0Bh
+8c0f0a11  42           ?? 42h    B
+8c0f0a12  73           ?? 73h    s
+8c0f0a13  64           ?? 64h    d
+8c0f0a14  3c           ?? 3Ch    <
+8c0f0a15  7f           ?? 7Fh    
+8c0f0a16  26           ?? 26h    &
+8c0f0a17  4f           ?? 4Fh    O
+8c0f0a18  f6           ?? F6h
+8c0f0a19  6e           ?? 6Eh    n
+8c0f0a1a  f6           ?? F6h
+8c0f0a1b  6d           ?? 6Dh    m
+8c0f0a1c  0b           ?? 0Bh

@@ -1,0 +1,28 @@
+; range: 8c096d60 - 8c096da0
+
+8c096d60  3c e0        mov #0x3c,r0
+8c096d62  0b 47        jsr @r7
+8c096d64  43 61        _mov r4,r1
+8c096d66  03 67        mov r0,r7
+8c096d68  04 90        mov.w 0x8c096d74,r0
+8c096d6a  17 a0        bra 0x8c096d9c
+8c096d6c  09 00        _nop
+8c096d6e  ec 22        undefined2 22ECh
+8c096d70  8c 23        undefined2 238Ch
+8c096d72  e4 00        undefined2 00E4h
+8c096d74  b4 02        undefined2 02B4h
+8c096d76  e0 00        undefined2 00E0h
+8c096d78  cc 00        undefined2 00CCh
+8c096d7a  e0 22        undefined2 22E0h
+8c096d7c  b8 02        undefined2 02B8h
+8c096d7e  10 0e        undefined2 0E10h
+8c096d80  ac 5f 18 8c  addr 8c185fac
+8c096d84  38 4f 0f 8c  addr 8c0f4f38
+8c096d88  00 00 00 40  undefined4 40000000h
+8c096d8c  1a 5a 0f 8c  addr 8c0f5a1a
+8c096d90  98 7d 0a 8c  addr 8c0a7d98
+8c096d94  d8 82 0f 8c  addr 8c0f82d8
+8c096d98  80 83 0f 8c  addr 8c0f8380
+8c096d9c  4b d2        mov.l 0x8c096ecc,r2
+8c096d9e  de 04        mov.l @(r0,r13),r4
+8c096da0  fe 56        mov.l @(0x38,r15),r6

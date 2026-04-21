@@ -1,0 +1,255 @@
+offset_hex	offset_dec	text
+-	-	[bootstrap_dns_login]
+0x00174050	1523792	ISP Login ID incorrect.
+0x0017409c	1523868	ISP Login Password incorrect.
+0x001742f8	1524472	PPPoE Login ID incorrect.
+0x00175c70	1530992	Now Connecting to Server....
+0x00175cbc	1531068	Use DNS and Connect to Bootstrap Server
+0x00175ce4	1531108	User IP-Add Connect to Bootstrap Server
+0x00176000	1531904	Could not Init ADNS Lib.
+0x00176030	1531952	Could not get ADNS Ticket.
+0x00176064	1532004	ADNS Timeout.
+0x0017608c	1532044	Could not found Server Address.
+0x001760e8	1532136	Unkown ADNS Error.
+0x001785a0	1541536	Network Connection Information.
+0x001786bc	1541820	CKageApp:: Failed LoginToKage.
+0x00178840	1542208	SegaNet subscription required. 
+0x00178894	1542292	Failed to Logon to game server.
+0x001788b4	1542324	Specified server domain name is
+0x00178964	1542500	The kkLoginClient() function went wrong.
+0x00178ad8	1542872	Can't get Kage Server IP Addres from DNS.
+0x00178b04	1542916	CKageApp: Login Faile KK_NOT_FIND_GAMECLASS.
+0x00178b34	1542964	CKageApp: Login Faile KK_INVALID_TOKEN.
+0x00178b5c	1543004	CKageApp: Login Faile KK_INVALID_LOGIN.
+0x00178b84	1543044	CKageApp: Login Faile KK_TIME_OUT_LOGIN.
+0x00178bb0	1543088	CKageApp: Login Faile Bad User-Name.
+0x00178bd8	1543128	CKageApp: Login Faile User Age was under 13.
+0x00178c08	1543176	CKageApp: Login Faile call kkLoginClient().
+0x00178db4	1543604	Completed LoginToServer on UserID %d.
+0x00178ddc	1543644	Fail LoginToServer Request.
+0x00178ef0	1543920	Connection timed out.
+0x00178fc0	1544128	Could not set-up the DNS system
+0x00179494	1545364	trConnect() Error ...!!! 
+0x001796fc	1545980	Connection speed : 
+-	-	[transport_and_ppp]
+0x0016def0	1498864	FM_UTL_PPPOE.BIN
+0x001742f8	1524472	PPPoE Login ID incorrect.
+0x0017434c	1524556	PPPoE Password incorrect.
+0x00175e30	1531440	Cancel the ISP connection?
+0x00177324	1536804	Warning before network connection
+0x00177417	1537047	disconnections. 
+0x00178a90	1542800	CKageApp:: Do not use before CNgnPPP initialized.
+0x00178f78	1544056	Could not set-up the dial params
+0x00178fe0	1544160	Could not set-up a static DC LAN configuration
+0x00179010	1544208	Timed out looking for a DHCP/PPPoE server
+0x0017903c	1544252	Could not initialise the DHCP system
+0x00179064	1544292	Failed to negotiate with a DHCP server
+0x0017908c	1544332	Could not initialise the PPPoE system
+0x001790b4	1544372	Failed to start a PPP session with the PPPoE server
+0x001790e8	1544424	Could not initialise the modem script
+0x00179110	1544464	No dial tone detected.
+0x00179128	1544488	Please make sure your telephone
+0x00179167	1544551	modem configuration is correct.
+0x00179194	1544596	Please make sure your telephone
+0x001791d3	1544659	modem configuration is correct.
+0x00179208	1544712	Please make sure your telephone
+0x00179247	1544775	modem configuration is correct.
+0x00179268	1544808	PPP initialisation failed.
+0x00179284	1544836	PPP negotiation failed.
+0x0017929c	1544860	User cancelled the connection.
+0x001792ec	1544940	User closed the connection.
+0x001794b0	1545392	Probing for a Dreamcast LAN adapter...
+0x001794d8	1545432	Probing for an external modem...
+0x001794fc	1545468	Probing for a serial RAS or PPP connection...
+0x0017952c	1545516	Probing for an internal Dreamcast modem...
+0x00179558	1545560	Now Probing Transport Devices...
+0x0017957c	1545596	Dialing primary number:
+0x00179598	1545624	Primary dial attempt failed...
+0x001795d8	1545688	Secondary dial attempt failed...
+0x0017961c	1545756	Locating a DHCP or PPPoE server...
+0x00179642	1545794	Requesting an IP address from the DHCP server...
+0x00179676	1545846	Locating a PPPoE server for PPP negotiation...
+0x001796a8	1545896	Establishing a serial PPP connection...
+0x001796d2	1545938	(Press B button to cancel the connection)
+0x0017971e	1546014	Negotiating PPP connection...
+0x00179750	1546064	Closing PPP connection...
+0x001797b8	1546168	Recive DisconnectionCallback ().
+0x001797dc	1546204	But yet request connection now.
+0x0017af38	1552184	PPP Serial
+0x0017e094	1564820	SOPLANUCAS
+0x00181290	1577616	CPartsExtraDialog
+0x00182a2f	1583663	?CPartsNetworkDialog
+0x00184578	1590648	DC LAN DHCP
+0x00184584	1590660	DC LAN PPPoE
+0x00184660	1590880	DC LAN not connected
+0x001846d8	1591000	Unknown DC LAN speed
+0x0018bcc0	1621184	PPP_AHDLC
+0x0018bfb9	1621945	NexGenPPPoE Ver.1.2 Build:Dec 18 2000 14:06:48
+0x0018bfec	1621996	NexGenPPPoE v1.2
+0x0018c155	1622357	NexGenPPP Ver.1.2 Build:Jan 24 2001 16:10:07
+0x0018c184	1622404	NexGenPPP v1.2
+0x001b413b	1786171	LANC error
+0x001bbe8c	1818252	NETHERLANDS
+0x001bbf64	1818468	NEWZEALAND
+0x001bc1f3	1819123	+ICELAND
+0x0025c845	2476101	modem Ver 1.0311 Build:Oct 03 2000 02:35:49
+0x0025dbb8	2481080	Sega BuiltIn modem
+0x0025e8c4	2484420	PROTOCOL: PPP
+0x0025e8d4	2484436	PROTOCOL: MLPPP
+0x0025f120	2486560	Problem accessing CardBus modem section.
+0x0025f4fc	2487548	Dial number : 
+-	-	[lobby_matchmaking]
+0x00175e80	1531520	Requeset Fail to Join %d [%s] lobby
+0x00175ea8	1531560	ERROR: Fail Leave From Lobby Requet.
+0x001789dc	1542620	LOBBY LISTED CKageApp::Kage_Lobby_Listed ()
+0x00178a08	1542664	LOBBY LISTED CKageApp::Kage_Lobby_Joined ()
+0x00178a34	1542708	QUERY ATTRIBUTE CKageApp::Kage_Lobby_Joined ()
+0x00178a64	1542756	QUERY USERIN CKageApp::Kage_Lobby_Joined ()
+0x00178c48	1543240	REQUEST:: QueryLobbyRequest in  CKageApp::Status_RequestLobbyList ()
+0x00178c90	1543312	Complete QueryLobbyRequest (). I get Lobbies Lists
+0x00178cc4	1543364	ERROR:: Faile QueryLobbyRequest ()
+0x00178ce8	1543400	ERROR:: Can't Find Any Lobby on QueryLobbyRequest ()
+0x00179e70	1547888	Could not do request CreateLobbyObj
+0x00179e98	1547928	LOBBY CREATE REQUESTED
+0x00179eb0	1547952	LOBBY CREATE COMPLETED
+0x00179ec8	1547976	LOBBY CREATE FAILED
+0x00179edc	1547996	LOBBY DELETE REQUESTED
+0x00179ef4	1548020	LOBBY DELETE COMPLETED
+0x00179f0c	1548044	LOBBY DELETE FAILED
+0x00179f20	1548064	LOBBY JOIN REQUESTED
+0x00179f38	1548088	LOBBY JOIN COMPLETED
+0x00179f50	1548112	LOBBY JOIN FAILED
+0x00179f64	1548132	LOBBY LEAVE REQUESTED
+0x00179f7c	1548156	LOBBY LEAVE COMPLETED
+0x00179f94	1548180	LOBBY LEAVE FAILED
+0x00179fa8	1548200	LOBBY CHANGE ATTRIBUTE_REQUESTED
+0x00179fcc	1548236	LOBBY CHANGE ATTRIBUTE_COMPLETED
+0x00179ff0	1548272	LOBBY CHANGE ATTRIBUTE_FAILED
+0x0017a010	1548304	LOBBY QUERYLOBBIES REQUESTED
+0x0017a030	1548336	LOBBY QUERYLOBBIES COMPLETE
+0x0017a04c	1548364	LOBBY QUERYLOBBIES FAILED
+0x0017a068	1548392	LOBBY NOT_FOUND LOBBIES
+0x0017a080	1548416	LOBBY QUERYATTRIBUTE REQUESTED
+0x0017a0a0	1548448	LOBBY QUERYATTRIBUTE COMPLETED
+0x0017a0c0	1548480	LOBBY QUERYATTRIBUTE FAILED
+0x0017a0dc	1548508	LOBBY QUERYUSERIN REQUESTED
+0x0017a0f8	1548536	LOBBY QUERYUSERIN COMPLETE
+0x0017a114	1548564	LOBBY QUERYUSERIN FAILED
+0x0017a130	1548592	LOBBY NOT_FOUND USERIN
+0x0017a148	1548616	Created Lobby ObjectID: %x 
+0x0017a168	1548648	Fail Create Lobby Request.
+0x0017a184	1548676	Deleted Lobby ObjectID: %x 
+0x0017a1a4	1548708	Fail Delete Lobby Reqest
+0x0017a1e4	1548772	Joined Lobby ObjectID: %x 
+0x0017a200	1548800	Fail Join To Lobby Reqest
+0x0017a21c	1548828	Leaved Lobby ObjectID: %x 
+0x0017a238	1548856	Fail Leave From Lobby Reqest
+0x0017a258	1548888	Querry Lobby Call Back %d Lobbies 
+0x0017a27c	1548924	Lobby Name:%s User:%d
+0x0017a2c4	1548996	Fail Querry Lobby Call Back Request.
+0x0017a2ec	1549036	Lobby %d called %s.
+0x0017a304	1549060	Lobby %d have %d players.
+0x0017a320	1549088	Lobby %d have %d Game-Rooms.
+0x0017a360	1549152	Fail Query LobbyAttribute Request.
+0x0017a394	1549204	Fail Query User In Lobby Request.
+0x0017a3b8	1549240	Change Attribute Lobby ObjectID: %x 
+0x0017a3e0	1549280	Unkown Lobby ObjectID......ERROR?
+0x0017a404	1549316	Fail Change Lobby Attribute Request.
+0x0017a45c	1549404	CLobby:: Fail ChangeUserPropatyCallBack() Call!
+0x0017a48c	1549452	Lobby %d:%s Created.
+0x0017a4a4	1549476	Lobby %d Deleted.
+0x0017a4e0	1549536	Lobby %d Name to %s.
+0x0017a4f8	1549560	Lobby %d Join %d User.
+0x0017a510	1549584	Lobby %d have %d Rooms.
+0x00182c97	1584279	?CSelectLobby
+0x00182cba	1584314	L>CMenuLobby
+0x00187e4c	1605196	CPartsSelectLobby
+0x0018855b	1607003	?CPartsMenuLobby
+-	-	[room_matchmaking]
+0x00175ed0	1531600	Request QueryUserInRoomRequest()
+0x00175f7c	1531772	The number of players in this room has changed.
+0x00176214	1532436	%s has become the new room master.
+0x00178d48	1543496	ERROR:: Can't Find Any GameRooms on CKageApp::QueryRoomRequest ()
+0x0017987c	1546364	CGameRoom
+0x001798f0	1546480	ROOM CREATE_REQUESTED
+0x00179908	1546504	ROOM CREATE_COMPLETED
+0x00179920	1546528	ROOM CREATE_FAILE
+0x00179934	1546548	ROOM DELETE_REQUESTED
+0x0017994c	1546572	ROOM DELETE_COMPLETED
+0x00179964	1546596	ROOM DELETE_FAILED
+0x00179978	1546616	ROOM JOIN_REQUESTED
+0x0017998c	1546636	ROOM JOIN_COMPLETED
+0x001799a0	1546656	ROOM JOIN_FAILED
+0x001799b4	1546676	ROOM LEAVE_REQUESTED
+0x001799cc	1546700	ROOM LEAVE_COMPLETED
+0x001799e4	1546724	ROOM LEAVE_FAILED
+0x001799f8	1546744	ROOM ATTRIBUTE_REQUESTED
+0x00179a14	1546772	ROOM ATTRIBUTE_COMPLETE
+0x00179a2c	1546796	ROOM ATTRIBUTE_FAILED
+0x00179a44	1546820	ROOM QUERYROOMS_REQUESTED
+0x00179a60	1546848	ROOM QUERYROOMS_COMPLETED
+0x00179a7c	1546876	ROOM QUERYROOMS_FAILED
+0x00179a94	1546900	ROOM NOT_FOUND_ROOMS
+0x00179aac	1546924	ROOM QUERYATTRIBUTE_REQUESTED
+0x00179acc	1546956	ROOM QUERYATTRIBUTE_COMPLETED
+0x00179aec	1546988	ROOM QUERYATTRIBUTE_FAILED
+0x00179b08	1547016	ROOM QUERYUSERIN_REQUESTED
+0x00179b24	1547044	ROOM QUERYUSERIN_COMPLETED
+0x00179b40	1547072	ROOM QUERYUSERIN_FAILED
+0x00179b58	1547096	ROOM FOUND_USERIN
+0x00179b6c	1547116	Created GameRoom ObjectID: %x 
+0x00179b8c	1547148	Fail Create GameRoom Request.
+0x00179bac	1547180	Deleted GameRoom ObjectID: %x 
+0x00179bcc	1547212	Fail Delete GameRoom Request.
+0x00179bec	1547244	Joined To GameRoom ObjectID: %d
+0x00179c0c	1547276	Fail Join To GameRoom Request.
+0x00179c2c	1547308	Leaved From GameRoom ObjectID: %d
+0x00179c50	1547344	Fail Leave From GameRoom Request.
+0x00179c74	1547380	Querry GameRoom Call Back %d Rooms 
+0x00179c9c	1547420	GameRoom Name:%s User:%d Max:%d
+0x00179cc0	1547456	Fail Querry GameRoom Call Back Request.
+0x00179ce8	1547496	Query Attribute GameRoom ObjectID: %x 
+0x00179d10	1547536	Change RoomName to %s
+0x00179d28	1547560	Change Room Attribute
+0x00179d6c	1547628	Unkown GameRoom ObjectID......ERROR?
+0x00179d94	1547668	Fail Query GameRoom Attribute Request.
+0x00179dbc	1547708	Completed CGameRoom::QueryUserInRoomCallBack()
+0x00179dec	1547756	Fail Query User In GameRoom Request.
+0x00179e14	1547796	Change Attribute GameRoom ObjectID: %x 
+0x00179e40	1547840	Fail Change GameRoom Attribute Request.
+-	-	[rules_and_game_start]
+0x00175584	1529220	---- Start Game a Sync Time! ----
+0x001755f8	1529336	---- Hyper Rule Update and Game End! ----
+0x00175638	1529400	---- Normal Rule Update History and Game End! ----
+0x00176138	1532216	--- Svr Settled Recv Dead Bits %ld
+0x0017615c	1532252	--- Svr Completed ed Recv Dead Bits %ld
+0x00176184	1532292	The room master has set new rules.
+0x00177348	1536840	Operational Rules 
+0x00177520	1537312	Operational Rules 
+0x00177533	1537331	The servers have the following rules. 
+0x0017757e	1537406	you MUST follow these rules. 
+0x0017759c	1537436	Violation of these rules can result in a
+0x001775f0	1537520	1.Remember any rule can be 
+0x0017770c	1537804	The following rules are designed to 
+0x0017782f	1538095	  Any violation of these rules will
+0x001798b0	1546416	 PlayGame
+0x001798c4	1546436	 SERVER_START
+0x0017ff84	1572740	CSetGameRule
+0x00182d52	1584466	L>CSetupRule
+0x00182d90	1584528	CCheckRule
+0x0018606f	1597551	>CPartsSetGameRule
+0x0018a7a7	1615783	?CPartsSetupRule
+0x0018b1ba	1618362	*>CPartsCheckRule
+-	-	[results_disconnects]
+0x001754f8	1529080	All Battle End. Send Signal CLI_SET_SETTLED.
+0x00175698	1529496	---- End Game Play ----
+0x00175fb0	1531824	Returned to the game room due to lack of players.
+0x00176cd8	1535192	CExitMenuYouLose
+0x00176d98	1535384	CVictory_Paper
+0x00176da8	1535400	CVictory
+0x00176db4	1535412	CVictory_Parade
+0x00176dc4	1535428	CVictory_Tossing
+0x00178ef0	1543920	Connection timed out.
+0x00178f30	1543984	Kicked out by Room and Disconnected.
+0x00178f58	1544024	Disconnected by Server Request.
+0x0017976c	1546092	BBA Network Disconnected ...!!! 

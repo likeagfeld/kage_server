@@ -18,32 +18,108 @@
 */
 #include "bomberman.h"
 #include "log.h"
+#include <algorithm>
+#include <filesystem>
+#include <fstream>
 #include <numeric>
+#include <sstream>
 
 using namespace std::chrono_literals;
 
+namespace {
+constexpr uint32_t BombermanBotIdBase = 0x0B000000;
+constexpr uint32_t BombermanStatusPending = 0;
+constexpr uint32_t BombermanStatusAccepted = 3;
+constexpr auto AdminPollInterval = 500ms;
+constexpr auto BombermanInGameLivenessInterval = 1s;
+constexpr uint32_t BombermanInGameLivenessValue = 0x10000000u;
+constexpr uint32_t BombermanGameFramesPerSecond = 60;
+constexpr const char *BombermanBotAdminPath = "tools/state/bomberman_bots.ini";
+constexpr const char *BombermanBotRuntimePath = "tools/state/bomberman_runtime.ini";
+
+struct BombermanBotConfig
+{
+	uint32_t desiredCount = 0;
+	std::string prefix = "CPU";
+	uint32_t roomId = 0;
+};
+
+std::string trimCopy(const std::string& value)
+{
+	const size_t begin = value.find_first_not_of(" \t\r\n");
+	if (begin == std::string::npos)
+		return "";
+	const size_t end = value.find_last_not_of(" \t\r\n");
+	return value.substr(begin, end - begin + 1);
+}
+
+BombermanBotConfig loadBotConfig()
+{
+	BombermanBotConfig config;
+	std::ifstream in(BombermanBotAdminPath);
+	if (!in.is_open())
+		return config;
+
+	std::string line;
+	while (std::getline(in, line))
+	{
+		line = trimCopy(line);
+		if (line.empty() || line[0] == '#')
+			continue;
+		const size_t sep = line.find('=');
+		if (sep == std::string::npos)
+			continue;
+		const std::string key = trimCopy(line.substr(0, sep));
+		const std::string value = trimCopy(line.substr(sep + 1));
+		if (key == "desired_bot_count")
+			config.desiredCount = (uint32_t)std::max(0, atoi(value.c_str()));
+		else if (key == "bot_name_prefix" && !value.empty())
+			config.prefix = value;
+		else if (key == "room_id")
+			config.roomId = (uint32_t)std::max(0, atoi(value.c_str()));
+	}
+	return config;
+}
+
+}
+
 BMRoom::BMRoom(Lobby& lobby, uint32_t id, const std::string& name, uint32_t attributes, Player *owner, asio::io_context& io_context)
-	: Room(lobby, id, name, attributes, owner, io_context), timer(io_context)
+	: Room(lobby, id, name, attributes, owner, io_context), timer(io_context), matchTimer(io_context)
 {
 	// needed after the owner is added in the parent constructor
 	updateSlots();
+	resetMatchSync();
 }
 
 void BMRoom::addPlayer(Player *player) {
 	Room::addPlayer(player);
 	updateSlots();
+	refreshSyncPlayers();
+	SyncPlayerState& state = syncPlayers[player->getId()];
+	state.roomJoined = players.size() == 1;
+	state.roomJoinPendingAck = false;
+	resetMatchSync();
 }
 bool BMRoom::removePlayer(Player *player)
 {
+	Player *previousOwner = owner;
 	bool b = Room::removePlayer(player);
 	updateSlots();
+	if (!b && previousOwner != owner && owner != nullptr)
+		broadcastOwnerChange();
+	resetMatchSync();
 	return b;
 }
 uint32_t BMRoom::getPlayerCount() const {
+	return getHumanSlotCount() + (uint32_t)bots.size();
+}
+
+uint32_t BMRoom::getHumanSlotCount() const
+{
 	return std::accumulate(slots.begin(), slots.end(), 0);
 }
 
-void BMRoom::sendUdpPacketA(Packet& packet, Player *player)
+void BMRoom::sendUdpPacketA(Packet& packet)
 {
 	UdpCommand cmd {};
 	cmd.command = 0xA;		// player joined?
@@ -63,6 +139,12 @@ void BMRoom::sendUdpPacketA(Packet& packet, Player *player)
 			// playerId [0-7]
 			packet.writeData(pos + i);		// FIXME different from udp_8 but looks better.
 	}
+	for (size_t i = 0; i < bots.size(); i++)
+	{
+		packet.writeData(bots[i].id);
+		packet.writeData(1u);
+		packet.writeData((uint32_t)getBotPosition(i));
+	}
 }
 
 // owner: needs pkt8 only at creation
@@ -71,10 +153,11 @@ void BMRoom::sendUdpPacketA(Packet& packet, Player *player)
 //         but pktA doesn't work -> player occupies all slots
 void BMRoom::createJoinRoomReply(Packet& reply, Packet& relay, Player *player)
 {
+	(void)relay;
 	UdpCommand cmd{};
 	cmd.command = 8;	// player list?
 	reply.init(Packet::REQ_CHAT);
-	reply.flags |= Packet::FLAG_RUDP | Packet::FLAG_CONTINUE;
+	reply.flags |= Packet::FLAG_RUDP;
 	reply.writeData(cmd.full);
 	reply.writeData((uint16_t)0);			// flag?
 	reply.writeData(player->getId());		// player kage id
@@ -89,31 +172,226 @@ void BMRoom::createJoinRoomReply(Packet& reply, Packet& relay, Player *player)
 	reply.writeData(++pos);
 	for (unsigned i = 1; i < slots; i++)
 		reply.writeData(++pos);
+}
 
-	// FIXME trying to send A after that => current player now occupies 2 slot groups...
-	// not needed for owner at creation
-	if (player != owner)
-		sendUdpPacketA(reply, player);
+void BMRoom::writeRoomAttr(Packet& packet, const char attr[4]) const
+{
+	packet.init(Packet::REQ_CHG_ROOM_ATTR);
+	packet.writeData(getId());
+	packet.writeData(attr, 4);
+	if (!memcmp(attr, "STAT", 4))
+		packet.writeData(getAttributes());
+	else if (!memcmp(attr, "NAME", 4))
+		packet.writeData(getName().c_str(), 0x10);
+	else if (!memcmp(attr, "MAXI", 4))
+		packet.writeData(getMaxPlayers());
+	else if (!memcmp(attr, "USER", 4))
+		packet.writeData(getPlayerCount());
+}
 
-	// FIXME works for the room members, but also needed for the joining player?
-	sendUdpPacketA(relay, player);
-	// tried C,D no effect?
-	// F -> game responds with accept new rules
-	// 10 no effect
-	// 12 -> a game could not be started
-	// E -> new room master (doesn't seem required)
-/*
-	if (player == owner)
+void BMRoom::sendRoomAttrSyncTo(Player *player) const
+{
+	Packet packet;
+	writeRoomAttr(packet, "STAT");
+	writeRoomAttr(packet, "NAME");
+	writeRoomAttr(packet, "MAXI");
+	writeRoomAttr(packet, "USER");
+	INFO_LOG(Game::Bomberman, "%s: joiner seq -> %s [%x] attrs STAT,NAME,MAXI,USER",
+		name.c_str(), player->getName().c_str(), player->getId());
+	player->send(packet);
+}
+
+void BMRoom::sendLobbyJoinEventTo(Player *recipient, const Player *subject) const
+{
+	Packet packet;
+	packet.init(Packet::REQ_JOIN_LOBBY_ROOM);
+	packet.flags |= Packet::FLAG_LOBBY;
+	packet.writeData(subject->getName().c_str(), 0x10);
+	packet.writeData(subject->getId());
+	const auto& extra = subject->getExtraData();
+	packet.writeData((uint32_t)extra.size());
+	packet.writeData(extra.data(), (int)extra.size());
+	INFO_LOG(Game::Bomberman, "%s: joiner seq -> %s [%x] seeds lobby occupant %s [%x]",
+		name.c_str(), recipient->getName().c_str(), recipient->getId(),
+		subject->getName().c_str(), subject->getId());
+	recipient->send(packet);
+}
+
+void BMRoom::sendRoomJoinEventTo(Player *recipient, const Player *subject) const
+{
+	Packet packet;
+	packet.init(Packet::REQ_JOIN_LOBBY_ROOM);
+	packet.writeData(subject->getName().c_str(), 0x10);
+	packet.writeData(subject->getId());
+	const auto& extra = subject->getExtraData();
+	packet.writeData((uint32_t)extra.size());
+	packet.writeData(extra.data(), (int)extra.size());
+	INFO_LOG(Game::Bomberman, "%s: joiner seq -> %s [%x] sees occupant %s [%x]",
+		name.c_str(), recipient->getName().c_str(), recipient->getId(),
+		subject->getName().c_str(), subject->getId());
+	recipient->send(packet);
+}
+
+void BMRoom::sendLobbyUserSnapshotTo(Player *player) const
+{
+	Packet packet;
+	packet.init(Packet::REQ_QRY_USERS);
+	packet.flags |= Packet::FLAG_LOBBY;
+	packet.writeData(0u);
+	packet.writeData(0u);
+	packet.writeData((uint32_t)lobby.getPlayers().size());
+	for (const Player *lobbyPlayer : lobby.getPlayers())
 	{
-		cmd.command = 0xE;	// new room master
-		reply.init(Packet::REQ_CHAT);
-		reply.flags |= Packet::FLAG_RUDP;
-		reply.writeData(cmd.full);
-		reply.writeData((uint16_t)0);
-		reply.writeData(owner->getId());		// room owner kage id
-		reply.writeData((uint32_t)getPlayerPosition(owner)); // room owner player pos
+		packet.writeData(lobbyPlayer->getName().c_str(), 0x10);
+		packet.writeData(lobbyPlayer->getId());
+		const auto& extra = lobbyPlayer->getExtraData();
+		packet.writeData((uint32_t)extra.size());
+		packet.writeData(extra.data(), (int)extra.size());
 	}
-*/
+	INFO_LOG(Game::Bomberman, "%s: joiner seq -> %s [%x] lobby user snapshot count=%zu",
+		name.c_str(), player->getName().c_str(), player->getId(), lobby.getPlayers().size());
+	player->send(packet);
+}
+
+void BMRoom::sendUserPropTo(Player *recipient, const Player *subject, bool lobbyScoped) const
+{
+	const auto& extra = subject->getExtraData();
+	if (extra.empty())
+		return;
+
+	Packet packet;
+	packet.init(Packet::REQ_CHG_USER_PROP);
+	packet.flags |= Packet::FLAG_RUDP | Packet::FLAG_RELAY;
+	if (lobbyScoped)
+		packet.flags |= Packet::FLAG_LOBBY;
+	write32(packet.data, packet.startOffset + 4, subject->getId());
+	packet.writeData(extra.data(), (int)extra.size());
+	INFO_LOG(Game::Bomberman, "%s: %s prop -> %s [%x] from %s [%x] extra=%u",
+		name.c_str(), lobbyScoped ? "lobby" : "room", recipient->getName().c_str(), recipient->getId(),
+		subject->getName().c_str(), subject->getId(), (uint32_t)extra.size());
+	recipient->send(packet);
+}
+
+void BMRoom::sendUserStatusTo(Player *recipient, const Player *subject, bool lobbyScoped) const
+{
+	Packet packet;
+	packet.init(Packet::REQ_CHG_USER_STATUS);
+	packet.flags |= Packet::FLAG_RUDP | Packet::FLAG_RELAY;
+	if (lobbyScoped)
+		packet.flags |= Packet::FLAG_LOBBY;
+	write32(packet.data, packet.startOffset + 4, subject->getId());
+	packet.writeData(subject->getStatus());
+	INFO_LOG(Game::Bomberman, "%s: %s status -> %s [%x] from %s [%x] status=%08x",
+		name.c_str(), lobbyScoped ? "lobby" : "room", recipient->getName().c_str(), recipient->getId(),
+		subject->getName().c_str(), subject->getId(), subject->getStatus());
+	recipient->send(packet);
+}
+
+void BMRoom::sendExistingOccupantsToJoiner(Player *player) const
+{
+	for (const Player *occupant : players)
+	{
+		if (occupant == player)
+			continue;
+		sendLobbyJoinEventTo(player, occupant);
+		sendUserPropTo(player, occupant, true);
+		sendUserStatusTo(player, occupant, true);
+		sendRoomJoinEventTo(player, occupant);
+		sendUserPropTo(player, occupant, false);
+		sendUserStatusTo(player, occupant, false);
+	}
+}
+
+void BMRoom::sendUserSnapshotTo(Player *player) const
+{
+	Packet packet;
+	packet.init(Packet::REQ_QRY_USERS);
+	packet.writeData(0u);
+	packet.writeData(0u);
+	packet.writeData(getQueryableUserCount(player));
+	appendQueryableUsers(packet, player);
+	INFO_LOG(Game::Bomberman, "%s: room user snapshot -> %s [%x] count=%u",
+		name.c_str(), player->getName().c_str(), player->getId(), getQueryableUserCount(player));
+	player->send(packet);
+}
+
+void BMRoom::sendJoinInitTo(Player *player)
+{
+	Packet packet;
+	Packet ignored;
+	createJoinRoomReply(packet, ignored, player);
+	if (packet.empty())
+		return;
+
+	refreshSyncPlayers();
+	SyncPlayerState& state = syncPlayers[player->getId()];
+	if (players.size() == 1 && player == owner)
+	{
+		state.roomJoined = true;
+		state.roomJoinPendingAck = false;
+	}
+	else
+	{
+		state.roomJoined = false;
+		state.roomJoinPendingAck = true;
+		player->notifyRoomOnAck();
+	}
+
+	INFO_LOG(Game::Bomberman, "%s: joiner seq -> %s [%x] udp8 owner=%x pos=%d slots=%d",
+		name.c_str(), player->getName().c_str(), player->getId(), owner->getId(),
+		getPlayerPosition(player), getSlotCount(player));
+	player->send(packet);
+}
+
+void BMRoom::sendJoinSequenceTo(Player *player)
+{
+	sendRoomAttrSyncTo(player);
+	sendJoinInitTo(player);
+	sendLobbyUserSnapshotTo(player);
+	sendExistingOccupantsToJoiner(player);
+	sendUserSnapshotTo(player);
+	if (players.size() > 1)
+	{
+		Packet rosterPacket;
+		sendUdpPacketA(rosterPacket);
+		INFO_LOG(Game::Bomberman, "%s: joiner seq -> %s [%x] udpA host_count=%u",
+			name.c_str(), player->getName().c_str(), player->getId(), getHostCount());
+		player->send(rosterPacket);
+	}
+}
+
+void BMRoom::broadcastHumanJoin(Player *player)
+{
+	if (players.size() <= 1)
+		return;
+
+	Packet updatePacket;
+	updatePacket.init(Packet::REQ_JOIN_LOBBY_ROOM);
+	updatePacket.writeData(player->getName().c_str(), 0x10);
+	updatePacket.writeData(player->getId());
+	const auto& extra = player->getExtraData();
+	updatePacket.writeData((uint32_t)extra.size());
+	updatePacket.writeData(extra.data(), (int)extra.size());
+	writeRoomAttr(updatePacket, "USER");
+	INFO_LOG(Game::Bomberman, "%s: broadcast join seq -> existing occupants new player %s [%x], recipients=%zu",
+		name.c_str(), player->getName().c_str(), player->getId(), players.size() - 1);
+	Player::sendToAll(updatePacket, players, player);
+
+	for (Player *occupant : players)
+	{
+		if (occupant != player)
+		{
+			sendUserPropTo(occupant, player, false);
+			sendUserStatusTo(occupant, player, false);
+			sendUserSnapshotTo(occupant);
+		}
+	}
+
+	Packet rosterPacket;
+	sendUdpPacketA(rosterPacket);
+	INFO_LOG(Game::Bomberman, "%s: broadcast join seq -> existing occupants udpA for %s [%x]",
+		name.c_str(), player->getName().c_str(), player->getId());
+	Player::sendToAll(rosterPacket, players, player);
 }
 
 int BMRoom::getSlotCount(const Player *player) const
@@ -132,21 +410,930 @@ int BMRoom::getPlayerPosition(const Player *player) const
 	return std::accumulate(slots.begin(), slots.begin() + idx, 0);
 }
 
+int BMRoom::getBotPosition(size_t index) const
+{
+	return (int)getHumanSlotCount() + (int)index;
+}
+
+uint8_t BMRoom::getOccupiedSlotMask() const
+{
+	uint8_t mask = 0;
+	for (const Player *player : players)
+	{
+		const int pos = getPlayerPosition(player);
+		const int count = getSlotCount(player);
+		for (int i = 0; i < count; i++)
+		{
+			const int slot = pos + i;
+			if (slot >= 0 && slot < 8)
+				mask |= (uint8_t)(1u << slot);
+		}
+	}
+	for (size_t i = 0; i < bots.size(); i++)
+	{
+		const int slot = getBotPosition(i);
+		if (slot >= 0 && slot < 8)
+			mask |= (uint8_t)(1u << slot);
+	}
+	return mask;
+}
+
+std::string BMRoom::buildBotName(const std::string& prefix, size_t index) const
+{
+	std::string clean = trimCopy(prefix);
+	if (clean.empty())
+		clean = "CPU";
+	std::ostringstream stream;
+	stream << clean << ' ' << (index + 1);
+	std::string name = stream.str();
+	if (name.size() > 16)
+		name.resize(16);
+	return name;
+}
+
+std::vector<uint8_t> BMRoom::buildBotExtraData() const
+{
+	const Player *templatePlayer = owner;
+	if (templatePlayer == nullptr && !players.empty())
+		templatePlayer = players.front();
+
+	std::vector<uint8_t> extra;
+	if (templatePlayer != nullptr)
+		extra = templatePlayer->getExtraData();
+
+	if (extra.size() < sizeof(uint32_t))
+		extra.resize(sizeof(uint32_t), 0);
+
+	// Bots act like single-slot passive players for now.
+	write32(extra.data(), 0, 0u);
+	return extra;
+}
+
+bool BMRoom::syncAdminBots(uint32_t desiredCount, const std::string& prefix)
+{
+	const std::vector<BotPlayer> previousBots = bots;
+	const uint32_t maxRoomSlots = getMaxPlayers() == 0 ? 8u : getMaxPlayers();
+	const uint32_t availableSlots = maxRoomSlots > getHumanSlotCount() ? maxRoomSlots - getHumanSlotCount() : 0u;
+	const uint32_t clampedCount = std::min(desiredCount, availableSlots);
+	bool changed = false;
+
+	if (bots.size() != clampedCount)
+	{
+		bots.resize(clampedCount);
+		changed = true;
+	}
+	for (size_t i = 0; i < bots.size(); i++)
+	{
+		BotPlayer updated;
+		updated.id = BombermanBotIdBase | ((getId() & 0xfff) << 8) | (uint32_t)i;
+		updated.name = buildBotName(prefix, i);
+		updated.extraData = buildBotExtraData();
+		if (bots[i].id != updated.id || bots[i].name != updated.name || bots[i].extraData != updated.extraData)
+		{
+			bots[i] = updated;
+			changed = true;
+		}
+	}
+	if (changed)
+	{
+		for (const BotPlayer& bot : previousBots)
+		{
+			const auto current = std::find_if(bots.begin(), bots.end(),
+				[&bot](const BotPlayer& candidate) { return candidate.id == bot.id; });
+			if (current == bots.end())
+				broadcastBotLeave(bot);
+		}
+		for (const BotPlayer& bot : bots)
+		{
+			const auto previous = std::find_if(previousBots.begin(), previousBots.end(),
+				[&bot](const BotPlayer& candidate) { return candidate.id == bot.id; });
+			if (previous == previousBots.end())
+				broadcastBotJoin(bot);
+		}
+		broadcastLobbyUserSnapshot();
+		broadcastUserCountChange();
+		broadcastUserSnapshot();
+		sendRosterUpdate();
+		resetMatchSync();
+	}
+	return changed;
+}
+
+void BMRoom::sendRosterUpdate()
+{
+	if (players.empty())
+		return;
+	Packet packet;
+	sendUdpPacketA(packet);
+	Player::sendToAll(packet, players);
+}
+
+void BMRoom::broadcastUserCountChange()
+{
+	if (players.empty())
+		return;
+
+	Packet packet;
+	packet.init(Packet::REQ_CHG_ROOM_ATTR);
+	packet.writeData(getId());
+	const uint8_t attr[] = { 'U', 'S', 'E', 'R' };
+	packet.writeData(attr, sizeof(attr));
+	packet.writeData(getPlayerCount());
+	Player::sendToAll(packet, players);
+	INFO_LOG(Game::Bomberman, "%s: broadcast user count change USER=%u", name.c_str(), getPlayerCount());
+}
+
+void BMRoom::broadcastUserSnapshot()
+{
+	if (players.empty())
+		return;
+
+	for (Player *player : players)
+		sendUserSnapshotTo(player);
+	INFO_LOG(Game::Bomberman, "%s: broadcast user snapshot count=%u", name.c_str(), getQueryableUserCount(nullptr));
+}
+
+void BMRoom::broadcastLobbyBotJoin(const BotPlayer& bot)
+{
+	if (players.empty())
+		return;
+
+	Packet packet;
+	packet.init(Packet::REQ_JOIN_LOBBY_ROOM);
+	packet.flags |= Packet::FLAG_LOBBY;
+	packet.writeData(bot.name.c_str(), 0x10);
+	packet.writeData(bot.id);
+	packet.writeData((uint32_t)bot.extraData.size());
+	packet.writeData(bot.extraData.data(), (int)bot.extraData.size());
+	Player::sendToAll(packet, players);
+	INFO_LOG(Game::Bomberman, "%s: seed lobby bot join %s [%x]", name.c_str(), bot.name.c_str(), bot.id);
+}
+
+void BMRoom::broadcastLobbyBotLeave(const BotPlayer& bot)
+{
+	if (players.empty())
+		return;
+
+	Packet packet;
+	packet.init(Packet::REQ_LEAVE_LOBBY_ROOM);
+	packet.flags |= Packet::FLAG_LOBBY;
+	packet.writeData(bot.id);
+	Player::sendToAll(packet, players);
+	INFO_LOG(Game::Bomberman, "%s: seed lobby bot leave %s [%x]", name.c_str(), bot.name.c_str(), bot.id);
+}
+
+void BMRoom::broadcastLobbyBotProp(const BotPlayer& bot)
+{
+	if (players.empty())
+		return;
+
+	Packet packet;
+	packet.init(Packet::REQ_CHG_USER_PROP);
+	packet.flags |= Packet::FLAG_RUDP | Packet::FLAG_RELAY | Packet::FLAG_LOBBY;
+	write32(packet.data, packet.startOffset + 4, bot.id);
+	packet.writeData(bot.extraData.data(), (int)bot.extraData.size());
+	Player::sendToAll(packet, players);
+	INFO_LOG(Game::Bomberman, "%s: seed lobby bot prop %s [%x] extra=%u", name.c_str(),
+		bot.name.c_str(), bot.id, (uint32_t)bot.extraData.size());
+}
+
+void BMRoom::broadcastLobbyUserSnapshot()
+{
+	if (players.empty())
+		return;
+
+	const auto& lobbyPlayers = lobby.getPlayers();
+	const uint32_t count = (uint32_t)lobbyPlayers.size() + (uint32_t)bots.size();
+	for (Player *player : players)
+	{
+		Packet packet;
+		packet.init(Packet::REQ_QRY_USERS);
+		packet.flags |= Packet::FLAG_LOBBY;
+		packet.writeData(0u);
+		packet.writeData(0u);
+		packet.writeData(count);
+		for (const Player *lobbyPlayer : lobbyPlayers)
+		{
+			packet.writeData(lobbyPlayer->getName().c_str(), 0x10);
+			packet.writeData(lobbyPlayer->getId());
+			const auto& extra = lobbyPlayer->getExtraData();
+			packet.writeData((uint32_t)extra.size());
+			packet.writeData(extra.data(), (int)extra.size());
+		}
+		for (const BotPlayer& bot : bots)
+		{
+			packet.writeData(bot.name.c_str(), 0x10);
+			packet.writeData(bot.id);
+			packet.writeData((uint32_t)bot.extraData.size());
+			packet.writeData(bot.extraData.data(), (int)bot.extraData.size());
+		}
+		player->send(packet);
+	}
+	INFO_LOG(Game::Bomberman, "%s: broadcast lobby user snapshot count=%u", name.c_str(), count);
+}
+
+void BMRoom::broadcastBotJoin(const BotPlayer& bot)
+{
+	if (players.empty())
+		return;
+
+	broadcastLobbyBotJoin(bot);
+	broadcastLobbyBotProp(bot);
+
+	Packet packet;
+	packet.init(Packet::REQ_JOIN_LOBBY_ROOM);
+	packet.writeData(bot.name.c_str(), 0x10);
+	packet.writeData(bot.id);
+	packet.writeData((uint32_t)bot.extraData.size());
+	packet.writeData(bot.extraData.data(), (int)bot.extraData.size());
+	sendUdpPacketA(packet);
+	Player::sendToAll(packet, players);
+
+	INFO_LOG(Game::Bomberman, "%s: broadcast bot join %s [%x] extra=%u", name.c_str(), bot.name.c_str(), bot.id, (uint32_t)bot.extraData.size());
+}
+
+void BMRoom::broadcastBotLeave(const BotPlayer& bot)
+{
+	if (players.empty())
+		return;
+
+	Packet packet;
+	packet.init(Packet::REQ_LEAVE_LOBBY_ROOM);
+	packet.writeData(bot.id);
+	sendUdpPacketA(packet);
+	Player::sendToAll(packet, players);
+	broadcastLobbyBotLeave(bot);
+	INFO_LOG(Game::Bomberman, "%s: broadcast bot leave %s [%x]", name.c_str(), bot.name.c_str(), bot.id);
+}
+
+uint32_t BMRoom::getQueryableUserCount(const Player *requester) const
+{
+	return Room::getQueryableUserCount(requester) + (uint32_t)bots.size();
+}
+
+void BMRoom::appendQueryableUsers(Packet& reply, const Player *requester) const
+{
+	Room::appendQueryableUsers(reply, requester);
+	for (const BotPlayer& bot : bots)
+	{
+		reply.writeData(bot.name.c_str(), 0x10);
+		reply.writeData(bot.id);
+		reply.writeData((uint32_t)bot.extraData.size());
+		reply.writeData(bot.extraData.data(), (int)bot.extraData.size());
+	}
+}
+
 void BMRoom::updateSlots()
 {
 	slots.clear();
 	for (const Player *player : players)
 	{
 		const auto& extra = player->getExtraData();
-		int slotCount = read32(extra.data(), 0) + 1;
+		int slotCount = extra.size() >= sizeof(uint32_t) ? (int)read32(extra.data(), 0) + 1 : 1;
 		slots.push_back(slotCount);
 	}
 }
 
+void BMRoom::refreshSyncPlayers()
+{
+	for (auto it = syncPlayers.begin(); it != syncPlayers.end(); )
+	{
+		const auto current = std::find_if(players.begin(), players.end(),
+			[it](const Player *player) { return player->getId() == it->first; });
+		if (current == players.end())
+			it = syncPlayers.erase(it);
+		else
+			++it;
+	}
+	for (const Player *player : players)
+		syncPlayers.try_emplace(player->getId());
+}
+
+void BMRoom::resetMatchSync()
+{
+	stopInGameLiveness();
+	stopMatchEndTimer();
+	refreshSyncPlayers();
+	for (auto& [id, state] : syncPlayers)
+	{
+		state.rulesAccepted = false;
+		state.startAcked = false;
+		state.postMapMarkerSeen = false;
+	}
+	syncState = SyncState::Idle;
+	gameTimeInfoSent = false;
+	battleEndSent = false;
+}
+
+bool BMRoom::allHumanPlayersJoined() const
+{
+	for (const Player *player : players)
+	{
+		const auto it = syncPlayers.find(player->getId());
+		if (it == syncPlayers.end() || !it->second.roomJoined)
+			return false;
+	}
+	return !players.empty();
+}
+
+bool BMRoom::allHumanPlayersAccepted() const
+{
+	for (const Player *player : players)
+	{
+		const auto it = syncPlayers.find(player->getId());
+		if (it == syncPlayers.end() || !it->second.rulesAccepted)
+			return false;
+	}
+	return !players.empty();
+}
+
+bool BMRoom::allPendingStartAcked() const
+{
+	for (const Player *player : players)
+	{
+		const auto it = syncPlayers.find(player->getId());
+		if (it == syncPlayers.end() || !it->second.startAcked)
+			return false;
+	}
+	return !players.empty();
+}
+
+bool BMRoom::allPostMapMarkersSeen() const
+{
+	for (const Player *player : players)
+	{
+		const auto it = syncPlayers.find(player->getId());
+		if (it == syncPlayers.end() || !it->second.postMapMarkerSeen)
+			return false;
+	}
+	return !players.empty();
+}
+
+uint32_t BMRoom::getPostMapMarkerCount() const
+{
+	uint32_t count = 0;
+	for (const Player *player : players)
+	{
+		const auto it = syncPlayers.find(player->getId());
+		if (it != syncPlayers.end() && it->second.postMapMarkerSeen)
+			count++;
+	}
+	return count;
+}
+
+void BMRoom::onRulesConfigured(Player *player, const uint8_t *p)
+{
+	setRules(p);
+	refreshSyncPlayers();
+	for (Player *pl : players)
+		pl->setStatus(BombermanStatusPending);
+	for (auto& [id, state] : syncPlayers)
+	{
+		state.rulesAccepted = false;
+		state.startAcked = false;
+		state.postMapMarkerSeen = false;
+	}
+	gameTimeInfoSent = false;
+	syncPlayers[player->getId()].rulesAccepted = true;
+	player->setStatus(BombermanStatusAccepted);
+	syncState = players.size() <= 1 ? SyncState::ReadyToStart : SyncState::RulesPending;
+
+	for (Player *recipient : players)
+	{
+		for (Player *subject : players)
+		{
+			if (recipient != subject)
+				sendUserStatusTo(recipient, subject, false);
+		}
+	}
+	broadcastOccupiedSlotMask("rules_configured");
+}
+
+bool BMRoom::acceptRules(Player *player)
+{
+	refreshSyncPlayers();
+	syncPlayers[player->getId()].rulesAccepted = true;
+	player->setStatus(BombermanStatusAccepted);
+	for (Player *recipient : players)
+	{
+		if (recipient != player)
+			sendUserStatusTo(recipient, player, false);
+	}
+	broadcastOccupiedSlotMask("rules_accepted");
+	if (allHumanPlayersAccepted())
+	{
+		syncState = SyncState::ReadyToStart;
+		return true;
+	}
+	return false;
+}
+
+bool BMRoom::updateRuleAcceptance(Player *player, bool accepted)
+{
+	refreshSyncPlayers();
+	syncPlayers[player->getId()].rulesAccepted = accepted;
+	if (allHumanPlayersAccepted())
+	{
+		syncState = SyncState::ReadyToStart;
+		return true;
+	}
+	syncState = players.size() <= 1 ? SyncState::ReadyToStart : SyncState::RulesPending;
+	return false;
+}
+
+bool BMRoom::canStartBattle() const
+{
+	return syncState == SyncState::ReadyToStart && getPlayerCount() >= 2 && allHumanPlayersJoined();
+}
+
+bool BMRoom::beginStartBattle(Player *player)
+{
+	if (player != owner)
+		return false;
+
+	refreshSyncPlayers();
+	for (auto& [id, state] : syncPlayers)
+	{
+		state.startAcked = false;
+		state.postMapMarkerSeen = false;
+	}
+	gameTimeInfoSent = false;
+	syncPlayers[player->getId()].startAcked = true;
+
+	if (players.size() <= 1)
+	{
+		syncState = SyncState::InGame;
+		return true;
+	}
+
+	for (Player *pl : players)
+	{
+		if (pl != player)
+			pl->notifyRoomOnAck();
+	}
+	syncState = SyncState::StartPending;
+	return true;
+}
+
+void BMRoom::rudpAcked(Player *player)
+{
+	refreshSyncPlayers();
+	SyncPlayerState& state = syncPlayers[player->getId()];
+	if (state.roomJoinPendingAck)
+	{
+		state.roomJoinPendingAck = false;
+		state.roomJoined = true;
+		INFO_LOG(Game::Bomberman, "%s: room join init acked by %s [%x] (%u/%zu joined)",
+			name.c_str(), player->getName().c_str(), player->getId(), getJoinedPlayerCount(), players.size());
+		if (players.size() > 1 && allHumanPlayersJoined())
+		{
+			broadcastOwnerKeyholderSync("room_join_complete");
+			broadcastOccupiedSlotMask("room_join_complete");
+		}
+	}
+
+	if (syncState != SyncState::StartPending)
+		return;
+
+	state.startAcked = true;
+	INFO_LOG(Game::Bomberman, "%s: start relay acked by %s (%u/%zu)", name.c_str(),
+		player->getName().c_str(), getStartAckCount(), players.size());
+	if (allPendingStartAcked())
+	{
+		syncState = SyncState::InGame;
+		INFO_LOG(Game::Bomberman, "%s: all human players acked start relay", name.c_str());
+	}
+}
+
+void BMRoom::notePostMapMarker(Player *player)
+{
+	if (player == nullptr)
+		return;
+
+	refreshSyncPlayers();
+	SyncPlayerState& state = syncPlayers[player->getId()];
+	if (!state.postMapMarkerSeen)
+	{
+		state.postMapMarkerSeen = true;
+		INFO_LOG(Game::Bomberman, "%s: post-map marker from %s [%x] (%u/%zu)",
+			name.c_str(), player->getName().c_str(), player->getId(), getPostMapMarkerCount(), players.size());
+	}
+
+	if (syncState == SyncState::InGame && !gameTimeInfoSent && allPostMapMarkersSeen())
+	{
+		gameTimeInfoSent = true;
+		// Live dumps showed that sending 0x14 immediately after 0x13 stops the
+		// map-block phase. Gate it behind both clients' post-map 0x0e markers.
+		broadcastGameTimeInfo("post_map_exchange", 0, 60 * 180, 0);
+		broadcastInGameLiveness("post_map_exchange");
+		startInGameLiveness();
+		startMatchEndTimer(60 * 180);
+	}
+}
+
+uint32_t BMRoom::getAcceptedRuleCount() const
+{
+	uint32_t count = 0;
+	for (const Player *player : players)
+	{
+		const auto it = syncPlayers.find(player->getId());
+		if (it != syncPlayers.end() && it->second.rulesAccepted)
+			count++;
+	}
+	return count;
+}
+
+uint32_t BMRoom::getStartAckCount() const
+{
+	uint32_t count = 0;
+	for (const Player *player : players)
+	{
+		const auto it = syncPlayers.find(player->getId());
+		if (it != syncPlayers.end() && it->second.startAcked)
+			count++;
+	}
+	return count;
+}
+
+uint32_t BMRoom::getJoinedPlayerCount() const
+{
+	uint32_t count = 0;
+	for (const Player *player : players)
+	{
+		const auto it = syncPlayers.find(player->getId());
+		if (it != syncPlayers.end() && it->second.roomJoined)
+			count++;
+	}
+	return count;
+}
+
+const char *BMRoom::getSyncStateName() const
+{
+	switch (syncState)
+	{
+	case SyncState::Idle:
+		return "idle";
+	case SyncState::RulesPending:
+		return "rules_pending";
+	case SyncState::ReadyToStart:
+		return "ready_to_start";
+	case SyncState::StartPending:
+		return "start_pending";
+	case SyncState::InGame:
+		return "in_game";
+	default:
+		return "unknown";
+	}
+}
+
+void BMRoom::sendOwnerKeyholderSyncTo(Player *player, const char *reason) const
+{
+	if (owner == nullptr || player == nullptr)
+		return;
+	const int ownerPos = getPlayerPosition(owner);
+	if (ownerPos < 0)
+		return;
+
+	Packet packet;
+	UdpCommand cmd {};
+	cmd.command = 0xE;
+	packet.init(Packet::REQ_CHAT);
+	packet.flags |= Packet::FLAG_RUDP;
+	packet.writeData(cmd.full);
+	packet.writeData((uint16_t)0);
+	packet.writeData(owner->getId());
+	packet.writeData((uint32_t)ownerPos);
+	INFO_LOG(Game::Bomberman, "%s: keyholder sync (%s) -> %s [%x] owner=%s [%x] pos=%d",
+		name.c_str(), reason != nullptr ? reason : "sync", player->getName().c_str(), player->getId(),
+		owner->getName().c_str(), owner->getId(), ownerPos);
+	player->send(packet);
+}
+
+void BMRoom::sendRuleBlobTo(Player *player, const char *reason, uint16_t ruleWord) const
+{
+	if (player == nullptr)
+		return;
+
+	Packet packet;
+	UdpCommand cmd {};
+	cmd.command = 0xB;
+	packet.init(Packet::REQ_CHAT);
+	packet.flags |= Packet::FLAG_RUDP;
+	packet.writeData(cmd.full);
+	packet.writeData(ruleWord);
+	packet.writeData(rules.data(), (int)rules.size());
+	INFO_LOG(Game::Bomberman, "%s: rule blob sync (%s) -> %s [%x] word=%04x rules=%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+		name.c_str(), reason != nullptr ? reason : "sync", player->getName().c_str(), player->getId(), ruleWord,
+		rules[0], rules[1], rules[2], rules[3], rules[4], rules[5], rules[6], rules[7], rules[8]);
+	player->send(packet);
+}
+
+void BMRoom::broadcastRuleBlob(const char *reason, uint16_t ruleWord) const
+{
+	for (Player *player : players)
+		sendRuleBlobTo(player, reason, ruleWord);
+}
+
+void BMRoom::sendOccupiedSlotMaskTo(Player *player, const char *reason) const
+{
+	if (player == nullptr)
+		return;
+
+	const uint32_t mask = getOccupiedSlotMask();
+	Packet packet;
+	UdpCommand cmd {};
+	cmd.command = 0x11;
+	cmd.size = 4;
+	packet.init(Packet::REQ_CHAT);
+	packet.flags |= Packet::FLAG_RUDP;
+	packet.writeData(cmd.full);
+	packet.writeData((uint16_t)0);
+	packet.writeData(mask);
+	INFO_LOG(Game::Bomberman, "%s: occupied slot mask sync (%s) -> %s [%x] mask=%02x",
+		name.c_str(), reason != nullptr ? reason : "sync", player->getName().c_str(), player->getId(), mask);
+	player->send(packet);
+}
+
+void BMRoom::broadcastOccupiedSlotMask(const char *reason) const
+{
+	for (Player *player : players)
+		sendOccupiedSlotMaskTo(player, reason);
+}
+
+void BMRoom::sendStartTransitionTo(Player *player, const char *reason, uint16_t startWord) const
+{
+	if (player == nullptr)
+		return;
+
+	// Server-to-client command 0x13 is the room-to-game transition path.
+	// Do not use command 0x0a here: on receive, 0x0a rebuilds the room slot table.
+	const uint32_t startToken = id;
+	Packet packet;
+	UdpCommand cmd {};
+	cmd.command = 0x13;
+	cmd.size = 4;
+	packet.init(Packet::REQ_CHAT);
+	packet.flags |= Packet::FLAG_RUDP;
+	packet.writeData(cmd.full);
+	packet.writeData(startWord);
+	packet.writeData(startToken);
+	INFO_LOG(Game::Bomberman, "%s: server start transition (%s) -> %s [%x] word=%04x token=%08x",
+		name.c_str(), reason != nullptr ? reason : "start", player->getName().c_str(), player->getId(),
+		startWord, startToken);
+	player->send(packet);
+}
+
+void BMRoom::broadcastStartTransition(const char *reason, uint16_t startWord) const
+{
+	for (Player *player : players)
+		sendStartTransitionTo(player, reason, startWord);
+}
+
+void BMRoom::sendGameTimeInfoTo(Player *player, const char *reason, uint32_t startFrame, uint32_t endFrame,
+	uint32_t commonFrame) const
+{
+	if (player == nullptr)
+		return;
+
+	Packet packet;
+	UdpCommand cmd {};
+	cmd.command = 0x14;
+	cmd.size = 12;
+	packet.init(Packet::REQ_CHAT);
+	packet.flags |= Packet::FLAG_RUDP;
+	packet.writeData(cmd.full);
+	packet.writeData((uint16_t)0);
+	packet.writeData(startFrame);
+	packet.writeData(endFrame);
+	packet.writeData(commonFrame);
+	INFO_LOG(Game::Bomberman,
+		"%s: game time sync (%s) -> %s [%x] start=%u end=%u common=%u",
+		name.c_str(), reason != nullptr ? reason : "sync", player->getName().c_str(), player->getId(),
+		startFrame, endFrame, commonFrame);
+	player->send(packet);
+}
+
+void BMRoom::broadcastGameTimeInfo(const char *reason, uint32_t startFrame, uint32_t endFrame,
+	uint32_t commonFrame) const
+{
+	for (Player *player : players)
+		sendGameTimeInfoTo(player, reason, startFrame, endFrame, commonFrame);
+}
+
+void BMRoom::sendInGameLivenessTo(Player *player, const char *reason) const
+{
+	if (player == nullptr)
+		return;
+
+	Packet packet;
+	UdpCommand cmd {};
+	cmd.command = 0x1c;
+	cmd.size = 4;
+	const uint8_t mask = getOccupiedSlotMask();
+	packet.init(Packet::REQ_CHAT);
+	packet.writeData(cmd.full);
+	packet.writeData((uint16_t)0);
+	packet.writeData(BombermanInGameLivenessValue);
+	packet.writeData(mask);
+	INFO_LOG(Game::Bomberman, "%s: in-game liveness sync (%s) -> %s [%x] value=%08x mask=%02x",
+		name.c_str(), reason != nullptr ? reason : "sync", player->getName().c_str(), player->getId(),
+		BombermanInGameLivenessValue, mask);
+	player->send(packet);
+}
+
+void BMRoom::broadcastInGameLiveness(const char *reason) const
+{
+	for (Player *player : players)
+		sendInGameLivenessTo(player, reason);
+}
+
+void BMRoom::startInGameLiveness()
+{
+	if (syncState != SyncState::InGame || players.empty())
+		return;
+
+	timer.expires_after(BombermanInGameLivenessInterval);
+	timer.async_wait(std::bind(&BMRoom::handleInGameLivenessTimer, this, asio::placeholders::error));
+}
+
+void BMRoom::stopInGameLiveness()
+{
+	timer.cancel();
+}
+
+void BMRoom::handleInGameLivenessTimer(const std::error_code& ec)
+{
+	if (ec || syncState != SyncState::InGame || players.empty())
+		return;
+
+	broadcastInGameLiveness("heartbeat");
+	startInGameLiveness();
+}
+
+void BMRoom::startMatchEndTimer(uint32_t endFrame)
+{
+	stopMatchEndTimer();
+	battleEndSent = false;
+	if (syncState != SyncState::InGame || players.empty() || endFrame == 0)
+		return;
+
+	const uint64_t milliseconds = ((uint64_t)endFrame * 1000u) / BombermanGameFramesPerSecond;
+	matchTimer.expires_after(std::chrono::milliseconds(milliseconds));
+	matchTimer.async_wait(std::bind(&BMRoom::handleMatchEndTimer, this, asio::placeholders::error));
+	INFO_LOG(Game::Bomberman, "%s: match-end timer armed frame=%u ms=%llu",
+		name.c_str(), endFrame, (unsigned long long)milliseconds);
+}
+
+void BMRoom::stopMatchEndTimer()
+{
+	matchTimer.cancel();
+}
+
+void BMRoom::handleMatchEndTimer(const std::error_code& ec)
+{
+	if (ec || syncState != SyncState::InGame || players.empty() || battleEndSent)
+		return;
+
+	broadcastBattleEndSequence("match_timer_expired");
+}
+
+void BMRoom::appendBattleStateCommand(Packet& packet, uint8_t command, uint32_t value) const
+{
+	UdpCommand cmd {};
+	cmd.command = command;
+	cmd.size = command == 0x15 ? 0 : 4;
+	packet.init(Packet::REQ_CHAT);
+	packet.flags |= Packet::FLAG_RUDP;
+	packet.writeData(cmd.full);
+	packet.writeData((uint16_t)0);
+	if (cmd.size != 0)
+		packet.writeData(value);
+}
+
+void BMRoom::sendBattleEndSequenceTo(Player *player, const char *reason) const
+{
+	if (player == nullptr)
+		return;
+
+	Packet packet;
+	// Binary receive handlers: 0x16 consumes settled dead bits, 0x19 consumes
+	// completed dead bits, and 0x15 advances the battle end state machine.
+	appendBattleStateCommand(packet, 0x16, 0);
+	appendBattleStateCommand(packet, 0x19, 0);
+	appendBattleStateCommand(packet, 0x15, 0);
+	INFO_LOG(Game::Bomberman, "%s: battle end sequence (%s) -> %s [%x] deadbits=00000000",
+		name.c_str(), reason != nullptr ? reason : "end", player->getName().c_str(), player->getId());
+	player->send(packet);
+}
+
+void BMRoom::broadcastBattleEndSequence(const char *reason)
+{
+	if (battleEndSent)
+		return;
+	battleEndSent = true;
+	for (Player *player : players)
+		sendBattleEndSequenceTo(player, reason);
+}
+
+void BMRoom::broadcastOwnerKeyholderSync(const char *reason) const
+{
+	for (Player *player : players)
+		sendOwnerKeyholderSyncTo(player, reason);
+}
+
+void BMRoom::broadcastOwnerChange() const
+{
+	broadcastOwnerKeyholderSync("owner_change");
+}
+
 
 BombermanServer::BombermanServer(uint16_t port, asio::io_context& io_context)
-	: LobbyServer(Game::Bomberman, port, io_context)
+	: LobbyServer(Game::Bomberman, port, io_context), adminTimer(io_context)
 {
+	pollAdminState({});
+}
+
+void BombermanServer::pollAdminState(const std::error_code& ec)
+{
+	if (ec)
+		return;
+	syncAdminState();
+	adminTimer.expires_after(AdminPollInterval);
+	adminTimer.async_wait(std::bind(&BombermanServer::pollAdminState, this, asio::placeholders::error));
+}
+
+void BombermanServer::syncAdminState()
+{
+	const BombermanBotConfig config = loadBotConfig();
+	desiredBotCount = config.desiredCount;
+	desiredBotPrefix = config.prefix;
+	targetRoomId = config.roomId;
+
+	BMRoom *displayRoom = nullptr;
+	BMRoom *targetRoom = nullptr;
+	for (Lobby& lobby : lobbies)
+	{
+		for (Room *room : lobby.getRooms())
+		{
+			BMRoom *bmRoom = dynamic_cast<BMRoom *>(room);
+			if (bmRoom == nullptr)
+				continue;
+			if (displayRoom == nullptr)
+				displayRoom = bmRoom;
+			if (targetRoomId != 0 && bmRoom->getId() == targetRoomId)
+				targetRoom = bmRoom;
+		}
+	}
+
+	for (Lobby& lobby : lobbies)
+	{
+		for (Room *room : lobby.getRooms())
+		{
+			BMRoom *bmRoom = dynamic_cast<BMRoom *>(room);
+			if (bmRoom == nullptr)
+				continue;
+			const uint32_t roomDesiredBots = (bmRoom == targetRoom ? desiredBotCount : 0u);
+			if (bmRoom->syncAdminBots(roomDesiredBots, desiredBotPrefix))
+			{
+				INFO_LOG(Game::Bomberman, "Applied %u admin bot seat(s) to room %s", bmRoom->getBotCount(), bmRoom->getName().c_str());
+			}
+		}
+	}
+
+	writeAdminRuntimeState(displayRoom);
+}
+
+void BombermanServer::writeAdminRuntimeState(const BMRoom *activeRoom) const
+{
+	std::filesystem::create_directories("tools/state");
+	std::ofstream out(BombermanBotRuntimePath, std::ios::trunc);
+	if (!out.is_open())
+		return;
+
+	out << "desired_bot_count=" << desiredBotCount << "\n";
+	out << "bot_name_prefix=" << desiredBotPrefix << "\n";
+	out << "room_id=" << targetRoomId << "\n";
+	if (activeRoom == nullptr)
+	{
+		out << "active_room_present=0\n";
+		return;
+	}
+
+	out << "active_room_present=1\n";
+	out << "active_room_id=" << activeRoom->getId() << "\n";
+	out << "active_room_name=" << activeRoom->getName() << "\n";
+	out << "active_room_owner=" << activeRoom->getOwner()->getName() << "\n";
+	out << "human_hosts=" << activeRoom->getPlayers().size() << "\n";
+	out << "human_slots=" << activeRoom->getHumanSlotCount() << "\n";
+	out << "bot_count=" << activeRoom->getBotCount() << "\n";
+	out << "player_slots=" << activeRoom->getPlayerCount() << "\n";
+	out << "max_players=" << activeRoom->getMaxPlayers() << "\n";
+	out << "sync_state=" << activeRoom->getSyncStateName() << "\n";
+	out << "accepted_rules=" << activeRoom->getAcceptedRuleCount() << "\n";
+	out << "start_ack_count=" << activeRoom->getStartAckCount() << "\n";
+	out << "can_start=" << (activeRoom->canStartBattle() ? 1 : 0) << "\n";
+	for (size_t i = 0; i < activeRoom->getBots().size(); i++)
+		out << "bot_name_" << (i + 1) << "=" << activeRoom->getBots()[i].name << "\n";
 }
 
 bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t len)
@@ -251,107 +1438,117 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 		switch (cmd.command)
 		{
 		case 7:		// Set game rules
-			DEBUG_LOG(Game::Bomberman, "%s: set game rules", player->getName().c_str());
+			INFO_LOG(Game::Bomberman, "%s: set game rules", player->getName().c_str());
+			replyPacket.init(Packet::REQ_NOP);
+			player->ackPacket(replyPacket, data);
+			player->send(replyPacket);
+			replyPacket.reset();
+
+			if (room != nullptr)
+			{
+				const uint16_t ruleWord = len >= 0x14 ? read16(data, 0x12) : 0;
+				room->onRulesConfigured(player, &data[0x14]);
+				INFO_LOG(Game::Bomberman, "%s: rule sync state -> %s (%u/%zu accepted)",
+					room->getName().c_str(), room->getSyncStateName(), room->getAcceptedRuleCount(),
+					room->getPlayers().size());
+				// Client receive command 0x0b copies the 9-byte rule blob into +0x245c
+				// and sets the +0x00e0 Start Battle gate. Client transmit command
+				// 0x07 is not the matching server-to-client rule-sync opcode.
+				room->broadcastRuleBlob("rules_configured", ruleWord);
+			}
+			break;
+
+		case 4:		// Pre-match sync timer / start-side state
+			INFO_LOG(Game::Bomberman, "%s: pre-match sync cmd4 size=%zu", player->getName().c_str(),
+				len > 0x14 ? len - 0x14 : 0);
 			replyPacket.init(Packet::REQ_NOP);
 			player->ackPacket(replyPacket, data);
 
 			if (room != nullptr)
 			{
-				room->setRules(&data[0x14]);
-/*
 				relayPacket.init(Packet::REQ_CHAT);
 				relayPacket.flags |= Packet::FLAG_RUDP;
-				relayPacket.writeData(cmd.full);
-				relayPacket.writeData(read16(data, 0x12));
-				relayPacket.writeData(room->getRules().data(), 9);
-*/
+				relayPacket.writeData(&data[0x10], (int)(len - 0x10));
 			}
 			break;
 
-		//case 9:	// ?
-		// 2 ints per slot: be room pos [0-7], be p[8bf + pos * 5]	-> set by msg C
-		// only sent by owner?
-		// NOT USED...
+		case 9:		// Additional pre-match state blob
+			INFO_LOG(Game::Bomberman, "%s: pre-match sync cmd9 size=%zu", player->getName().c_str(),
+				len > 0x14 ? len - 0x14 : 0);
+			replyPacket.init(Packet::REQ_NOP);
+			player->ackPacket(replyPacket, data);
+
+			if (room != nullptr)
+			{
+				relayPacket.init(Packet::REQ_CHAT);
+				relayPacket.flags |= Packet::FLAG_RUDP;
+				relayPacket.writeData(&data[0x10], (int)(len - 0x10));
+			}
+			break;
 
 		case 0xa:	// Start battle
-			DEBUG_LOG(Game::Bomberman, "%s: START BATTLE!", player->getName().c_str());
+			{
+			const uint16_t startWord = len >= 0x14 ? read16(data, 0x12) : 0;
+			const uint32_t startPayload = len >= 0x18 ? read32(data, 0x14) : 0;
+			INFO_LOG(Game::Bomberman, "%s: START BATTLE! word=%04x payload=%08x size=%u",
+				player->getName().c_str(), startWord, startPayload, cmd.size);
 			replyPacket.respOK(Packet::REQ_CHAT);
 			player->ackPacket(replyPacket, data);
 
-			relayPacket.init(Packet::REQ_CHAT);
-			relayPacket.flags |= Packet::FLAG_RUDP;
-			// TODO udp command?
-			break;
-
-		case 0xb:	// Agree new rules
-			DEBUG_LOG(Game::Bomberman, "%s: agree new rules", player->getName().c_str());
 			if (room != nullptr)
 			{
-				replyPacket.init(Packet::REQ_NOP);
-				if (replyPacket.size == 0x10)
-					// FIXME how to figure out if we need to ack it or not?
-					player->ackPacket(replyPacket, data);
-/*
-				replyPacket.init(Packet::REQ_CHAT);
-				replyPacket.flags |= Packet::FLAG_RUDP;
-				if (replyPacket.size == 0x10)
-					// FIXME how to figure out if we need to ack it or not?
-					player->ackPacket(replyPacket, data);
-				replyPacket.writeData(cmd.full);
-				replyPacket.writeData(read16(data, 0x12));
-				replyPacket.writeData(room->getRules().data(), 9);
-*/
-				if (room->getOwner() == player)
+				if (!room->canStartBattle())
 				{
-					// TODO do this when owner sets new rules
-					relayPacket.init(Packet::REQ_CHAT);
-					relayPacket.flags |= Packet::FLAG_RUDP;
-					relayPacket.writeData(cmd.full);
-					relayPacket.writeData(read16(data, 0x12));
-					relayPacket.writeData(room->getRules().data(), 9);
+					WARN_LOG(Game::Bomberman, "%s: start rejected in state %s (%u/%zu accepted, slots %u)",
+						room->getName().c_str(), room->getSyncStateName(), room->getAcceptedRuleCount(),
+						room->getPlayers().size(), room->getPlayerCount());
+					break;
 				}
-				else
+				if (!room->beginStartBattle(player))
 				{
-					// TODO notify owner that rules have been accepted
-					Packet pkt;
-					pkt.init(Packet::REQ_CHAT);
-					pkt.flags |= Packet::FLAG_RUDP;
-					cmd.command = 0xC;	// F, 10 not working, 17 responds with udp11 subF (no payload)
-					cmd.size = 0;	// TODO?
-					pkt.writeData(cmd.full);
-					pkt.writeData((uint16_t)0);
-					const auto& players = room->getPlayers();
-					pkt.writeData((uint32_t)players.size());
-					for (Player *pl : players)
-					{
-						pkt.writeData(pl->getId());	// FIXME or room pos?
-						uint32_t slots = room->getSlotCount(pl);
-						uint32_t pos = room->getPlayerPosition(pl);
-						pkt.writeData(slots);
-						for (uint32_t i = 0; i < slots; i++) {
-							pkt.writeData(pos + i);
-							pkt.writeData((uint32_t)0xff);
-						}
-					}
-					room->getOwner()->send(pkt);
+					WARN_LOG(Game::Bomberman, "%s: start requested by non-owner %s", room->getName().c_str(),
+						player->getName().c_str());
+					break;
 				}
+				INFO_LOG(Game::Bomberman, "%s: start sync armed (%u/%zu local acked)", room->getName().c_str(),
+					room->getStartAckCount(), room->getPlayers().size());
+				player->send(replyPacket);
+				replyPacket.reset();
+				room->broadcastStartTransition("start_battle", startWord);
 			}
 			break;
+			}
 
-		case 0xc:	// Received new rules?
+		case 0xb:	// Agree new rules
 			{
-				DEBUG_LOG(Game::Bomberman, "%s: received new rules", player->getName().c_str());
-				replyPacket.init(Packet::REQ_NOP);
-				player->ackPacket(replyPacket, data);
-/*
-				// doesn't look right: message "the room master has set new rules"
-				Packet pkt;
-				pkt.init(Packet::REQ_CHAT);
-				pkt.flags |= Packet::FLAG_RUDP;
-				pkt.writeData(cmd.full);
-				pkt.writeData(read16(data, 0x12));
-				room->getOwner()->send(pkt);
-*/
+				const uint8_t flag = len > 0x11 ? data[0x11] : 0;
+				const uint16_t counter = len >= 0x14 ? read16(data, 0x12) : 0;
+				INFO_LOG(Game::Bomberman, "%s: agree new rules flag=%u counter=%u", player->getName().c_str(),
+					flag, counter);
+				if (room != nullptr)
+				{
+					replyPacket.init(Packet::REQ_NOP);
+					player->ackPacket(replyPacket, data);
+					room->acceptRules(player);
+					INFO_LOG(Game::Bomberman, "%s: rule sync state -> %s (%u/%zu accepted)", room->getName().c_str(),
+						room->getSyncStateName(), room->getAcceptedRuleCount(), room->getPlayers().size());
+				}
+				break;
+			}
+
+		case 0xc:	// Compact pre-match rule/ready sync
+			{
+				const uint8_t flag = len > 0x11 ? data[0x11] : 0;
+				const uint16_t counter = len >= 0x14 ? read16(data, 0x12) : 0;
+				INFO_LOG(Game::Bomberman, "%s: rule sync flag=%u counter=%u", player->getName().c_str(),
+					flag, counter);
+				if (room != nullptr)
+				{
+					replyPacket.init(Packet::REQ_NOP);
+					player->ackPacket(replyPacket, data);
+					INFO_LOG(Game::Bomberman, "%s: rule sync state -> %s (%u/%zu accepted)", room->getName().c_str(),
+						room->getSyncStateName(), room->getAcceptedRuleCount(), room->getPlayers().size());
+				}
 				break;
 			}
 
@@ -365,7 +1562,70 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 			relayPacket.writeData(read16(data, 0x12));
 			break;
 
-		// 1A, 1B: SendGameMapBlock: Send MapInfo
+		case 0x1:	// In-game live state block observed after sprites spawn
+		case 0x2:	// In-game live state block observed after sprites spawn
+		case 0x3:	// In-game live state block observed after sprites spawn
+		case 0x5:	// In-game state/tick packet observed after PlayGame transition
+		case 0xd:	// Game-phase marker before map block exchange
+		case 0xe:	// Game-phase marker after map block exchange
+		case 0x1a:	// SendGameMapBlock / map info
+		case 0x1b:	// SendGameMapBlock / map info
+			{
+				const size_t payloadSize = len > 0x10 ? len - 0x10 : 0;
+				const uint16_t word = len >= 0x14 ? read16(data, 0x12) : 0;
+				const uint32_t payload0 = len >= 0x18 ? read32(data, 0x14) : 0;
+				static std::map<uint64_t, uint32_t> loggedGameDataRelays;
+				const uint64_t logKey = ((uint64_t)player->getId() << 32)
+					| ((uint64_t)cmd.command << 16) | cmd.size;
+				uint32_t& logCount = loggedGameDataRelays[logKey];
+				if (logCount < 4)
+				{
+					INFO_LOG(Game::Bomberman,
+						"%s: game data relay cmd=%02x full=%04x word=%04x payload=%08x size=%zu",
+						player->getName().c_str(), cmd.command, cmd.full, word, payload0, payloadSize);
+					logCount++;
+				}
+
+				replyPacket.init(Packet::REQ_NOP);
+				player->ackPacket(replyPacket, data);
+
+				if (room != nullptr && room->getPlayers().size() > 1)
+				{
+					if (cmd.command == 0xe)
+					{
+						if (!replyPacket.empty())
+						{
+							player->send(replyPacket);
+							replyPacket.reset();
+						}
+
+						for (Player *recipient : room->getPlayers())
+						{
+							if (recipient == player)
+								continue;
+							Packet relay;
+							relay.init(Packet::REQ_GAME_DATA);
+							relay.flags |= Packet::FLAG_RELAY;
+							if (flags & Packet::FLAG_RUDP)
+								relay.flags |= Packet::FLAG_RUDP;
+							write32(relay.data, relay.startOffset + 4, player->getId());
+							relay.writeData(&data[0x10], (int)payloadSize);
+							recipient->send(relay);
+						}
+						room->notePostMapMarker(player);
+					}
+					else
+					{
+						relayPacket.init(Packet::REQ_GAME_DATA);
+						relayPacket.flags |= Packet::FLAG_RELAY;
+						if (flags & Packet::FLAG_RUDP)
+							relayPacket.flags |= Packet::FLAG_RUDP;
+						write32(relayPacket.data, relayPacket.startOffset + 4, player->getId());
+						relayPacket.writeData(&data[0x10], (int)payloadSize);
+					}
+				}
+				break;
+			}
 
 		default:
 			ERROR_LOG(game, "Unhandled udp 11 command: %x (%04x)", cmd.command, cmd.full);
@@ -386,6 +1646,12 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 		player->ackPacket(replyPacket, data);
 		if (room != nullptr)
 		{
+			if (len <= 0x14)
+				break;
+			if (cmd.size == 4)
+				INFO_LOG(Game::Bomberman, "%s: room chat cmd7 size4 target_byte=%u payload32=%08x",
+					player->getName().c_str(), len > 0x14 ? data[0x14] : 0,
+					len >= 0x18 ? read32(data, 0x14) : 0);
 			uint32_t playerPos = data[0x14];
 			for (Player *player : room->getPlayers())
 			{
@@ -404,14 +1670,28 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 		break;
 
 	case 0x1C: // PING
+		{
 		DEBUG_LOG(Game::Bomberman, "%s: ping", player->getName().c_str());
 		// this is correctly received as a ping
 		replyPacket.init(Packet::REQ_CHAT);
 		replyPacket.writeData(cmd.full);
 		replyPacket.writeData((uint16_t)0);
 		replyPacket.writeData(0x10000000u);	// LE int. ping value? only lsbyte used. 1,4,10,80,c8 is red
-		replyPacket.writeData((uint8_t)data[0x18]); // bitfield (8 flags) one per player sharing the same connection
+		const uint8_t incomingMask = len > 0x18 ? data[0x18] : 0;
+		uint8_t replyMask = incomingMask;
+		if (room != nullptr)
+			replyMask = room->getOccupiedSlotMask();
+		static std::map<uint32_t, uint8_t> lastLoggedPingMask;
+		const uint8_t logValue = (uint8_t)((incomingMask << 4) | (replyMask & 0x0f));
+		if (lastLoggedPingMask[player->getId()] != logValue)
+		{
+			lastLoggedPingMask[player->getId()] = logValue;
+			INFO_LOG(Game::Bomberman, "%s: ping slot mask in=%02x out=%02x", player->getName().c_str(),
+				incomingMask, replyMask);
+		}
+		replyPacket.writeData(replyMask); // bitfield (8 flags), aggregated for the whole room
 		break;
+		}
 
 	default:
 		ERROR_LOG(game, "Unhandled udp F command: %x (%04x)", cmd.command, cmd.full);

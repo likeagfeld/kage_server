@@ -32,8 +32,8 @@ extern "C" {
 #include <fstream>
 #include <sstream>
 
-#ifndef DATADIR
-#define DATADIR "."
+#ifndef KAGE_DATADIR
+#define KAGE_DATADIR "."
 #endif
 
 using namespace std::chrono_literals;
@@ -62,6 +62,7 @@ private:
 
 	asio::ip::address_v4 address;
 	uint32_t nextUserId = 0x1001;
+	uint32_t nextBootstrapSessionId = 0xCA000001;
 	BombermanServer bombermanServer;
 	OuttriggerServer outtriggerServer;
 	PropellerServer propellerServer;
@@ -122,6 +123,17 @@ void BootstrapServer::handlePacket(const uint8_t *data, size_t len)
 			}
 
 			uint32_t tmpUserId = read32(data, 4);
+			uint32_t sessionId = tmpUserId;
+			if (server->bootstrapSessionIdInUse(sessionId))
+			{
+				do {
+					sessionId = nextBootstrapSessionId++;
+					if (nextBootstrapSessionId == 0)
+						nextBootstrapSessionId = 0xCA000001;
+				} while (server->bootstrapSessionIdInUse(sessionId));
+				INFO_LOG(server->game, "Bootstrap session id collision for %s: requested %08x, assigned %08x",
+						name.c_str(), tmpUserId, sessionId);
+			}
 
 			packet.init(Packet::RSP_LOGIN_SUCCESS);
 			packet.writeData(&data[0x10], 0x28);
@@ -146,14 +158,27 @@ void BootstrapServer::handlePacket(const uint8_t *data, size_t len)
 
 			Player *player = new Player(*server, source, nextUserId, io_context);
 			player->setName(name);
+			player->setBootstrapSessionId(sessionId);
 			server->addPlayer(player);
 			nextUserId++;
 
 			size_t pktsize = packet.finalize();
-			write32(packet.data, 4, tmpUserId);
+			write32(packet.data, 4, sessionId);
 			write32(packet.data, 8, player->getUnrelSeqAndInc());
 			std::error_code ec2;
 			socket.send_to(asio::buffer(packet.data, pktsize), source, 0, ec2);
+			if (ec2)
+			{
+				WARN_LOG(server->game, "Bootstrap reply send failed for %s [%x] session=%08x to %s:%d: %s",
+						name.c_str(), player->getId(), sessionId,
+						source.address().to_string().c_str(), source.port(), ec2.message().c_str());
+			}
+			else
+			{
+				INFO_LOG(server->game, "Bootstrap reply sent for %s [%x] session=%08x port=%u to %s:%d",
+						name.c_str(), player->getId(), sessionId, port,
+						source.address().to_string().c_str(), source.port());
+			}
 			break;
 		}
 
@@ -256,8 +281,8 @@ int main(int argc, char *argv[])
 	}
 	DataDir = Config["DATADIR"];
 	if (DataDir.empty())
-		DataDir = DATADIR;
-	asio::ip::address_v4 serverAddr = asio::ip::address_v4::from_string(serverIp);
+		DataDir = KAGE_DATADIR;
+	asio::ip::address_v4 serverAddr = asio::ip::make_address_v4(serverIp);
 	BootstrapServer server(serverAddr, 9090, io_context);
 	server.start();
 	AuthAcceptor authServer(io_context);

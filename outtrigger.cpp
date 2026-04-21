@@ -228,8 +228,7 @@ void OTRoom::setAttributes(uint32_t attributes)
 		// Start the time limit timer when the owner unlocks the room
 		// time limit at offset 0xd in owner's sysdata
 		int limit = TimeLimits[playerState[0].sysdata[0xd] & 0xf];
-		std::error_code ec;
-		timeLimit.cancel(ec);
+		timeLimit.cancel();
 		if (limit > 0)
 		{
 			timeLimit.expires_after(std::chrono::seconds(limit));
@@ -431,9 +430,8 @@ void OTRoom::reset()
 		state.state = PlayerState::Init;
 	frameNum = 0;
 	roomState = Init;
-	std::error_code ec;
-	timer.cancel(ec);
-	timeLimit.cancel(ec);
+	timer.cancel();
+	timeLimit.cancel();
 }
 
 void OTRoom::startSync()
@@ -445,9 +443,8 @@ void OTRoom::startSync()
 
 void OTRoom::endGame()
 {
-	std::error_code ec;
-	timer.cancel(ec);
-	timeLimit.cancel(ec);
+	timer.cancel();
+	timeLimit.cancel();
 	roomState = Result;
 }
 
@@ -501,3 +498,4 @@ void OTRoom::rudpAcked(Player *player)
 	packet.writeData(0u);	// frame#?
 	owner->send(packet);
 }
+

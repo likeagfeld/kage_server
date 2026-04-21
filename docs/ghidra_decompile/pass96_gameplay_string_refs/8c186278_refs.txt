@@ -1,0 +1,6 @@
+target=8c186278
+symbol=s_Game_Time_Info._Now_CommonFrame=_8c186278
+ref[0] from=8c099ef4 type=DATA opIndex=0 function=FUN_8c099e92 entry=8c099e92
+ref[1] from=8c099eec type=PARAM opIndex=1 function=FUN_8c099e92 entry=8c099e92
+ref[2] from=8c099f84 type=DATA opIndex=0 function=<none> entry=<none>
+count=3

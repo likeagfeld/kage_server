@@ -1,0 +1,677 @@
+{
+  "input": "D:\\bomberman online gdi\\[GDI] Bomberman Online (US)\\extracted\\1ST_READ.BIN",
+  "binary_size": 2543588,
+  "assumed_load_base": "0x8c010000",
+  "string_count": 6066,
+  "bucket_counts": {
+    "bootstrap_dns_login": 31,
+    "transport_and_ppp": 66,
+    "lobby_matchmaking": 66,
+    "room_matchmaking": 51,
+    "rules_and_game_start": 22,
+    "results_disconnects": 12
+  },
+  "key_anchors": [
+    {
+      "text": "Now Connecting to Server....",
+      "found": true,
+      "file_offset": 1530992,
+      "virtual_address": 2350406768,
+      "xrefs": [
+        544872
+      ]
+    },
+    {
+      "text": "Use DNS and Connect to Bootstrap Server",
+      "found": true,
+      "file_offset": 1531068,
+      "virtual_address": 2350406844,
+      "xrefs": [
+        545268
+      ]
+    },
+    {
+      "text": "User IP-Add Connect to Bootstrap Server",
+      "found": true,
+      "file_offset": 1531108,
+      "virtual_address": 2350406884,
+      "xrefs": [
+        545276
+      ]
+    },
+    {
+      "text": "Could not found Server Address.",
+      "found": true,
+      "file_offset": 1532044,
+      "virtual_address": 2350407820,
+      "xrefs": [
+        556672
+      ]
+    },
+    {
+      "text": "A game was not able to be started.",
+      "found": true,
+      "file_offset": 1532180,
+      "virtual_address": 2350407956,
+      "xrefs": [
+        540248,
+        560772
+      ]
+    },
+    {
+      "text": "The room master has set new rules.",
+      "found": true,
+      "file_offset": 1532292,
+      "virtual_address": 2350408068,
+      "xrefs": [
+        540268,
+        560592,
+        563624
+      ]
+    },
+    {
+      "text": "Failed to Logon to game server.",
+      "found": true,
+      "file_offset": 1542292,
+      "virtual_address": 2350418068,
+      "xrefs": [
+        854108,
+        858100
+      ]
+    },
+    {
+      "text": "Specified server domain name is",
+      "found": true,
+      "file_offset": 1542324,
+      "virtual_address": 2350418100,
+      "xrefs": []
+    },
+    {
+      "text": "Can't get Kage Server IP Addres from DNS.",
+      "found": true,
+      "file_offset": 1542872,
+      "virtual_address": 2350418648,
+      "xrefs": [
+        857372
+      ]
+    },
+    {
+      "text": "REQUEST:: QueryLobbyRequest in  CKageApp::Status_RequestLobbyList ()",
+      "found": true,
+      "file_offset": 1543240,
+      "virtual_address": 2350419016,
+      "xrefs": [
+        858456,
+        859400
+      ]
+    },
+    {
+      "text": "Complete QueryLobbyRequest (). I get Lobbies Lists",
+      "found": true,
+      "file_offset": 1543312,
+      "virtual_address": 2350419088,
+      "xrefs": [
+        858452,
+        859412
+      ]
+    },
+    {
+      "text": "ERROR:: Can't Find Any GameRooms on CKageApp::QueryRoomRequest ()",
+      "found": true,
+      "file_offset": 1543496,
+      "virtual_address": 2350419272,
+      "xrefs": [
+        854484,
+        859036,
+        859436
+      ]
+    },
+    {
+      "text": "Request QueryUserInRoomRequest()",
+      "found": true,
+      "file_offset": 1531600,
+      "virtual_address": 2350407376,
+      "xrefs": [
+        550524
+      ]
+    },
+    {
+      "text": "ROOM CREATE_REQUESTED",
+      "found": true,
+      "file_offset": 1546480,
+      "virtual_address": 2350422256,
+      "xrefs": [
+        882796
+      ]
+    },
+    {
+      "text": "ROOM CREATE_COMPLETED",
+      "found": true,
+      "file_offset": 1546504,
+      "virtual_address": 2350422280,
+      "xrefs": [
+        882800
+      ]
+    },
+    {
+      "text": "ROOM QUERYROOMS_REQUESTED",
+      "found": true,
+      "file_offset": 1546820,
+      "virtual_address": 2350422596,
+      "xrefs": [
+        883108
+      ]
+    },
+    {
+      "text": "ROOM QUERYATTRIBUTE_REQUESTED",
+      "found": true,
+      "file_offset": 1546924,
+      "virtual_address": 2350422700,
+      "xrefs": [
+        883124
+      ]
+    },
+    {
+      "text": "ROOM QUERYUSERIN_REQUESTED",
+      "found": true,
+      "file_offset": 1547016,
+      "virtual_address": 2350422792,
+      "xrefs": [
+        883136
+      ]
+    },
+    {
+      "text": "Completed CGameRoom::QueryUserInRoomCallBack()",
+      "found": true,
+      "file_offset": 1547708,
+      "virtual_address": 2350423484,
+      "xrefs": [
+        878480,
+        884968
+      ]
+    },
+    {
+      "text": "---- Start Game a Sync Time! ----",
+      "found": true,
+      "file_offset": 1529220,
+      "virtual_address": 2350404996,
+      "xrefs": [
+        425584
+      ]
+    },
+    {
+      "text": "---- Abort Game Play ----",
+      "found": true,
+      "file_offset": 1529308,
+      "virtual_address": 2350405084,
+      "xrefs": [
+        426812
+      ]
+    },
+    {
+      "text": "---- End Game Play ----",
+      "found": true,
+      "file_offset": 1529496,
+      "virtual_address": 2350405272,
+      "xrefs": [
+        426984
+      ]
+    },
+    {
+      "text": "All Battle End. Send Signal CLI_SET_SETTLED.",
+      "found": true,
+      "file_offset": 1529080,
+      "virtual_address": 2350404856,
+      "xrefs": [
+        419160
+      ]
+    },
+    {
+      "text": "Returned to the game room due to lack of players.",
+      "found": true,
+      "file_offset": 1531824,
+      "virtual_address": 2350407600,
+      "xrefs": [
+        553464
+      ]
+    },
+    {
+      "text": "Kicked out by Room and Disconnected.",
+      "found": true,
+      "file_offset": 1543984,
+      "virtual_address": 2350419760,
+      "xrefs": [
+        867660
+      ]
+    },
+    {
+      "text": "Disconnected by Server Request.",
+      "found": true,
+      "file_offset": 1544024,
+      "virtual_address": 2350419800,
+      "xrefs": [
+        867664
+      ]
+    },
+    {
+      "text": "Connection timed out.",
+      "found": true,
+      "file_offset": 1543920,
+      "virtual_address": 2350419696,
+      "xrefs": [
+        867656
+      ]
+    },
+    {
+      "text": "master.bomberman-hudson.games.sega.net",
+      "found": true,
+      "file_offset": 1513036,
+      "virtual_address": 2350388812,
+      "xrefs": [
+        80432,
+        81748,
+        83108,
+        83716,
+        84024,
+        84464,
+        85568
+      ]
+    },
+    {
+      "text": "CKageApp",
+      "found": true,
+      "file_offset": 1541788,
+      "virtual_address": 2350417564,
+      "xrefs": [
+        1762952
+      ]
+    },
+    {
+      "text": "CGameRoom",
+      "found": true,
+      "file_offset": 1546364,
+      "virtual_address": 2350422140,
+      "xrefs": [
+        1766116
+      ]
+    },
+    {
+      "text": "CLobby",
+      "found": false
+    },
+    {
+      "text": "CNetworkServer",
+      "found": true,
+      "file_offset": 1529520,
+      "virtual_address": 2350405296,
+      "xrefs": [
+        1754260
+      ]
+    },
+    {
+      "text": "CServerConfig",
+      "found": true,
+      "file_offset": 1530832,
+      "virtual_address": 2350406608,
+      "xrefs": [
+        1755208
+      ]
+    },
+    {
+      "text": "Connection timed out.",
+      "found": true,
+      "file_offset": 1543920,
+      "virtual_address": 2350419696,
+      "xrefs": [
+        867656
+      ]
+    },
+    {
+      "text": "Kicked out by Room and Disconnected.",
+      "found": true,
+      "file_offset": 1543984,
+      "virtual_address": 2350419760,
+      "xrefs": [
+        867660
+      ]
+    },
+    {
+      "text": "Disconnected by Server Request.",
+      "found": true,
+      "file_offset": 1544024,
+      "virtual_address": 2350419800,
+      "xrefs": [
+        867664
+      ]
+    },
+    {
+      "text": "Returned to the game room due to lack of players.",
+      "found": true,
+      "file_offset": 1531824,
+      "virtual_address": 2350407600,
+      "xrefs": [
+        553464
+      ]
+    },
+    {
+      "text": "ID:%d NAME:%s",
+      "found": true,
+      "file_offset": 1549188,
+      "virtual_address": 2350424964,
+      "xrefs": [
+        888724,
+        895900
+      ]
+    },
+    {
+      "text": "UserID:%d NAME:%s",
+      "found": true,
+      "file_offset": 1549496,
+      "virtual_address": 2350425272,
+      "xrefs": [
+        889408,
+        896636
+      ]
+    },
+    {
+      "text": "UserID:%d Leaved.",
+      "found": true,
+      "file_offset": 1549516,
+      "virtual_address": 2350425292,
+      "xrefs": [
+        889416,
+        896644
+      ]
+    },
+    {
+      "text": "GameRoom Name:%s User:%d Max:%d",
+      "found": true,
+      "file_offset": 1547420,
+      "virtual_address": 2350423196,
+      "xrefs": [
+        878120,
+        884172
+      ]
+    },
+    {
+      "text": "Lobby Name:%s User:%d",
+      "found": true,
+      "file_offset": 1548924,
+      "virtual_address": 2350424700,
+      "xrefs": [
+        888044,
+        895208
+      ]
+    },
+    {
+      "text": "%s has become the new room master.",
+      "found": true,
+      "file_offset": 1532436,
+      "virtual_address": 2350408212,
+      "xrefs": [
+        564724
+      ]
+    }
+  ],
+  "pointer_tables": [
+    {
+      "name": "room_state_labels",
+      "file_offset": 882792,
+      "virtual_address": 2349758568,
+      "note": "Primary ROOM state string table used by CGameRoom label lookup helpers",
+      "entries": [
+        {
+          "index": 0,
+          "value": 2350422872,
+          "target_file_offset": 1547096,
+          "text": "ROOM FOUND_USERIN"
+        },
+        {
+          "index": 1,
+          "value": 2350422256,
+          "target_file_offset": 1546480,
+          "text": "ROOM CREATE_REQUESTED"
+        },
+        {
+          "index": 2,
+          "value": 2350422280,
+          "target_file_offset": 1546504,
+          "text": "ROOM CREATE_COMPLETED"
+        },
+        {
+          "index": 3,
+          "value": 2350422304,
+          "target_file_offset": 1546528,
+          "text": "ROOM CREATE_FAILE"
+        },
+        {
+          "index": 4,
+          "value": 2350422324,
+          "target_file_offset": 1546548,
+          "text": "ROOM DELETE_REQUESTED"
+        },
+        {
+          "index": 5,
+          "value": 2350422348,
+          "target_file_offset": 1546572,
+          "text": "ROOM DELETE_COMPLETED"
+        },
+        {
+          "index": 6,
+          "value": 2350422372,
+          "target_file_offset": 1546596,
+          "text": "ROOM DELETE_FAILED"
+        },
+        {
+          "index": 7,
+          "value": 2350422392,
+          "target_file_offset": 1546616,
+          "text": "ROOM JOIN_REQUESTED"
+        },
+        {
+          "index": 8,
+          "value": 2350422412,
+          "target_file_offset": 1546636,
+          "text": "ROOM JOIN_COMPLETED"
+        },
+        {
+          "index": 9,
+          "value": 2350422432,
+          "target_file_offset": 1546656,
+          "text": "ROOM JOIN_FAILED"
+        },
+        {
+          "index": 10,
+          "value": 2350422452,
+          "target_file_offset": 1546676,
+          "text": "ROOM LEAVE_REQUESTED"
+        }
+      ]
+    },
+    {
+      "name": "room_query_labels",
+      "file_offset": 883088,
+      "virtual_address": 2349758864,
+      "note": "Secondary ROOM query/attribute/user state label table",
+      "entries": [
+        {
+          "index": 0,
+          "value": 2350422476,
+          "target_file_offset": 1546700,
+          "text": "ROOM LEAVE_COMPLETED"
+        },
+        {
+          "index": 1,
+          "value": 2350422500,
+          "target_file_offset": 1546724,
+          "text": "ROOM LEAVE_FAILED"
+        },
+        {
+          "index": 2,
+          "value": 2350422520,
+          "target_file_offset": 1546744,
+          "text": "ROOM ATTRIBUTE_REQUESTED"
+        },
+        {
+          "index": 3,
+          "value": 2350422548,
+          "target_file_offset": 1546772,
+          "text": "ROOM ATTRIBUTE_COMPLETE"
+        },
+        {
+          "index": 4,
+          "value": 2350422572,
+          "target_file_offset": 1546796,
+          "text": "ROOM ATTRIBUTE_FAILED"
+        },
+        {
+          "index": 5,
+          "value": 2350422596,
+          "target_file_offset": 1546820,
+          "text": "ROOM QUERYROOMS_REQUESTED"
+        },
+        {
+          "index": 6,
+          "value": 2350422624,
+          "target_file_offset": 1546848,
+          "text": "ROOM QUERYROOMS_COMPLETED"
+        },
+        {
+          "index": 7,
+          "value": 2350422652,
+          "target_file_offset": 1546876,
+          "text": "ROOM QUERYROOMS_FAILED"
+        },
+        {
+          "index": 8,
+          "value": 2350422676,
+          "target_file_offset": 1546900,
+          "text": "ROOM NOT_FOUND_ROOMS"
+        },
+        {
+          "index": 9,
+          "value": 2350422700,
+          "target_file_offset": 1546924,
+          "text": "ROOM QUERYATTRIBUTE_REQUESTED"
+        },
+        {
+          "index": 10,
+          "value": 2350422732,
+          "target_file_offset": 1546956,
+          "text": "ROOM QUERYATTRIBUTE_COMPLETED"
+        },
+        {
+          "index": 11,
+          "value": 2350422764,
+          "target_file_offset": 1546988,
+          "text": "ROOM QUERYATTRIBUTE_FAILED"
+        },
+        {
+          "index": 12,
+          "value": 2350422792,
+          "target_file_offset": 1547016,
+          "text": "ROOM QUERYUSERIN_REQUESTED"
+        }
+      ]
+    },
+    {
+      "name": "disconnect_reason_labels",
+      "file_offset": 867652,
+      "virtual_address": 2349743428,
+      "note": "Disconnect reason strings selected by the client after connection loss",
+      "entries": [
+        {
+          "index": 0,
+          "value": 2350420868,
+          "target_file_offset": 1545092,
+          "text": "Could not connect to tranport device."
+        },
+        {
+          "index": 1,
+          "value": 2350419696,
+          "target_file_offset": 1543920,
+          "text": "Connection timed out."
+        },
+        {
+          "index": 2,
+          "value": 2350419760,
+          "target_file_offset": 1543984,
+          "text": "Kicked out by Room and Disconnected."
+        },
+        {
+          "index": 3,
+          "value": 2350419800,
+          "target_file_offset": 1544024,
+          "text": "Disconnected by Server Request."
+        }
+      ]
+    }
+  ],
+  "disasm_windows": [
+    {
+      "name": "ckageapp_dns_failure_cleanup",
+      "file_offset": 922578,
+      "size": 384,
+      "note": "ADNS / login failure cleanup and error presentation path"
+    },
+    {
+      "name": "ckageapp_lobby_state_callback_table",
+      "file_offset": 919914,
+      "size": 192,
+      "note": "Callback-table style dispatch used by CKageApp around lobby entry"
+    },
+    {
+      "name": "ckageapp_lobby_joined_dispatch",
+      "file_offset": 923984,
+      "size": 512,
+      "note": "Post-login lobby setup path that appears to request lists, attrs, and user data"
+    },
+    {
+      "name": "cgameroom_state_label_lookup",
+      "file_offset": 948570,
+      "size": 64,
+      "note": "Small helper that resolves CGameRoom state labels from a shared table"
+    },
+    {
+      "name": "cgameroom_query_user_in_callback",
+      "file_offset": 950456,
+      "size": 128,
+      "note": "QueryUserIn callback and object accessor region for game rooms"
+    },
+    {
+      "name": "room_list_and_query_callback_cluster",
+      "file_offset": 944096,
+      "size": 416,
+      "note": "Room list, room attribute, and room user callback cluster"
+    },
+    {
+      "name": "online_rules_and_start_path",
+      "file_offset": 691584,
+      "size": 288,
+      "note": "Online battle object update path near rules/start logging strings"
+    },
+    {
+      "name": "disconnect_reason_dispatch",
+      "file_offset": 867552,
+      "size": 144,
+      "note": "Disconnect / timeout reason dispatch and string selection"
+    },
+    {
+      "name": "room_master_change_notice",
+      "file_offset": 629088,
+      "size": 96,
+      "note": "Notice path used when the room master changes"
+    },
+    {
+      "name": "server_hostname_config_region",
+      "file_offset": 145904,
+      "size": 288,
+      "note": "Configuration region that references the hard-coded Bomberman master hostname"
+    }
+  ],
+  "notes": [
+    "The 0x8C010000 load base is inferred from string xref hits and SH-4 disassembly.",
+    "Simple xref detection only catches literal-pool style 32-bit address references.",
+    "This output is intended for Kage server revival work, not as a replacement for Ghidra."
+  ]
+}

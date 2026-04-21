@@ -1,0 +1,18 @@
+; range: 8c0f5940 - 8c0f5978
+
+8c0f5940  0b 00        rts
+8c0f5942  f6 6e        _mov.l @r15+,r14
+8c0f5944  76 06 13 8c  addr 8c130676
+8c0f5948  bc c7 12 8c  addr 8c12c7bc
+8c0f594c  dc 12 13 8c  addr 8c1312dc
+8c0f5950  06 06 13 8c  addr 8c130606
+8c0f5954  b8 ac 18 8c  addr 8c18acb8
+8c0f5958  00 13 13 8c  addr 8c131300
+8c0f595c  a0 ad 18 8c  undefined4 8C18ADA0h
+8c0f5960  0c ae 18 8c  addr 8c18ae0c
+8c0f5964  42 13 13 8c  addr 8c131342
+8c0f5968  70 0d 13 8c  addr 8c130d70
+8c0f596c  a8 13 13 8c  addr 8c1313a8
+8c0f5970  8a 0c 13 8c  addr 8c130c8a
+8c0f5974  4c 58 28 8c  undefined4 8C28584Ch
+8c0f5978  cd cc 4c 3e  undefined4 3E4CCCCDh

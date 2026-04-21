@@ -17,6 +17,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "model.h"
+#include "bomberman.h"
 #include "discord.h"
 #include "log.h"
 #include <dcserver/status.hpp>
@@ -25,9 +26,36 @@
 
 using namespace std::chrono_literals;
 
+namespace {
+constexpr auto ClientRetryWindow = 2s;
+
+uint64_t clientPacketKey(const uint8_t *packet)
+{
+	const uint32_t seq = read32(packet, 8);
+	const uint16_t flags = read16(packet, 0) & 0xfc00;
+	return (uint64_t(seq) << 32) | (uint64_t(packet[3]) << 16) | flags;
+}
+
+bool shouldReplayDuplicateRequest(uint8_t command)
+{
+	switch ((Packet::Command)command)
+	{
+	case Packet::REQ_JOIN_LOBBY_ROOM:
+	case Packet::REQ_QRY_USERS:
+	case Packet::REQ_QRY_ROOMS:
+	case Packet::REQ_QRY_ROOM_ATTR:
+	case Packet::REQ_QRY_LOBBIES:
+	case Packet::REQ_SEARCH_USERS:
+	case Packet::REQ_PING:
+		return true;
+	default:
+		return false;
+	}
+}
+}
+
 Player::~Player() {
-	std::error_code ec;
-	timer.cancel(ec);
+	timer.cancel();
 }
 
 void Player::setAlive() {
@@ -44,7 +72,7 @@ bool Player::timedOut() const
 
 void Player::send(Packet& packet)
 {
-	packet.finalize();
+	const size_t pktsize = packet.finalize();
 	// Loop through all packets and set the player id (offset 4) and sequence number (offset 8)
 	size_t i = 0;
 	bool rudpSeen = false;
@@ -72,7 +100,11 @@ void Player::send(Packet& packet)
 	if (rudpSeen)
 		sendRel(packet, relSeq - 1);
 	else
+	{
+		if (room != nullptr)
+			room->writeOutboundNetdump(packet.data, (uint32_t)pktsize, getEndpoint());
 		server.send(packet, getEndpoint());
+	}
 }
 
 void Player::sendToAll(Packet& packet, const std::vector<Player *>& players, Player *except)
@@ -111,6 +143,9 @@ void Player::resendTimer(const std::error_code& ec)
 		return;
 	}
 	sendCount++;
+	if (room != nullptr)
+		room->writeOutboundNetdump(lastRelPacket.data,
+			(uint32_t)(lastRelPacket.size + sizeof(Packet::KageToken)), getEndpoint());
 	server.send(lastRelPacket, getEndpoint());
 	lastRUdpSend = Clock::now();
 	timer.expires_after(std::chrono::milliseconds((int)ping) + sendCount * 200ms);
@@ -125,8 +160,7 @@ void Player::ackRUdp(uint32_t seq)
 		// already ack'ed
 		return;
 	ackedRelSeq = seq;
-	std::error_code ec;
-	timer.cancel(ec);
+	timer.cancel();
 	ping = ping * 0.5f + (Clock::now() - lastRUdpSend) / 1.0ms * 0.5f;
 	if (!relQueue.empty()) {
 		sendRel(relQueue.front().second, relQueue.front().first);
@@ -145,12 +179,22 @@ void Player::ackPacket(Packet& outPacket, const uint8_t *inPacket)
 	if ((read16(inPacket, 0) & Packet::FLAG_RUDP) == 0)
 		// Not an RUdp packet
 		return;
-	uint32_t seq = read32(inPacket, 8);
-	if (seq != 0 || ackedClientSeq < (int)seq)
+	const uint32_t seq = read32(inPacket, 8);
+	const uint64_t key = clientPacketKey(inPacket);
+	const time_point now = Clock::now();
+	while (!recentClientPackets.empty() && recentClientPackets.front().second + ClientRetryWindow < now)
+		recentClientPackets.pop_front();
+	const auto it = std::find_if(recentClientPackets.begin(), recentClientPackets.end(),
+		[key](const auto& entry) { return entry.first == key; });
+	if (seq != 0 || it == recentClientPackets.end())
 	{
 		outPacket.ack(seq);
-		if ((int)seq > ackedClientSeq)
-			ackedClientSeq = seq;
+		if (it == recentClientPackets.end())
+		{
+			recentClientPackets.emplace_back(key, now);
+			if (recentClientPackets.size() > 64)
+				recentClientPackets.pop_front();
+		}
 	}
 }
 
@@ -158,8 +202,12 @@ bool Player::packetAcked(const uint8_t *packet)
 {
 	if ((read16(packet, 0) & Packet::FLAG_RUDP) == 0)
 		return false;
-	uint32_t seq = read32(packet, 8);
-	return (int)seq <= ackedClientSeq;
+	const uint64_t key = clientPacketKey(packet);
+	const time_point now = Clock::now();
+	while (!recentClientPackets.empty() && recentClientPackets.front().second + ClientRetryWindow < now)
+		recentClientPackets.pop_front();
+	return std::find_if(recentClientPackets.begin(), recentClientPackets.end(),
+		[key](const auto& entry) { return entry.first == key; }) != recentClientPackets.end();
 }
 
 void Server::read()
@@ -218,18 +266,20 @@ void LobbyServer::startTimer()
 		if (ec)
 			return;
 		std::vector<Player *> timeouts;
-		for (auto& [ep, player] : players)
+		for (auto& [id, player] : playersById)
 		{
 			if (player->timedOut()) {
 				INFO_LOG(game, "Player %s has timed out", player->getName().c_str());
 				timeouts.push_back(player);
 			}
-			else if (player->getRoom() == nullptr && player->getLastTimeSeen() + 30s >= Clock::now())
+			else if (player->getRoom() == nullptr
+					&& player->getLobby() != nullptr
+					&& player->getLastTimeSeen() + 30s <= Clock::now())
 			{
-				// Send a reliable NOP and expect an ack
+				// Idle lobby clients expect a lobby-scoped reliable keepalive.
 				Packet packet;
 				packet.init(Packet::REQ_NOP);
-				packet.flags |= Packet::FLAG_RUDP;
+				packet.flags |= Packet::FLAG_RUDP | Packet::FLAG_LOBBY;
 				player->send(packet);
 			}
 		}
@@ -239,31 +289,158 @@ void LobbyServer::startTimer()
 	});
 }
 
+Player *LobbyServer::findPlayerById(uint32_t id) const
+{
+	const auto it = playersById.find(id);
+	return it == playersById.end() ? nullptr : it->second;
+}
+
+Player *LobbyServer::findPlayerByBootstrapSessionId(uint32_t id) const
+{
+	const auto it = playersByBootstrapSessionId.find(id);
+	return it == playersByBootstrapSessionId.end() ? nullptr : it->second;
+}
+
+Player *LobbyServer::findPlayerByEndpoint(const asio::ip::udp::endpoint& endpoint) const
+{
+	const auto range = playersByEndpoint.equal_range(endpoint);
+	if (range.first == range.second)
+		return nullptr;
+	auto next = range.first;
+	++next;
+	if (next != range.second)
+		return nullptr;
+	return range.first->second;
+}
+
+void LobbyServer::indexPlayer(Player *player)
+{
+	playersById[player->getId()] = player;
+	if (player->getBootstrapSessionId() != 0)
+		playersByBootstrapSessionId[player->getBootstrapSessionId()] = player;
+	playersByEndpoint.emplace(player->getEndpoint(), player);
+}
+
+void LobbyServer::unindexPlayer(Player *player)
+{
+	playersById.erase(player->getId());
+	if (player->getBootstrapSessionId() != 0)
+		playersByBootstrapSessionId.erase(player->getBootstrapSessionId());
+	const auto range = playersByEndpoint.equal_range(player->getEndpoint());
+	for (auto it = range.first; it != range.second; ++it)
+	{
+		if (it->second == player)
+		{
+			playersByEndpoint.erase(it);
+			break;
+		}
+	}
+}
+
+void LobbyServer::updatePlayerEndpoint(Player *player, const asio::ip::udp::endpoint& endpoint)
+{
+	if (player->getEndpoint() == endpoint)
+		return;
+
+	const asio::ip::udp::endpoint previous = player->getEndpoint();
+	const auto range = playersByEndpoint.equal_range(previous);
+	for (auto it = range.first; it != range.second; ++it)
+	{
+		if (it->second == player)
+		{
+			playersByEndpoint.erase(it);
+			break;
+		}
+	}
+	player->setEndpoint(endpoint);
+	playersByEndpoint.emplace(player->getEndpoint(), player);
+	INFO_LOG(game, "Updated endpoint for %s [%x] to %s:%d",
+			player->getName().c_str(), player->getId(),
+			player->getEndpoint().address().to_string().c_str(), player->getEndpoint().port());
+}
+
+Player *LobbyServer::resolvePlayer(const uint8_t *data, size_t len)
+{
+	(void)len;
+	if (data[3] == Packet::REQ_LOBBY_LOGIN)
+	{
+		if (Player *endpointPlayer = findPlayerByEndpoint(source))
+		{
+			// Bomberman keeps reusing the original bootstrap token during the lobby
+			// handoff. When we intentionally remap that token to avoid collisions,
+			// the endpoint-local pending session is the authoritative match.
+			if (endpointPlayer->getLobby() == nullptr)
+			{
+				INFO_LOG(game, "Resolving pending lobby login for %s:%d to %s [%x] via endpoint-local bootstrap session",
+						source.address().to_string().c_str(), source.port(),
+						endpointPlayer->getName().c_str(), endpointPlayer->getId());
+				return endpointPlayer;
+			}
+		}
+	}
+
+	const uint32_t playerId = read32(data, 4);
+	if (playerId != 0)
+	{
+		if (Player *resolved = findPlayerById(playerId))
+		{
+			updatePlayerEndpoint(resolved, source);
+			return resolved;
+		}
+		if (Player *resolved = findPlayerByBootstrapSessionId(playerId))
+		{
+			updatePlayerEndpoint(resolved, source);
+			return resolved;
+		}
+	}
+
+	if (Player *resolved = findPlayerByEndpoint(source))
+		return resolved;
+
+	const auto range = playersByEndpoint.equal_range(source);
+	if (range.first != range.second)
+	{
+		WARN_LOG(game, "Packet for player %x from shared endpoint %s:%d ignored: no matching session id",
+				playerId, source.address().to_string().c_str(), source.port());
+		return nullptr;
+	}
+
+	WARN_LOG(game, "Packet from unknown endpoint %s:%d ignored", source.address().to_string().c_str(), source.port());
+	return nullptr;
+}
+
 void LobbyServer::addPlayer(Player *player)
 {
-	auto it = players.find(player->getEndpoint());
-	if (it != players.end())
+	if (Player *existing = findPlayerById(player->getId()))
 	{
-		WARN_LOG(game, "Player %s [%x] from %s:%d already in lobby server",
-				it->second->getName().c_str(), it->second->getId(),
-				player->getEndpoint().address().to_string().c_str(), player->getEndpoint().port());
-		removePlayer(it->second);
+		WARN_LOG(game, "Replacing duplicate player id %x (%s)", existing->getId(), existing->getName().c_str());
+		removePlayer(existing);
 	}
+	const auto range = playersByEndpoint.equal_range(player->getEndpoint());
+	const size_t sharedCount = (size_t)std::distance(range.first, range.second);
 	INFO_LOG(game, "Player %s [%x] joined lobby server from %s:%d",
 			player->getName().c_str(), player->getId(),
 			player->getEndpoint().address().to_string().c_str(), player->getEndpoint().port());
-	players[player->getEndpoint()] = player;
+	if (sharedCount != 0)
+		INFO_LOG(game, "Endpoint %s:%d now shared by %zu player session(s)",
+				player->getEndpoint().address().to_string().c_str(), player->getEndpoint().port(), sharedCount + 1);
+	indexPlayer(player);
 }
 
 void LobbyServer::removePlayer(Player *player)
 {
 	if (player->getLobby() != nullptr)
 		player->getLobby()->removePlayer(player);
-	players.erase(player->getEndpoint());
+	unindexPlayer(player);
 	INFO_LOG(game, "Player %s [%x] left lobby server", player->getName().c_str(), player->getId());
 	status::leave(getDCNetGameId(game), player->getEndpoint().address().to_string(),
 			player->getEndpoint().port(), player->getName());
 	delete player;
+}
+
+bool LobbyServer::bootstrapSessionIdInUse(uint32_t id) const
+{
+	return id != 0 && playersByBootstrapSessionId.find(id) != playersByBootstrapSessionId.end();
 }
 
 void LobbyServer::send(Packet& packet, const asio::ip::udp::endpoint& endpoint)
@@ -283,12 +460,9 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 {
 	if (player == nullptr)
 	{
-		auto it = players.find(source);
-		if (it == players.end()) {
-			WARN_LOG(game, "Packet from unknown endpoint %s:%d ignored", source.address().to_string().c_str(), source.port());
+		player = resolvePlayer(data, len);
+		if (player == nullptr)
 			return;
-		}
-		player = it->second;
 		player->setAlive();
 	}
 	// Check if we have handled this RUdp packet already
@@ -299,7 +473,7 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 		if (!rudpSeen)
 		{
 			rudpSeen = true;
-			if (player->packetAcked(data))
+			if (player->packetAcked(data) && !shouldReplayDuplicateRequest(data[3]))
 			{
 				INFO_LOG(game, "[%s] RUdp packet %x already handled. Ignoring", player->getName().c_str(), data[3]);
 				replyPacket.init(Packet::REQ_NOP);
@@ -323,6 +497,9 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 			//dumpData(data + 0x10, len - 0x10);
 			player->setName((const char *)&data[0x20]);
 			player->setExtraData(&data[0x138], read32(data, 0x14));
+			if (game == Game::Bomberman)
+				INFO_LOG(game, "[%s] REQ_LOBBY_LOGIN bootstrap=%x player=%x", player->getName().c_str(),
+					player->getBootstrapSessionId(), player->getId());
 			status::join(getDCNetGameId(game), player->getEndpoint().address().to_string(),
 					player->getEndpoint().port(), player->getName());
 
@@ -365,6 +542,10 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 			replyPacket.respOK(Packet::REQ_CHG_USER_STATUS);
 			player->ackPacket(replyPacket, data);
 			replyPacket.writeData(0u);	// status?
+			relayPacket.init(Packet::REQ_CHG_USER_STATUS);
+			relayPacket.flags |= Packet::FLAG_RUDP | Packet::FLAG_RELAY | (read16(data, 0) & Packet::FLAG_LOBBY);
+			write32(relayPacket.data, relayPacket.startOffset + 4, player->getId());
+			relayPacket.writeData(status);
 			break;
 		}
 	case Packet::REQ_QRY_USERS:
@@ -387,11 +568,9 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 					replyPacket.writeData(lobby->getPlayerCount());
 					for (Player *pl : lobby->getPlayers())
 					{
-						if (pl == player)
-							continue;
 						replyPacket.writeData(pl->getName().c_str(), 0x10);
 						replyPacket.writeData(pl->getId());
-						const auto& extra = player->getExtraData();
+						const auto& extra = pl->getExtraData();
 						replyPacket.writeData((uint32_t)extra.size());
 						replyPacket.writeData(extra.data(), extra.size());
 					}
@@ -414,18 +593,10 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 					}
 					else
 					{
-						const std::vector<Player *> players = room->getPlayers();
-						replyPacket.writeData((uint32_t)players.size());
-						for (Player *pl : players)
-						{
-							if (pl == player)
-								continue;
-							replyPacket.writeData(pl->getName().c_str(), 0x10);
-							replyPacket.writeData(pl->getId());
-							const auto& extra = player->getExtraData();
-							replyPacket.writeData((uint32_t)extra.size());
-							replyPacket.writeData(extra.data(), extra.size());
-						}
+						if (game == Game::Bomberman)
+							INFO_LOG(game, "[%s] REQ_QRY_USERS room %x", player->getName().c_str(), roomId);
+						replyPacket.writeData(room->getQueryableUserCount(player));
+						room->appendQueryableUsers(replyPacket, player);
 					}
 				}
 			}
@@ -507,25 +678,39 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 				}
 				room->addPlayer(player);
 
-				// Notify other players
-				relayPacket.init(Packet::REQ_JOIN_LOBBY_ROOM);
-				relayPacket.writeData(player->getName().c_str(), 0x10);
-				relayPacket.writeData(player->getId());
-				const auto& extra = player->getExtraData();
-				relayPacket.writeData((uint32_t)extra.size());
-				relayPacket.writeData(extra.data(), extra.size());
-
 				replyPacket.respOK(Packet::REQ_JOIN_LOBBY_ROOM);
 				replyPacket.writeData(room->getId());
 				player->ackPacket(replyPacket, data);
 
-				// Push room status to new player
-				replyPacket.init(Packet::REQ_CHG_ROOM_ATTR);
-				replyPacket.writeData(room->getId());
-				replyPacket.writeData("STAT", 4);
-				replyPacket.writeData(room->getAttributes());
+				if (game == Game::Bomberman)
+				{
+					player->send(replyPacket);
+					replyPacket.reset();
+					relayPacket.reset();
+					if (BMRoom *bmRoom = dynamic_cast<BMRoom *>(room))
+					{
+						bmRoom->sendJoinSequenceTo(player);
+						bmRoom->broadcastHumanJoin(player);
+					}
+				}
+				else
+				{
+					// Notify other players
+					relayPacket.init(Packet::REQ_JOIN_LOBBY_ROOM);
+					relayPacket.writeData(player->getName().c_str(), 0x10);
+					relayPacket.writeData(player->getId());
+					const auto& extra = player->getExtraData();
+					relayPacket.writeData((uint32_t)extra.size());
+					relayPacket.writeData(extra.data(), extra.size());
 
-				room->createJoinRoomReply(replyPacket, relayPacket, player);
+					// Push room status to new player
+					replyPacket.init(Packet::REQ_CHG_ROOM_ATTR);
+					replyPacket.writeData(room->getId());
+					replyPacket.writeData("STAT", 4);
+					replyPacket.writeData(room->getAttributes());
+
+					room->createJoinRoomReply(replyPacket, relayPacket, player);
+				}
 			}
 			break;
 		}
@@ -555,6 +740,8 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 		}
 	case Packet::REQ_QRY_ROOMS:
 		{
+			if (game == Game::Bomberman)
+				INFO_LOG(game, "[%s] REQ_QRY_ROOMS lobby %x", player->getName().c_str(), read32(data, 0x10));
 			replyPacket.init(Packet::REQ_QRY_ROOMS);
 			player->ackPacket(replyPacket, data);
 			replyPacket.flags |= Packet::FLAG_LOBBY;
@@ -594,6 +781,8 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 			uint32_t maxPlayers = read32(data, 0x20);
 			std::string password = (const char *)&data[0x24];
 			uint32_t attributes = read32(data, 0x38);
+			if (game == Game::Bomberman)
+				INFO_LOG(game, "[%s] REQ_CREATE_ROOM name=%s max=%u attr=%08x", player->getName().c_str(), name.c_str(), maxPlayers, attributes);
 			if (player->getLobby() == nullptr) {
 				replyPacket.respFailed(Packet::REQ_CREATE_ROOM);
 				player->ackPacket(replyPacket, data);
@@ -619,23 +808,43 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 				replyPacket.writeData(room->getId());
 				player->ackPacket(replyPacket, data);
 
-				replyPacket.init(Packet::REQ_CHG_ROOM_ATTR);
-				replyPacket.writeData(room->getId());
-				replyPacket.writeData("STAT", 4);
-				replyPacket.writeData(attributes);
-
-				room->createJoinRoomReply(replyPacket, relayPacket, player);	// FIXME separate lobby from room players
+				if (game == Game::Bomberman)
+				{
+					// Bomberman is picky about the room-init flow: keep the generic
+					// create-room response separate from the room packet stream.
+					player->send(replyPacket);
+					replyPacket.reset();
+					if (BMRoom *bmRoom = dynamic_cast<BMRoom *>(room))
+						bmRoom->sendJoinSequenceTo(player);
+				}
+				else
+				{
+					replyPacket.init(Packet::REQ_CHG_ROOM_ATTR);
+					replyPacket.writeData(room->getId());
+					replyPacket.writeData("STAT", 4);
+					replyPacket.writeData(attributes);
+					room->createJoinRoomReply(replyPacket, relayPacket, player);	// FIXME separate lobby from room players
+				}
 			}
 			break;
 		}
 	case Packet::REQ_CHG_ROOM_ATTR:
 		{
+			bool replyAcked = false;
 			Room *room = player->getRoom();
 			if (room == nullptr) {
 				replyPacket.respFailed(Packet::REQ_CHG_ROOM_ATTR);
 			}
 			else
 			{
+				if (game == Game::Bomberman)
+				{
+					if (!memcmp(&data[0x10], "STAT", 4) || !memcmp(&data[0x10], "MAXI", 4))
+						INFO_LOG(game, "[%s] REQ_CHG_ROOM_ATTR %.4s=%08x", player->getName().c_str(),
+							&data[0x10], read32(data, 0x14));
+					else
+						INFO_LOG(game, "[%s] REQ_CHG_ROOM_ATTR %.4s", player->getName().c_str(), &data[0x10]);
+				}
 				if (!memcmp(&data[0x10], "STAT", 4))
 				{
 					uint32_t attributes = read32(data, 0x14);
@@ -674,8 +883,21 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 					replyPacket.writeData(&data[0x14], 0x10);
 				else
 					replyPacket.writeData(&data[0x14], 4);
+
+				if (game == Game::Bomberman && !memcmp(&data[0x10], "STAT", 4))
+				{
+					player->ackPacket(replyPacket, data);
+					replyAcked = true;
+					replyPacket.init(Packet::REQ_CHG_ROOM_ATTR);
+					replyPacket.writeData(room->getId());
+					replyPacket.writeData("STAT", 4);
+					replyPacket.writeData(room->getAttributes());
+					INFO_LOG(game, "[%s] Bomberman self room attr sync STAT=%08x",
+						player->getName().c_str(), room->getAttributes());
+				}
 			}
-			player->ackPacket(replyPacket, data);
+			if (!replyAcked)
+				player->ackPacket(replyPacket, data);
 			break;
 		}
 
@@ -779,6 +1001,12 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 		replyPacket.respOK(Packet::REQ_CHG_USER_PROP);
 		player->ackPacket(replyPacket, data);
 		replyPacket.data[2] = data[2]; // propeller arena needs this (only checked for REQ_CHG_USER_PROP)
+		if (game == Game::Bomberman)
+			INFO_LOG(game, "[%s] REQ_CHG_USER_PROP size=%zu flags=%04x", player->getName().c_str(), len - 0x10, read16(data, 0));
+		relayPacket.init(Packet::REQ_CHG_USER_PROP);
+		relayPacket.flags |= Packet::FLAG_RUDP | Packet::FLAG_RELAY | (read16(data, 0) & Packet::FLAG_LOBBY);
+		write32(relayPacket.data, relayPacket.startOffset + 4, player->getId());
+		relayPacket.writeData(data + 0x10, (int)(len - 0x10));
 		break;
 
 	case Packet::REQ_QRY_ROOM_ATTR:
@@ -786,9 +1014,18 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 			uint32_t roomId = read32(data, 0x10);
 			uint32_t attr = read32(data, 0x14);
 			DEBUG_LOG(game, "REG_QRY_ROOM_ATTR %x %c%c%c%c", roomId, attr >> 24, (attr >> 16) & 0xff, (attr >> 8) & 0xff, attr & 0xff);
-			Room *room = player->getRoom();
+			if (game == Game::Bomberman)
+				INFO_LOG(game, "[%s] REQ_QRY_ROOM_ATTR %x %c%c%c%c", player->getName().c_str(), roomId, attr >> 24, (attr >> 16) & 0xff, (attr >> 8) & 0xff, attr & 0xff);
+			Room *room = nullptr;
+			if (player->getRoom() != nullptr && player->getRoom()->getId() == roomId)
+				room = player->getRoom();
+			if (room == nullptr && player->getLobby() != nullptr)
+				room = player->getLobby()->getRoom(roomId);
 			if (room == nullptr) {
 				replyPacket.respFailed(Packet::REQ_QRY_ROOM_ATTR);
+				if (game == Game::Bomberman)
+					WARN_LOG(game, "[%s] REQ_QRY_ROOM_ATTR failed: room %x not found (lobby %p room %p)",
+						player->getName().c_str(), roomId, player->getLobby(), player->getRoom());
 			}
 			else
 			{
@@ -863,7 +1100,7 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 			uint16_t countOffset = replyPacket.size;
 			replyPacket.writeData(0u); // will get updated
 			int count = 0;
-			for (const auto& [endpoint, pl] : players)
+			for (const auto& [id, pl] : playersById)
 			{
 				if (pl == player)
 					continue;
@@ -875,7 +1112,7 @@ void LobbyServer::handlePacket(const uint8_t *data, size_t len)
 					replyPacket.writeData(pl->getId());
 					replyPacket.writeData(pl->getLobby() != nullptr ? pl->getLobby()->getId() : 0u);
 					replyPacket.writeData(pl->getRoom() != nullptr ? pl->getRoom()->getId() : 0u);
-					const auto& extra = player->getExtraData();
+					const auto& extra = pl->getExtraData();
 					replyPacket.writeData((uint32_t)extra.size());
 					replyPacket.writeData(extra.data(), extra.size());
 					count++;
@@ -927,12 +1164,11 @@ void LobbyServer::handlePacketDone()
 
 void LobbyServer::dump(const uint8_t* data, size_t len)
 {
-	auto it = players.find(source);
-	if (it == players.end())
+	Player *resolved = resolvePlayer(data, len);
+	if (resolved == nullptr)
 		return;
-	Player *player = it->second;
-	if (player->getRoom() != nullptr)
-		player->getRoom()->writeNetdump(data, len, source);
+	if (resolved->getRoom() != nullptr)
+		resolved->getRoom()->writeNetdump(data, len, source);
 }
 
 Room *LobbyServer::addRoom(const std::string& name, uint32_t attributes, Player *owner)
@@ -1004,6 +1240,25 @@ bool Room::removePlayer(Player *player)
 	return false;
 }
 
+uint32_t Room::getQueryableUserCount(const Player *requester) const
+{
+	(void)requester;
+	return (uint32_t)players.size();
+}
+
+void Room::appendQueryableUsers(Packet& reply, const Player *requester) const
+{
+	(void)requester;
+	for (const Player *pl : players)
+	{
+		reply.writeData(pl->getName().c_str(), 0x10);
+		reply.writeData(pl->getId());
+		const auto& extra = pl->getExtraData();
+		reply.writeData((uint32_t)extra.size());
+		reply.writeData(extra.data(), extra.size());
+	}
+}
+
 int Room::getPlayerIndex(const Player *player) const
 {
 	unsigned i = 0;
@@ -1045,12 +1300,16 @@ void Room::openNetdump()
 	char date[32];
 	sprintf(date, "%02d_%02d-%02d-%02d_%s_", tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, gameId);
 
-	std::string fname = std::string(date) + name + ".dmp";
-	std::replace(fname.begin(), fname.end(), '/', '_');
-	fname = DataDir + "/" + fname;
-	netdump = fopen(fname.c_str(), "w");
+	std::string baseName = std::string(date) + name;
+	std::replace(baseName.begin(), baseName.end(), '/', '_');
+	std::string fname = DataDir + "/" + baseName + ".dmp";
+	std::string outName = DataDir + "/" + baseName + "_out.dmp";
+	netdump = fopen(fname.c_str(), "wb");
 	if (netdump == nullptr)
 		WARN_LOG(game, "Can't open netdump file %s: error %d", fname.c_str(), errno);
+	netdumpOut = fopen(outName.c_str(), "wb");
+	if (netdumpOut == nullptr)
+		WARN_LOG(game, "Can't open outbound netdump file %s: error %d", outName.c_str(), errno);
 }
 
 void Room::writeNetdump(const uint8_t *data, uint32_t len, const asio::ip::udp::endpoint& endpoint) const
@@ -1065,6 +1324,22 @@ void Room::writeNetdump(const uint8_t *data, uint32_t len, const asio::ip::udp::
 	fwrite(&port, 2, 1, netdump);
 	fwrite(&len, 4, 1, netdump);
 	fwrite(data, 1, len, netdump);
+	fflush(netdump);
+}
+
+void Room::writeOutboundNetdump(const uint8_t *data, uint32_t len, const asio::ip::udp::endpoint& endpoint) const
+{
+	if (netdumpOut == nullptr)
+		return;
+	time_t now = std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::now()).time_since_epoch().count();
+	fwrite(&now, sizeof(now), 1, netdumpOut);
+	std::array<uint8_t, 4> addr = endpoint.address().to_v4().to_bytes();
+	fwrite(addr.data(), addr.size(), 1, netdumpOut);
+	uint16_t port = endpoint.port();
+	fwrite(&port, 2, 1, netdumpOut);
+	fwrite(&len, 4, 1, netdumpOut);
+	fwrite(data, 1, len, netdumpOut);
+	fflush(netdumpOut);
 }
 
 void Lobby::addPlayer(Player *player)
@@ -1148,3 +1423,4 @@ void Lobby::removeRoom(Room *room)
 	rooms.erase(room->getId());
 	delete room;
 }
+

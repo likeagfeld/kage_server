@@ -1,0 +1,120 @@
+; range: 8c0e1de0 - 8c0e1ea0
+
+8c0e1de0  c7           ?? C7h
+8c0e1de1  af           ?? AFh
+8c0e1de2  09           ?? 09h
+8c0e1de3  00           ?? 00h
+8c0e1de4  17           ?? 17h
+8c0e1de5  d2           ?? D2h
+8c0e1de6  0b           ?? 0Bh
+8c0e1de7  42           ?? 42h    B
+8c0e1de8  09           ?? 09h
+8c0e1de9  00           ?? 00h
+8c0e1dea  28           ?? 28h    (
+8c0e1deb  90           ?? 90h
+8c0e1dec  05           ?? 05h
+8c0e1ded  e3           ?? E3h
+8c0e1dee  36           ?? 36h    6
+8c0e1def  0e           ?? 0Eh
+8c0e1df0  bf           ?? BFh
+8c0e1df1  af           ?? AFh
+8c0e1df2  09           ?? 09h
+8c0e1df3  00           ?? 00h
+8c0e1df4  13           ?? 13h
+8c0e1df5  d2           ?? D2h
+8c0e1df6  0b           ?? 0Bh
+8c0e1df7  42           ?? 42h    B
+8c0e1df8  09           ?? 09h
+8c0e1df9  00           ?? 00h
+8c0e1dfa  ba           ?? BAh
+8c0e1dfb  af           ?? AFh
+8c0e1dfc  09           ?? 09h
+8c0e1dfd  00           ?? 00h
+8c0e1dfe  11           ?? 11h
+8c0e1dff  d2           ?? D2h
+8c0e1e00  0b           ?? 0Bh
+8c0e1e01  42           ?? 42h    B
+8c0e1e02  09           ?? 09h
+8c0e1e03  00           ?? 00h
+8c0e1e04  1b           ?? 1Bh
+8c0e1e05  90           ?? 90h
+8c0e1e06  05           ?? 05h
+8c0e1e07  e3           ?? E3h
+8c0e1e08  36           ?? 36h    6
+8c0e1e09  0e           ?? 0Eh
+8c0e1e0a  b2           ?? B2h
+8c0e1e0b  af           ?? AFh
+8c0e1e0c  09           ?? 09h
+8c0e1e0d  00           ?? 00h
+8c0e1e0e  17 90        mov.w 0x8c0e1e40,r0
+8c0e1e10  0b 00        rts
+8c0e1e12  56 04        _mov.l r5,@(r0,r4)
+8c0e1e14  53 60        mov r5,r0
+8c0e1e16  01 88        cmp/eq #0x1,r0
+8c0e1e18  0c 89        bt 0x8c0e1e34
+8c0e1e1a  53 60        mov r5,r0
+8c0e1e1c  02 88        cmp/eq #0x2,r0
+8c0e1e1e  09 89        bt 0x8c0e1e34
+8c0e1e20  53 60        mov r5,r0
+8c0e1e22  03 88        cmp/eq #0x3,r0
+8c0e1e24  02 8b        bf 0x8c0e1e2c
+8c0e1e26  01 e3        mov #0x1,r3
+8c0e1e28  58 e0        mov #0x58,r0
+8c0e1e2a  36 04        mov.l r3,@(r0,r4)
+8c0e1e2c  02 e3        mov #0x2,r3
+8c0e1e2e  58 e0        mov #0x58,r0
+8c0e1e30  0b 00        rts
+8c0e1e32  36 04        _mov.l r3,@(r0,r4)
+8c0e1e34  00 e3        mov #0x0,r3
+8c0e1e36  58 e0        mov #0x58,r0
+8c0e1e38  36 04        mov.l r3,@(r0,r4)
+8c0e1e3a  f4 af        bra 0x8c0e1e26
+8c0e1e3c  09 00        _nop
+8c0e1e3e  44           ?? 44h    D
+8c0e1e3f  02           ?? 02h
+8c0e1e40  14 02        undefined2 0214h
+8c0e1e42  00           ?? 00h
+8c0e1e43  00           ?? 00h
+8c0e1e44  b4 70 0e 8c  addr 8c0e70b4
+8c0e1e48  4a a1 0e 8c  addr 8c0ea14a
+8c0e1e4c  72 a3 0e 8c  addr 8c0ea372
+8c0e1e50  b2 9e 0e 8c  addr 8c0e9eb2
+8c0e1e54  d6 2f        mov.l r13,@-r15
+8c0e1e56  e6 2f        mov.l r14,@-r15
+8c0e1e58  22 4f        sts.l PR,@-r15
+8c0e1e5a  50 62        mov.b @r5,r2
+8c0e1e5c  63 6d        mov r6,r13
+8c0e1e5e  28 22        tst r2,r2
+8c0e1e60  10 8d        bt/s 0x8c0e1e84
+8c0e1e62  43 6e        _mov r4,r14
+8c0e1e64  9e 93        mov.w 0x8c0e1fa4,r3
+8c0e1e66  e3 60        mov r14,r0
+8c0e1e68  51 d6        mov.l 0x8c0e1fb0,r6
+8c0e1e6a  53 61        mov r5,r1
+8c0e1e6c  0b 46        jsr @r6
+8c0e1e6e  3c 30        _add r3,r0
+8c0e1e70  99 93        mov.w 0x8c0e1fa6,r3
+8c0e1e72  d3 61        mov r13,r1
+8c0e1e74  4e d6        mov.l 0x8c0e1fb0,r6
+8c0e1e76  3c 3e        add r3,r14
+8c0e1e78  0b 46        jsr @r6
+8c0e1e7a  e3 60        _mov r14,r0
+8c0e1e7c  26 4f        lds.l @r15+,PR
+8c0e1e7e  f6 6e        mov.l @r15+,r14
+8c0e1e80  0b 00        rts
+8c0e1e82  f6 6d        _mov.l @r15+,r13
+8c0e1e84  8e 93        mov.w 0x8c0e1fa4,r3
+8c0e1e86  e3 64        mov r14,r4
+8c0e1e88  4a d2        mov.l 0x8c0e1fb4,r2
+8c0e1e8a  00 e5        mov #0x0,r5
+8c0e1e8c  3c 34        add r3,r4
+8c0e1e8e  0b 42        jsr @r2
+8c0e1e90  3c e6        _mov #0x3c,r6
+8c0e1e92  88 91        mov.w 0x8c0e1fa6,r1
+8c0e1e94  00 e5        mov #0x0,r5
+8c0e1e96  47 d2        mov.l 0x8c0e1fb4,r2
+8c0e1e98  3c e6        mov #0x3c,r6
+8c0e1e9a  1c 3e        add r1,r14
+8c0e1e9c  0b 42        jsr @r2
+8c0e1e9e  e3 64        _mov r14,r4
+8c0e1ea0  ec af        bra 0x8c0e1e7c

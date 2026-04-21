@@ -1,0 +1,4 @@
+target=8c1854f8
+symbol=s_All_Battle_End._Send_Signal_CLI__8c1854f8
+ref[0] from=8c076558 type=DATA opIndex=0 function=<none> entry=<none>
+count=1

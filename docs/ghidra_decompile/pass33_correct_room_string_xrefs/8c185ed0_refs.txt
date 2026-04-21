@@ -1,0 +1,5 @@
+target=8c185ed0
+symbol=s_Request_QueryUserInRoomRequest()_8c185ed0
+ref[0] from=8c09667c type=DATA opIndex=0 function=<none> entry=<none>
+ref[1] from=8c09659e type=DATA opIndex=0 function=FUN_8c0962a4 entry=8c0962a4
+count=2

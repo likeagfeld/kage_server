@@ -1,0 +1,5 @@
+target=8c179dbc
+symbol=PTR_FUN_8c179dbc
+ref[0] from=8c179d18 type=READ opIndex=0 function=FUN_8c179cac entry=8c179cac
+ref[1] from=8c179d3a type=READ opIndex=0 function=FUN_8c179cac entry=8c179cac
+count=2

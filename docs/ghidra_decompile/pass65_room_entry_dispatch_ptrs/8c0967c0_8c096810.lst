@@ -1,0 +1,30 @@
+; range: 8c0967c0 - 8c096810
+
+8c0967c0  24 f0 0d 8c  addr 8c0df024
+8c0967c4  fa 70 0e 8c  addr 8c0e70fa
+8c0967c8  94 a1 0e 8c  addr 8c0ea194
+8c0967cc  74 4d 0f 8c  addr 8c0f4d74
+8c0967d0  b6 50 0f 8c  addr 8c0f50b6
+8c0967d4  d4 24 0e 8c  addr 8c0e24d4
+8c0967d8  90 9f 09 8c  addr 8c099f90
+8c0967dc  ce 4a 0e 8c  addr 8c0e4ace
+8c0967e0  5e ed 04 8c  addr 8c04ed5e
+8c0967e4  70 53 0f 8c  addr 8c0f5370
+8c0967e8  c4 55 0f 8c  addr 8c0f55c4
+8c0967ec  24 86 0e 8c  addr 8c0e8624
+8c0967f0  e4 4a 0f 8c  addr 8c0f4ae4
+8c0967f4  49 d2        mov.l 0x8c09691c,r2
+8c0967f6  0b 42        jsr @r2
+8c0967f8  00 e4        _mov #0x0,r4
+8c0967fa  03 64        mov r0,r4
+8c0967fc  7e 90        mov.w 0x8c0968fc,r0
+8c0967fe  46 0e        mov.l r4,@(r0,r14)
+8c096800  4a 52        mov.l @(0x28,r4),r2
+8c096802  18 72        add #0x18,r2
+8c096804  22 66        mov.l @r2,r6
+8c096806  22 55        mov.l @(0x8,r2),r5
+8c096808  0b 45        jsr @r5
+8c09680a  6c 34        _add r6,r4
+8c09680c  76 90        mov.w 0x8c0968fc,r0
+8c09680e  e3 64        mov r14,r4
+8c096810  43 d2        mov.l 0x8c096920,r2

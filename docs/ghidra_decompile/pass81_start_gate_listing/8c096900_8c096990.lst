@@ -1,0 +1,73 @@
+; range: 8c096900 - 8c096990
+
+8c096900  ec 22        undefined2 22ECh
+8c096902  48 24        undefined2 2448h
+8c096904  a0 00        undefined2 00A0h
+8c096906  4c 24        undefined2 244Ch
+8c096908  44 24        undefined2 2444h
+8c09690a  50 24        undefined2 2450h
+8c09690c  54 24        undefined2 2454h
+8c09690e  58 24        undefined2 2458h
+8c096910  8c 23        undefined2 238Ch
+8c096912  80 00        undefined2 0080h
+8c096914  10 24        undefined2 2410h
+8c096916  64 24        undefined2 2464h
+8c096918  68 24        undefined2 2468h
+8c09691a  00           ?? 00h
+8c09691b  00           ?? 00h
+8c09691c  d4 de 0d 8c  addr 8c0dded4
+8c096920  74 ee 04 8c  addr 8c04ee74
+8c096924  fc ed 09 8c  addr 8c09edfc
+8c096928  c6 2f        mov.l r12,@-r15
+8c09692a  d6 2f        mov.l r13,@-r15
+8c09692c  e6 2f        mov.l r14,@-r15
+8c09692e  22 4f        sts.l PR,@-r15
+8c096930  c0 7f        add #-0x40,r15
+8c096932  9b 90        mov.w 0x8c096a6c,r0
+8c096934  43 6d        mov r4,r13
+8c096936  01 e3        mov #0x1,r3
+8c096938  4e 04        mov.l @(r0,r4),r4
+8c09693a  4e 52        mov.l @(0x38,r4),r2
+8c09693c  33 32        cmp/ge r3,r2
+8c09693e  01 89        bt 0x8c096944
+8c096940  37 a2        bra 0x8c096db2
+8c096942  09 00        _nop
+8c096944  4c d3        mov.l 0x8c096a78,r3
+8c096946  0b 43        jsr @r3
+8c096948  d3 64        _mov r13,r4
+8c09694a  4c d3        mov.l 0x8c096a7c,r3
+8c09694c  0b 43        jsr @r3
+8c09694e  d3 64        _mov r13,r4
+8c096950  8c 90        mov.w 0x8c096a6c,r0
+8c096952  de 06        mov.l @(r0,r13),r6
+8c096954  40 e0        mov #0x40,r0
+8c096956  6e 02        mov.l @(r0,r6),r2
+8c096958  28 22        tst r2,r2
+8c09695a  01 89        bt 0x8c096960
+8c09695c  23 a2        bra 0x8c096da6
+8c09695e  09 00        _nop
+8c096960  85 90        mov.w 0x8c096a6e,r0
+8c096962  de 02        mov.l @(r0,r13),r2
+8c096964  28 22        tst r2,r2
+8c096966  01 8b        bf 0x8c09696c
+8c096968  1d a2        bra 0x8c096da6
+8c09696a  09 00        _nop
+8c09696c  68 26        tst r6,r6
+8c09696e  01 8b        bf 0x8c096974
+8c096970  19 a2        bra 0x8c096da6
+8c096972  09 00        _nop
+8c096974  7c 90        mov.w 0x8c096a70,r0
+8c096976  7c 95        mov.w 0x8c096a72,r5
+8c096978  de 04        mov.l @(r0,r13),r4
+8c09697a  12 e0        mov #0x12,r0
+8c09697c  4c 06        mov.b @(r0,r4),r6
+8c09697e  63 62        mov r6,r2
+8c096980  59 22        and r5,r2
+8c096982  28 22        tst r2,r2
+8c096984  29 02        movt r2
+8c096986  28 22        tst r2,r2
+8c096988  01 89        bt 0x8c09698e
+8c09698a  0c a2        bra 0x8c096da6
+8c09698c  09 00        _nop
+8c09698e  63 60        mov r6,r0
+8c096990  59 20        and r5,r0

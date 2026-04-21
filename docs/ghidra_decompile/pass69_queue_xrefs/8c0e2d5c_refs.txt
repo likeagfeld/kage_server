@@ -1,0 +1,4 @@
+target=8c0e2d5c
+symbol=FUN_8c0e2d5c
+ref[0] from=8c095078 type=DATA opIndex=0 function=<none> entry=<none>
+count=1

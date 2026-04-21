@@ -1,0 +1,40 @@
+PREFIX ?= $(CURDIR)/local/ucrt64
+DATADIR ?= data
+CPPFLAGS += -I$(PREFIX)/include -D_WIN32_WINNT=0x0601 "-DKAGE_DATADIR=\"$(DATADIR)\""
+CFLAGS += -g -Wall -O3 -DNDEBUG
+CXXFLAGS += $(CFLAGS) -std=c++17
+LDFLAGS += -L$(PREFIX)/lib
+LDLIBS_KAGE += -ldcserver -lsqlite3 -lws2_32 -lmswsock -lbcrypt -lcrypt32 -liphlpapi -ladvapi32 -luserenv -lpthread
+LDLIBS_DISSECT += -lws2_32
+DEPS = blowfish.h model.h propa_rank.h discord.h log.h kage.h propa_auth.h outtrigger.h bomberman.h propeller.h
+OBJS = kageserver.o blowfish.o model.o discord.o log.o outtrigger.o bomberman.o propeller.o
+BINARIES = kageserver.exe ot_dissect.exe pa_dissect.exe
+
+.PHONY: all clean check-prefix
+
+all: check-prefix $(BINARIES)
+
+check-prefix:
+	@test -f "$(PREFIX)/lib/libdcserver.dll.a" || { \
+		echo "Missing $(PREFIX)/lib/libdcserver.dll.a"; \
+		echo "Run tools/build-ucrt64.bat first to build libdcserver."; \
+		exit 1; \
+	}
+
+%.o: %.cpp $(DEPS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+%.o: %.c $(DEPS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+
+kageserver.exe: $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS) $(LDLIBS_KAGE)
+
+ot_dissect.exe: ot_dissect.o
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDLIBS_DISSECT)
+
+pa_dissect.exe: pa_dissect.o
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDLIBS_DISSECT)
+
+clean:
+	rm -f *.o $(BINARIES)

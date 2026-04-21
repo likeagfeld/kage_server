@@ -10,3 +10,14 @@ ot_dissect
 /.project
 /propellerarena.db
 /pa_dissect
+/deps/libdcserver/
+/local/
+/logs/
+/data/
+/tools/state/*.json
+/tools/state/*.pid
+/tools/__pycache__/
+/*.exe
+/*.dll
+/*.dll.a
+*.log

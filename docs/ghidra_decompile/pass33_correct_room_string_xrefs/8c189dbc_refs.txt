@@ -1,0 +1,6 @@
+target=8c189dbc
+symbol=s_Completed_CGameRoom::QueryUserIn_8c189dbc
+ref[0] from=8c0e672e type=DATA opIndex=0 function=<none> entry=<none>
+ref[1] from=8c0e6790 type=DATA opIndex=0 function=<none> entry=<none>
+ref[2] from=8c0e80e8 type=DATA opIndex=0 function=<none> entry=<none>
+count=3

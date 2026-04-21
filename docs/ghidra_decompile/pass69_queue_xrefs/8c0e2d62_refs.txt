@@ -1,0 +1,11 @@
+target=8c0e2d62
+symbol=FUN_8c0e2d62
+ref[0] from=8c0963f8 type=DATA opIndex=0 function=<none> entry=<none>
+ref[1] from=8c096a9e type=COMPUTED_CALL opIndex=0 function=FUN_8c096928 entry=8c096928
+ref[2] from=8c096b3a type=COMPUTED_CALL opIndex=0 function=FUN_8c096928 entry=8c096928
+ref[3] from=8c096394 type=COMPUTED_CALL opIndex=0 function=FUN_8c0962a4 entry=8c0962a4
+ref[4] from=8c0963d6 type=COMPUTED_CALL opIndex=0 function=FUN_8c0962a4 entry=8c0962a4
+ref[5] from=8c096392 type=PARAM opIndex=1 function=FUN_8c0962a4 entry=8c0962a4
+ref[6] from=8c0963d4 type=PARAM opIndex=1 function=FUN_8c0962a4 entry=8c0962a4
+ref[7] from=8c096bec type=DATA opIndex=0 function=<none> entry=<none>
+count=8

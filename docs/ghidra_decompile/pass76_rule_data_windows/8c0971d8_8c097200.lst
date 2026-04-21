@@ -1,0 +1,16 @@
+; range: 8c0971d8 - 8c097200
+
+8c0971d8  c4 55 0f 8c  addr 8c0f55c4
+8c0971dc  38 5f 18 8c  addr 8c185f38
+8c0971e0  5c 5f 18 8c  addr 8c185f5c
+8c0971e4  4a 58 0f 8c  addr 8c0f584a
+8c0971e8  fc b9 09 8c  addr 8c09b9fc
+8c0971ec  7c 5f 18 8c  addr 8c185f7c
+8c0971f0  00 5a 0f 8c  addr 8c0f5a00
+8c0971f4  0e 59 0f 8c  addr 8c0f590e
+8c0971f8  b0 5f 18 8c  addr 8c185fb0
+8c0971fc  c6           ?? C6h
+8c0971fd  2f           ?? 2Fh    /
+8c0971fe  d6           ?? D6h
+8c0971ff  2f           ?? 2Fh    /
+8c097200  e6           ?? E6h

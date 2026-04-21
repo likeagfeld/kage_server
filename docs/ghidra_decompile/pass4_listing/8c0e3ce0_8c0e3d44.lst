@@ -1,0 +1,103 @@
+; range: 8c0e3ce0 - 8c0e3d44
+
+8c0e3ce0  01           ?? 01h
+8c0e3ce1  8b           ?? 8Bh
+8c0e3ce2  d5           ?? D5h
+8c0e3ce3  a1           ?? A1h
+8c0e3ce4  09           ?? 09h
+8c0e3ce5  00           ?? 00h
+8c0e3ce6  23           ?? 23h    #
+8c0e3ce7  60           ?? 60h    `
+8c0e3ce8  0f           ?? 0Fh
+8c0e3ce9  88           ?? 88h
+8c0e3cea  01           ?? 01h
+8c0e3ceb  8b           ?? 8Bh
+8c0e3cec  cd           ?? CDh
+8c0e3ced  a1           ?? A1h
+8c0e3cee  09           ?? 09h
+8c0e3cef  00           ?? 00h
+8c0e3cf0  23           ?? 23h    #
+8c0e3cf1  60           ?? 60h    `
+8c0e3cf2  10           ?? 10h
+8c0e3cf3  88           ?? 88h
+8c0e3cf4  01           ?? 01h
+8c0e3cf5  8b           ?? 8Bh
+8c0e3cf6  c5           ?? C5h
+8c0e3cf7  a1           ?? A1h
+8c0e3cf8  09           ?? 09h
+8c0e3cf9  00           ?? 00h
+8c0e3cfa  23           ?? 23h    #
+8c0e3cfb  60           ?? 60h    `
+8c0e3cfc  11           ?? 11h
+8c0e3cfd  88           ?? 88h
+8c0e3cfe  01           ?? 01h
+8c0e3cff  8b           ?? 8Bh
+8c0e3d00  bd           ?? BDh
+8c0e3d01  a1           ?? A1h
+8c0e3d02  09           ?? 09h
+8c0e3d03  00           ?? 00h
+8c0e3d04  23           ?? 23h    #
+8c0e3d05  60           ?? 60h    `
+8c0e3d06  12           ?? 12h
+8c0e3d07  88           ?? 88h
+8c0e3d08  01           ?? 01h
+8c0e3d09  8b           ?? 8Bh
+8c0e3d0a  b5           ?? B5h
+8c0e3d0b  a1           ?? A1h
+8c0e3d0c  09           ?? 09h
+8c0e3d0d  00           ?? 00h
+8c0e3d0e  23           ?? 23h    #
+8c0e3d0f  60           ?? 60h    `
+8c0e3d10  13           ?? 13h
+8c0e3d11  88           ?? 88h
+8c0e3d12  01           ?? 01h
+8c0e3d13  8b           ?? 8Bh
+8c0e3d14  ad           ?? ADh
+8c0e3d15  a1           ?? A1h
+8c0e3d16  09           ?? 09h
+8c0e3d17  00           ?? 00h
+8c0e3d18  23           ?? 23h    #
+8c0e3d19  60           ?? 60h    `
+8c0e3d1a  14           ?? 14h
+8c0e3d1b  88           ?? 88h
+8c0e3d1c  01           ?? 01h
+8c0e3d1d  8b           ?? 8Bh
+8c0e3d1e  a5           ?? A5h
+8c0e3d1f  a1           ?? A1h
+8c0e3d20  09           ?? 09h
+8c0e3d21  00           ?? 00h
+8c0e3d22  23           ?? 23h    #
+8c0e3d23  60           ?? 60h    `
+8c0e3d24  15           ?? 15h
+8c0e3d25  88           ?? 88h
+8c0e3d26  01           ?? 01h
+8c0e3d27  89           ?? 89h
+8c0e3d28  9d           ?? 9Dh
+8c0e3d29  a1           ?? A1h
+8c0e3d2a  09           ?? 09h
+8c0e3d2b  00           ?? 00h
+8c0e3d2c  05           ?? 05h
+8c0e3d2d  d2           ?? D2h
+8c0e3d2e  0b           ?? 0Bh
+8c0e3d2f  00           ?? 00h
+8c0e3d30  23           ?? 23h    #
+8c0e3d31  60           ?? 60h    `
+8c0e3d32  05           ?? 05h
+8c0e3d33  d0           ?? D0h
+8c0e3d34  0b           ?? 0Bh
+8c0e3d35  00           ?? 00h
+8c0e3d36  09           ?? 09h
+8c0e3d37  00           ?? 00h
+8c0e3d38  04           ?? 04h
+8c0e3d39  d0           ?? D0h
+8c0e3d3a  0b           ?? 0Bh
+8c0e3d3b  00           ?? 00h
+8c0e3d3c  09           ?? 09h
+8c0e3d3d  00           ?? 00h
+8c0e3d3e  04           ?? 04h
+8c0e3d3f  d0           ?? D0h
+8c0e3d40  0b           ?? 0Bh
+8c0e3d41  00           ?? 00h
+8c0e3d42  09           ?? 09h
+8c0e3d43  00           ?? 00h
+8c0e3d44  84 93 18 8c  addr 8c189384

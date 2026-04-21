@@ -48,6 +48,12 @@ public:
 	uint32_t getId() const {
 		return id;
 	}
+	uint32_t getBootstrapSessionId() const {
+		return bootstrapSessionId;
+	}
+	void setBootstrapSessionId(uint32_t bootstrapSessionId) {
+		this->bootstrapSessionId = bootstrapSessionId;
+	}
 
 	const std::string& getName() const {
 		return name;
@@ -57,6 +63,9 @@ public:
 	}
 	const asio::ip::udp::endpoint& getEndpoint() const {
 		return endpoint;
+	}
+	void setEndpoint(const asio::ip::udp::endpoint& endpoint) {
+		this->endpoint = endpoint;
 	}
 
 	const std::vector<uint8_t>& getExtraData() const {
@@ -71,6 +80,9 @@ public:
 
 	void setStatus(uint32_t status) {
 		this->status = status;
+	}
+	uint32_t getStatus() const {
+		return status;
 	}
 
 	Lobby *getLobby() const {
@@ -119,6 +131,7 @@ private:
 
 	LobbyServer& server;
 	uint32_t id = 0;
+	uint32_t bootstrapSessionId = 0;
 	std::string name;
 	asio::ip::udp::endpoint endpoint;
 	std::vector<uint8_t> extraData;
@@ -137,7 +150,7 @@ private:
 	int sendCount = 0;
 	float ping = 100.f;
 	time_point lastRUdpSend;
-	int ackedClientSeq = -1;
+	std::deque<std::pair<uint64_t, time_point>> recentClientPackets;
 };
 
 class Room
@@ -205,8 +218,11 @@ public:
 	}
 	virtual void createJoinRoomReply(Packet& reply, Packet& relay, Player *player) {
 	}
+	virtual uint32_t getQueryableUserCount(const Player *requester) const;
+	virtual void appendQueryableUsers(Packet& reply, const Player *requester) const;
 
 	void writeNetdump(const uint8_t *data, uint32_t len, const asio::ip::udp::endpoint& endpoint) const;
+	void writeOutboundNetdump(const uint8_t *data, uint32_t len, const asio::ip::udp::endpoint& endpoint) const;
 
 	static bool DumpNetData;
 
@@ -218,6 +234,8 @@ protected:
 	void closeNetdump() {
 		if (netdump != nullptr)
 			fclose(netdump);
+		if (netdumpOut != nullptr)
+			fclose(netdumpOut);
 	}
 
 	Lobby& lobby;
@@ -231,6 +249,7 @@ protected:
 	LobbyServer& server;
 	const Game game;
 	FILE *netdump = nullptr;
+	FILE *netdumpOut = nullptr;
 };
 
 class Lobby
@@ -335,6 +354,7 @@ public:
 	void removePlayer(Player *player);
 	void send(Packet& packet, const asio::ip::udp::endpoint& endpoint);
 	virtual Room *addRoom(const std::string& name, uint32_t attributes, Player *owner);
+	bool bootstrapSessionIdInUse(uint32_t id) const;
 
 	const Game game;
 
@@ -351,8 +371,19 @@ protected:
 
 	std::vector<Lobby> lobbies;
 	uint32_t nextRoomId = 0x2001;
-	using PlayerMap = std::map<asio::ip::udp::endpoint, Player *>;
-	PlayerMap players;
+	using PlayerIdMap = std::map<uint32_t, Player *>;
+	using PlayerBootstrapMap = std::map<uint32_t, Player *>;
+	using PlayerEndpointMap = std::multimap<asio::ip::udp::endpoint, Player *>;
+	Player *findPlayerById(uint32_t id) const;
+	Player *findPlayerByBootstrapSessionId(uint32_t id) const;
+	Player *findPlayerByEndpoint(const asio::ip::udp::endpoint& endpoint) const;
+	Player *resolvePlayer(const uint8_t *data, size_t len);
+	void indexPlayer(Player *player);
+	void unindexPlayer(Player *player);
+	void updatePlayerEndpoint(Player *player, const asio::ip::udp::endpoint& endpoint);
+	PlayerIdMap playersById;
+	PlayerBootstrapMap playersByBootstrapSessionId;
+	PlayerEndpointMap playersByEndpoint;
 	asio::steady_timer timer;
 	// Current player and packets during packet handling
 	Player *player = nullptr;

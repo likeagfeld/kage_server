@@ -1,0 +1,323 @@
+; range: 8c0a9900 - 8c0a9a40
+
+8c0a9900  60           ?? 60h    `
+8c0a9901  62           ?? 62h    b
+8c0a9902  2c           ?? 2Ch    ,
+8c0a9903  62           ?? 62h    b
+8c0a9904  39           ?? 39h    9
+8c0a9905  22           ?? 22h    "
+8c0a9906  15           ?? 15h
+8c0a9907  42           ?? 42h    B
+8c0a9908  01           ?? 01h
+8c0a9909  8b           ?? 8Bh
+8c0a990a  58           ?? 58h    X
+8c0a990b  25           ?? 25h    %
+8c0a990c  29           ?? 29h    )
+8c0a990d  05           ?? 05h
+8c0a990e  58           ?? 58h    X
+8c0a990f  25           ?? 25h    %
+8c0a9910  03           ?? 03h
+8c0a9911  89           ?? 89h
+8c0a9912  3d           ?? 3Dh    =
+8c0a9913  74           ?? 74h    t
+8c0a9914  4c           ?? 4Ch    L
+8c0a9915  62           ?? 62h    b
+8c0a9916  0b           ?? 0Bh
+8c0a9917  00           ?? 00h
+8c0a9918  23           ?? 23h    #
+8c0a9919  60           ?? 60h    `
+8c0a991a  5d           ?? 5Dh    ]
+8c0a991b  74           ?? 74h    t
+8c0a991c  fb           ?? FBh
+8c0a991d  af           ?? AFh
+8c0a991e  4c           ?? 4Ch    L
+8c0a991f  62           ?? 62h    b
+8c0a9920  1e           ?? 1Eh
+8c0a9921  e3           ?? E3h
+8c0a9922  33           ?? 33h    3
+8c0a9923  34           ?? 34h    4
+8c0a9924  2e           ?? 2Eh    .
+8c0a9925  8b           ?? 8Bh
+8c0a9926  27           ?? 27h    '
+8c0a9927  e3           ?? E3h
+8c0a9928  37           ?? 37h    7
+8c0a9929  34           ?? 34h    4
+8c0a992a  2b           ?? 2Bh    +
+8c0a992b  89           ?? 89h
+8c0a992c  25           ?? 25h    %
+8c0a992d  90           ?? 90h
+8c0a992e  22           ?? 22h    "
+8c0a992f  e3           ?? E3h
+8c0a9930  7e           ?? 7Eh    ~
+8c0a9931  06           ?? 06h
+8c0a9932  60           ?? 60h    `
+8c0a9933  62           ?? 62h    b
+8c0a9934  2c           ?? 2Ch    ,
+8c0a9935  62           ?? 62h    b
+8c0a9936  39           ?? 39h    9
+8c0a9937  22           ?? 22h    "
+8c0a9938  15           ?? 15h
+8c0a9939  42           ?? 42h    B
+8c0a993a  12           ?? 12h
+8c0a993b  8b           ?? 8Bh
+8c0a993c  1e           ?? 1Eh
+8c0a993d  90           ?? 90h
+8c0a993e  e2           ?? E2h
+8c0a993f  74           ?? 74h    t
+8c0a9940  0f           ?? 0Fh
+8c0a9941  d5           ?? D5h
+8c0a9942  7e           ?? 7Eh    ~
+8c0a9943  02           ?? 02h
+8c0a9944  43           ?? 43h    C
+8c0a9945  60           ?? 60h    `
+8c0a9946  1a           ?? 1Ah
+8c0a9947  93           ?? 93h
+8c0a9948  ff           ?? FFh
+8c0a9949  72           ?? 72h    r
+8c0a994a  23           ?? 23h    #
+8c0a994b  66           ?? 66h    f
+8c0a994c  08           ?? 08h
+8c0a994d  42           ?? 42h    B
+8c0a994e  6c           ?? 6Ch    l
+8c0a994f  32           ?? 32h    2
+8c0a9950  00           ?? 00h
+8c0a9951  42           ?? 42h    B
+8c0a9952  2c           ?? 2Ch    ,
+8c0a9953  35           ?? 35h    5
+8c0a9954  5c           ?? 5Ch    \
+8c0a9955  06           ?? 06h
+8c0a9956  6c           ?? 6Ch    l
+8c0a9957  62           ?? 62h    b
+8c0a9958  23           ?? 23h    #
+8c0a9959  66           ?? 66h    f
+8c0a995a  30           ?? 30h    0
+8c0a995b  36           ?? 36h    6
+8c0a995c  db           ?? DBh
+8c0a995d  8b           ?? 8Bh
+8c0a995e  da           ?? DAh
+8c0a995f  af           ?? AFh
+8c0a9960  00           ?? 00h
+8c0a9961  e2           ?? E2h
+8c0a9962  43           ?? 43h    C
+8c0a9963  60           ?? 60h    `
+8c0a9964  27           ?? 27h    '
+8c0a9965  88           ?? 88h
+8c0a9966  01           ?? 01h
+8c0a9967  8b           ?? 8Bh
+8c0a9968  d5           ?? D5h
+8c0a9969  af           ?? AFh
+8c0a996a  30           ?? 30h    0
+8c0a996b  e2           ?? E2h
+8c0a996c  13           ?? 13h
+8c0a996d  74           ?? 74h    t
+8c0a996e  d2           ?? D2h
+8c0a996f  af           ?? AFh
+8c0a9970  4c           ?? 4Ch    L
+8c0a9971  62           ?? 62h    b
+8c0a9972  c3           ?? C3h
+8c0a9973  00           ?? 00h
+8c0a9974  92           ?? 92h
+8c0a9975  00           ?? 00h
+8c0a9976  ec           ?? ECh
+8c0a9977  00           ?? 00h
+8c0a9978  e8           ?? E8h
+8c0a9979  00           ?? 00h
+8c0a997a  e4           ?? E4h
+8c0a997b  00           ?? 00h
+8c0a997c  c8           ?? C8h
+8c0a997d  00           ?? 00h
+8c0a997e  fe           ?? FEh
+8c0a997f  00           ?? 00h
+8c0a9980  dc           ?? DCh
+8c0a9981  cd           ?? CDh
+8c0a9982  1b           ?? 1Bh
+8c0a9983  8c           ?? 8Ch
+8c0a9984  28           ?? 28h    (
+8c0a9985  e3           ?? E3h
+8c0a9986  33           ?? 33h    3
+8c0a9987  34           ?? 34h    4
+8c0a9988  1d           ?? 1Dh
+8c0a9989  8b           ?? 8Bh
+8c0a998a  2c           ?? 2Ch    ,
+8c0a998b  e3           ?? E3h
+8c0a998c  37           ?? 37h    7
+8c0a998d  34           ?? 34h    4
+8c0a998e  1a           ?? 1Ah
+8c0a998f  89           ?? 89h
+8c0a9990  43           ?? 43h    C
+8c0a9991  60           ?? 60h    `
+8c0a9992  28           ?? 28h    (
+8c0a9993  88           ?? 88h
+8c0a9994  0e           ?? 0Eh
+8c0a9995  89           ?? 89h
+8c0a9996  43           ?? 43h    C
+8c0a9997  60           ?? 60h    `
+8c0a9998  29           ?? 29h    )
+8c0a9999  88           ?? 88h
+8c0a999a  0d           ?? 0Dh
+8c0a999b  89           ?? 89h
+8c0a999c  43           ?? 43h    C
+8c0a999d  60           ?? 60h    `
+8c0a999e  2a           ?? 2Ah    *
+8c0a999f  88           ?? 88h
+8c0a99a0  0c           ?? 0Ch
+8c0a99a1  89           ?? 89h
+8c0a99a2  43           ?? 43h    C
+8c0a99a3  60           ?? 60h    `
+8c0a99a4  2b           ?? 2Bh    +
+8c0a99a5  88           ?? 88h
+8c0a99a6  0c           ?? 0Ch
+8c0a99a7  8d           ?? 8Dh
+8c0a99a8  43           ?? 43h    C
+8c0a99a9  62           ?? 62h    b
+8c0a99aa  43           ?? 43h    C
+8c0a99ab  60           ?? 60h    `
+8c0a99ac  2c           ?? 2Ch    ,
+8c0a99ad  88           ?? 88h
+8c0a99ae  b2           ?? B2h
+8c0a99af  8b           ?? 8Bh
+8c0a99b0  b1           ?? B1h
+8c0a99b1  af           ?? AFh
+8c0a99b2  20           ?? 20h     
+8c0a99b3  e2           ?? E2h
+8c0a99b4  af           ?? AFh
+8c0a99b5  af           ?? AFh
+8c0a99b6  0d           ?? 0Dh
+8c0a99b7  e2           ?? E2h
+8c0a99b8  ad           ?? ADh
+8c0a99b9  af           ?? AFh
+8c0a99ba  1b           ?? 1Bh
+8c0a99bb  e2           ?? E2h
+8c0a99bc  5a           ?? 5Ah    Z
+8c0a99bd  93           ?? 93h
+8c0a99be  aa           ?? AAh
+8c0a99bf  af           ?? AFh
+8c0a99c0  3c           ?? 3Ch    <
+8c0a99c1  62           ?? 62h    b
+8c0a99c2  a8           ?? A8h
+8c0a99c3  af           ?? AFh
+8c0a99c4  09           ?? 09h
+8c0a99c5  e2           ?? E2h
+8c0a99c6  2d           ?? 2Dh    -
+8c0a99c7  e3           ?? E3h
+8c0a99c8  33           ?? 33h    3
+8c0a99c9  34           ?? 34h    4
+8c0a99ca  2a           ?? 2Ah    *
+8c0a99cb  8b           ?? 8Bh
+8c0a99cc  38           ?? 38h    8
+8c0a99cd  e3           ?? E3h
+8c0a99ce  37           ?? 37h    7
+8c0a99cf  34           ?? 34h    4
+8c0a99d0  27           ?? 27h    '
+8c0a99d1  89           ?? 89h
+8c0a99d2  50           ?? 50h    P
+8c0a99d3  90           ?? 90h
+8c0a99d4  22           ?? 22h    "
+8c0a99d5  e3           ?? E3h
+8c0a99d6  7e           ?? 7Eh    ~
+8c0a99d7  06           ?? 06h
+8c0a99d8  60           ?? 60h    `
+8c0a99d9  62           ?? 62h    b
+8c0a99da  2c           ?? 2Ch    ,
+8c0a99db  62           ?? 62h    b
+8c0a99dc  39           ?? 39h    9
+8c0a99dd  22           ?? 22h    "
+8c0a99de  15           ?? 15h
+8c0a99df  42           ?? 42h    B
+8c0a99e0  11           ?? 11h
+8c0a99e1  8b           ?? 8Bh
+8c0a99e2  49           ?? 49h    I
+8c0a99e3  90           ?? 90h
+8c0a99e4  d3           ?? D3h
+8c0a99e5  74           ?? 74h    t
+8c0a99e6  25           ?? 25h    %
+8c0a99e7  d5           ?? D5h
+8c0a99e8  7e           ?? 7Eh    ~
+8c0a99e9  02           ?? 02h
+8c0a99ea  43           ?? 43h    C
+8c0a99eb  60           ?? 60h    `
+8c0a99ec  ff           ?? FFh
+8c0a99ed  72           ?? 72h    r
+8c0a99ee  23           ?? 23h    #
+8c0a99ef  66           ?? 66h    f
+8c0a99f0  00           ?? 00h
+8c0a99f1  42           ?? 42h    B
+8c0a99f2  6c           ?? 6Ch    l
+8c0a99f3  32           ?? 32h    2
+8c0a99f4  08           ?? 08h
+8c0a99f5  42           ?? 42h    B
+8c0a99f6  2c           ?? 2Ch    ,
+8c0a99f7  35           ?? 35h    5
+8c0a99f8  5c           ?? 5Ch    \
+8c0a99f9  02           ?? 02h
+8c0a99fa  2c           ?? 2Ch    ,
+8c0a99fb  62           ?? 62h    b
+8c0a99fc  3d           ?? 3Dh    =
+8c0a99fd  93           ?? 93h
+8c0a99fe  30           ?? 30h    0
+8c0a99ff  32           ?? 32h    2
+8c0a9a00  89           ?? 89h
+8c0a9a01  8b           ?? 8Bh
+8c0a9a02  88           ?? 88h
+8c0a9a03  af           ?? AFh
+8c0a9a04  00           ?? 00h
+8c0a9a05  e2           ?? E2h
+8c0a9a06  37           ?? 37h    7
+8c0a9a07  90           ?? 90h
+8c0a9a08  d3           ?? D3h
+8c0a9a09  74           ?? 74h    t
+8c0a9a0a  1d           ?? 1Dh
+8c0a9a0b  d5           ?? D5h
+8c0a9a0c  7e           ?? 7Eh    ~
+8c0a9a0d  02           ?? 02h
+8c0a9a0e  43           ?? 43h    C
+8c0a9a0f  60           ?? 60h    `
+8c0a9a10  ff           ?? FFh
+8c0a9a11  72           ?? 72h    r
+8c0a9a12  23           ?? 23h    #
+8c0a9a13  66           ?? 66h    f
+8c0a9a14  00           ?? 00h
+8c0a9a15  42           ?? 42h    B
+8c0a9a16  6c           ?? 6Ch    l
+8c0a9a17  32           ?? 32h    2
+8c0a9a18  08           ?? 08h
+8c0a9a19  42           ?? 42h    B
+8c0a9a1a  2c           ?? 2Ch    ,
+8c0a9a1b  35           ?? 35h    5
+8c0a9a1c  5c           ?? 5Ch    \
+8c0a9a1d  02           ?? 02h
+8c0a9a1e  ed           ?? EDh
+8c0a9a1f  af           ?? AFh
+8c0a9a20  2c           ?? 2Ch    ,
+8c0a9a21  62           ?? 62h    b
+8c0a9a22  39           ?? 39h    9
+8c0a9a23  e3           ?? E3h
+8c0a9a24  33           ?? 33h    3
+8c0a9a25  34           ?? 34h    4
+8c0a9a26  05           ?? 05h
+8c0a9a27  8b           ?? 8Bh
+8c0a9a28  45           ?? 45h    E
+8c0a9a29  e3           ?? E3h
+8c0a9a2a  37           ?? 37h    7
+8c0a9a2b  34           ?? 34h    4
+8c0a9a2c  02           ?? 02h
+8c0a9a2d  89           ?? 89h
+8c0a9a2e  67           ?? 67h    g
+8c0a9a2f  74           ?? 74h    t
+8c0a9a30  71           ?? 71h    q
+8c0a9a31  af           ?? AFh
+8c0a9a32  4c           ?? 4Ch    L
+8c0a9a33  62           ?? 62h    b
+8c0a9a34  46           ?? 46h    F
+8c0a9a35  e3           ?? E3h
+8c0a9a36  33           ?? 33h    3
+8c0a9a37  34           ?? 34h    4
+8c0a9a38  0a           ?? 0Ah
+8c0a9a39  8b           ?? 8Bh
+8c0a9a3a  4e           ?? 4Eh    N
+8c0a9a3b  e3           ?? E3h
+8c0a9a3c  37           ?? 37h    7
+8c0a9a3d  34           ?? 34h    4
+8c0a9a3e  07           ?? 07h
+8c0a9a3f  89           ?? 89h
+8c0a9a40  43           ?? 43h    C

@@ -1,0 +1,30 @@
+; range: 8c0997f0 - 8c099830
+
+8c0997f0  01 8b        bf 0x8c0997f6
+8c0997f2  42 af        bra 0x8c09967a
+8c0997f4  09 00        _nop
+8c0997f6  0b 48        jsr @r8
+8c0997f8  f3 64        _mov r15,r4
+8c0997fa  e6 55        mov.l @(0x18,r14),r5
+8c0997fc  f3 64        mov r15,r4
+8c0997fe  07 d2        mov.l 0x8c09981c,r2
+8c099800  0b 42        jsr @r2
+8c099802  e5 56        _mov.l @(0x14,r14),r6
+8c099804  39 af        bra 0x8c09967a
+8c099806  09 00        _nop
+8c099808  50 24        undefined2 2450h
+8c09980a  cc 00        undefined2 00CCh
+8c09980c  52 ee 0d 8c  addr 8c0dee52
+8c099810  74 ea 09 8c  addr 8c09ea74
+8c099814  b6 ec 0d 8c  addr 8c0decb6
+8c099818  28 86 0e 8c  addr 8c0e8628
+8c09981c  08 ef 0d 8c  addr 8c0def08
+8c099820  f7 5e        mov.l @(0x1c,r15),r14
+8c099822  b2 90        mov.w 0x8c09998a,r0
+8c099824  ee 02        mov.l @(r0,r14),r2
+8c099826  68 e0        mov #0x68,r0
+8c099828  2e 04        mov.l @(r0,r2),r4
+8c09982a  af 90        mov.w 0x8c09998c,r0
+8c09982c  5c d2        mov.l 0x8c0999a0,r2
+8c09982e  0b 42        jsr @r2
+8c099830  ee 05        _mov.l @(r0,r14),r5

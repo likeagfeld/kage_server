@@ -1,0 +1,577 @@
+[ckageapp_dns_failure_cleanup] file_offset=0x000e13d2 virt=0x8c0f13d2 size=0x180
+note: ADNS / login failure cleanup and error presentation path
+8c0f13d2: sts.l    pr,@-r15
+8c0f13d4: mov.w    0x8c0f1530,r0
+8c0f13d6: mov.l    @(r0,r4),r0
+8c0f13d8: tst      #2,r0
+8c0f13da: bt/s     0x8c0f13e2
+8c0f13dc: mov      r4,r14
+8c0f13de: bra      0x8c0f1728
+8c0f13e0: nop      
+8c0f13e2: mov.l    @(44,r14),r4
+8c0f13e4: tst      r4,r4
+8c0f13e6: bt       0x8c0f1414
+8c0f13e8: mov.l    0x8c0f1534,r2
+8c0f13ea: jsr      @r2
+8c0f13ec: nop      
+8c0f13ee: mov.l    @(44,r14),r4
+8c0f13f0: mov.l    @(40,r4),r2
+8c0f13f2: add      #36,r2
+8c0f13f4: mov.l    @r2,r6
+8c0f13f6: mov.l    @(8,r2),r5
+8c0f13f8: jsr      @r5
+8c0f13fa: add      r6,r4
+8c0f13fc: mov.l    @(44,r14),r4
+8c0f13fe: tst      r4,r4
+8c0f1400: bt       0x8c0f1414
+8c0f1402: mov.l    @(40,r4),r2
+8c0f1404: mov      #3,r5
+8c0f1406: add      #12,r2
+8c0f1408: mov.l    @r2,r6
+8c0f140a: mov.l    @(8,r2),r7
+8c0f140c: jsr      @r7
+8c0f140e: add      r6,r4
+8c0f1410: mov      #0,r3
+8c0f1412: mov.l    r3,@(44,r14)
+8c0f1414: mov.l    @(48,r14),r2
+8c0f1416: tst      r2,r2
+8c0f1418: bt       0x8c0f1426
+8c0f141a: mov.l    0x8c0f1538,r4
+8c0f141c: mov.l    0x8c0f153c,r2
+8c0f141e: jsr      @r2
+8c0f1420: mov      #22,r5
+8c0f1422: mov      #0,r3
+8c0f1424: mov.l    r3,@(48,r14)
+8c0f1426: mov.l    @(52,r14),r2
+8c0f1428: tst      r2,r2
+8c0f142a: bt       0x8c0f1438
+8c0f142c: mov.l    0x8c0f1538,r4
+8c0f142e: mov.l    0x8c0f153c,r2
+8c0f1430: jsr      @r2
+8c0f1432: mov      #23,r5
+8c0f1434: mov      #0,r3
+8c0f1436: mov.l    r3,@(52,r14)
+8c0f1438: mov.l    @(56,r14),r4
+8c0f143a: tst      r4,r4
+8c0f143c: bt       0x8c0f1448
+8c0f143e: mov.l    0x8c0f1540,r2
+8c0f1440: jsr      @r2
+8c0f1442: mov      #3,r5
+8c0f1444: mov      #0,r3
+8c0f1446: mov.l    r3,@(56,r14)
+8c0f1448: mov.l    @(60,r14),r4
+8c0f144a: tst      r4,r4
+8c0f144c: bt       0x8c0f147a
+8c0f144e: mov.l    0x8c0f1534,r2
+8c0f1450: jsr      @r2
+8c0f1452: nop      
+8c0f1454: mov.l    @(60,r14),r4
+8c0f1456: mov.l    @(40,r4),r2
+8c0f1458: add      #36,r2
+8c0f145a: mov.l    @r2,r5
+8c0f145c: mov.l    @(8,r2),r6
+8c0f145e: jsr      @r6
+8c0f1460: add      r5,r4
+8c0f1462: mov.l    @(60,r14),r4
+8c0f1464: tst      r4,r4
+8c0f1466: bt       0x8c0f147a
+8c0f1468: mov.l    @(40,r4),r2
+8c0f146a: mov      #3,r5
+8c0f146c: add      #12,r2
+8c0f146e: mov.l    @r2,r6
+8c0f1470: mov.l    @(8,r2),r7
+8c0f1472: jsr      @r7
+8c0f1474: add      r6,r4
+8c0f1476: mov      #0,r3
+8c0f1478: mov.l    r3,@(60,r14)
+8c0f147a: mov      #64,r0
+8c0f147c: mov.l    @(r0,r14),r4
+8c0f147e: tst      r4,r4
+8c0f1480: bt       0x8c0f14b4
+8c0f1482: mov.l    0x8c0f1534,r2
+8c0f1484: jsr      @r2
+8c0f1486: nop      
+8c0f1488: mov      #64,r0
+8c0f148a: mov.l    @(r0,r14),r4
+8c0f148c: mov.l    @(40,r4),r2
+8c0f148e: add      #36,r2
+8c0f1490: mov.l    @r2,r6
+8c0f1492: mov.l    @(8,r2),r5
+8c0f1494: jsr      @r5
+8c0f1496: add      r6,r4
+8c0f1498: mov      #64,r0
+8c0f149a: mov.l    @(r0,r14),r4
+8c0f149c: tst      r4,r4
+8c0f149e: bt       0x8c0f14b4
+8c0f14a0: mov.l    @(40,r4),r2
+8c0f14a2: mov      #3,r5
+8c0f14a4: add      #12,r2
+8c0f14a6: mov.l    @r2,r6
+8c0f14a8: mov.l    @(8,r2),r7
+8c0f14aa: jsr      @r7
+8c0f14ac: add      r6,r4
+8c0f14ae: mov      #0,r3
+8c0f14b0: mov      #64,r0
+8c0f14b2: mov.l    r3,@(r0,r14)
+8c0f14b4: mov      #68,r0
+8c0f14b6: mov.l    @(r0,r14),r4
+8c0f14b8: tst      r4,r4
+8c0f14ba: bt       0x8c0f14ee
+8c0f14bc: mov.l    0x8c0f1534,r2
+8c0f14be: jsr      @r2
+8c0f14c0: nop      
+8c0f14c2: mov      #68,r0
+8c0f14c4: mov.l    @(r0,r14),r4
+8c0f14c6: mov.l    @(40,r4),r2
+8c0f14c8: add      #36,r2
+8c0f14ca: mov.l    @r2,r6
+8c0f14cc: mov.l    @(8,r2),r5
+8c0f14ce: jsr      @r5
+8c0f14d0: add      r6,r4
+8c0f14d2: mov      #68,r0
+8c0f14d4: mov.l    @(r0,r14),r4
+8c0f14d6: tst      r4,r4
+8c0f14d8: bt       0x8c0f14ee
+8c0f14da: mov.l    @(40,r4),r2
+8c0f14dc: mov      #3,r5
+8c0f14de: add      #12,r2
+8c0f14e0: mov.l    @r2,r6
+8c0f14e2: mov.l    @(8,r2),r7
+8c0f14e4: jsr      @r7
+8c0f14e6: add      r6,r4
+8c0f14e8: mov      #0,r3
+8c0f14ea: mov      #68,r0
+8c0f14ec: mov.l    r3,@(r0,r14)
+8c0f14ee: mov      #72,r0
+8c0f14f0: mov.l    @(r0,r14),r4
+8c0f14f2: tst      r4,r4
+8c0f14f4: bt       0x8c0f1528
+8c0f14f6: mov.l    0x8c0f1534,r2
+8c0f14f8: jsr      @r2
+8c0f14fa: nop      
+8c0f14fc: mov      #72,r0
+8c0f14fe: mov.l    @(r0,r14),r4
+8c0f1500: mov.l    @(40,r4),r2
+8c0f1502: add      #36,r2
+8c0f1504: mov.l    @r2,r6
+8c0f1506: mov.l    @(8,r2),r5
+8c0f1508: jsr      @r5
+8c0f150a: add      r6,r4
+8c0f150c: mov      #72,r0
+8c0f150e: mov.l    @(r0,r14),r4
+8c0f1510: tst      r4,r4
+8c0f1512: bt       0x8c0f1528
+8c0f1514: mov.l    @(40,r4),r2
+8c0f1516: mov      #3,r5
+8c0f1518: add      #12,r2
+8c0f151a: mov.l    @r2,r6
+8c0f151c: mov.l    @(8,r2),r7
+8c0f151e: jsr      @r7
+8c0f1520: add      r6,r4
+8c0f1522: mov      #0,r3
+8c0f1524: mov      #72,r0
+8c0f1526: mov.l    r3,@(r0,r14)
+8c0f1528: mov      #76,r0
+8c0f152a: mov.l    @(r0,r14),r4
+8c0f152c: bra      0x8c0f1544
+8c0f152e: tst      r4,r4
+
+[ckageapp_lobby_state_callback_table] file_offset=0x000e096a virt=0x8c0f096a size=0xc0
+note: Callback-table style dispatch used by CKageApp around lobby entry
+8c0f096a: sts.l    pr,@-r15
+8c0f096c: add      #-60,r15
+8c0f096e: mov      #18,r0
+8c0f0970: mov.w    0x8c0f0ade,r12
+8c0f0972: mov.b    @(r0,r4),r14
+8c0f0974: mov      r4,r7
+8c0f0976: mov.l    0x8c0f0ae0,r13
+8c0f0978: mov      r15,r4
+8c0f097a: mov      r14,r2
+8c0f097c: and      r12,r2
+8c0f097e: mov      r2,r6
+8c0f0980: shll     r2
+8c0f0982: add      r6,r2
+8c0f0984: mov      r13,r5
+8c0f0986: shll2    r2
+8c0f0988: add      r2,r5
+8c0f098a: mov.l    @(4,r5),r2
+8c0f098c: add      #12,r4
+8c0f098e: mov.l    @r5,r6
+8c0f0990: mov.l    r2,@(4,r15)
+8c0f0992: mov.l    @(8,r5),r2
+8c0f0994: mov      r13,r5
+8c0f0996: mov.l    r6,@r15
+8c0f0998: mov.l    r2,@(8,r15)
+8c0f099a: mov.l    @r15,r2
+8c0f099c: add      r2,r7
+8c0f099e: mov      r14,r2
+8c0f09a0: and      r12,r2
+8c0f09a2: mov      r2,r6
+8c0f09a4: shll     r2
+8c0f09a6: add      r6,r2
+8c0f09a8: shll2    r2
+8c0f09aa: add      r2,r5
+8c0f09ac: mov.l    @(4,r5),r2
+8c0f09ae: mov.l    @r5,r6
+8c0f09b0: mov.l    r2,@(4,r4)
+8c0f09b2: mov.l    @(16,r15),r3
+8c0f09b4: mov.l    @(8,r5),r2
+8c0f09b6: cmp/pz   r3
+8c0f09b8: mov.l    r6,@r4
+8c0f09ba: bf/s     0x8c0f0a20
+8c0f09bc: mov.l    r2,@(8,r4)
+8c0f09be: mov      r14,r2
+8c0f09c0: and      r12,r2
+8c0f09c2: mov      r2,r6
+8c0f09c4: shll     r2
+8c0f09c6: add      r6,r2
+8c0f09c8: mov      r13,r5
+8c0f09ca: shll2    r2
+8c0f09cc: mov      r15,r4
+8c0f09ce: add      r2,r5
+8c0f09d0: mov.l    @(4,r5),r2
+8c0f09d2: add      #36,r4
+8c0f09d4: and      r12,r14
+8c0f09d6: mov.l    @r5,r6
+8c0f09d8: mov.l    r2,@(4,r4)
+8c0f09da: mov.l    @(8,r5),r2
+8c0f09dc: mov      r15,r5
+8c0f09de: mov.l    r6,@r4
+8c0f09e0: add      #48,r5
+8c0f09e2: mov.l    r2,@(8,r4)
+8c0f09e4: mov      r14,r2
+8c0f09e6: shll     r2
+8c0f09e8: mov.l    @(44,r15),r0
+8c0f09ea: add      r14,r2
+8c0f09ec: shll2    r2
+8c0f09ee: add      r2,r13
+8c0f09f0: mov.l    @r13,r2
+8c0f09f2: mov.l    @(4,r13),r6
+8c0f09f4: mov.l    r2,@r5
+8c0f09f6: mov.l    @(8,r13),r2
+8c0f09f8: mov.l    r6,@(4,r5)
+8c0f09fa: mov.l    r2,@(8,r5)
+8c0f09fc: mov.l    @(52,r15),r2
+8c0f09fe: mov.l    @(r0,r7),r5
+8c0f0a00: mov      r2,r6
+8c0f0a02: shll     r2
+8c0f0a04: add      r6,r2
+8c0f0a06: shll2    r2
+8c0f0a08: add      r2,r5
+8c0f0a0a: mov.l    @r5,r2
+8c0f0a0c: add      r2,r7
+8c0f0a0e: mov.l    @(8,r5),r2
+8c0f0a10: jsr      @r2
+8c0f0a12: mov      r7,r4
+8c0f0a14: add      #60,r15
+8c0f0a16: lds.l    @r15+,pr
+8c0f0a18: mov.l    @r15+,r14
+8c0f0a1a: mov.l    @r15+,r13
+8c0f0a1c: rts      
+8c0f0a1e: mov.l    @r15+,r12
+8c0f0a20: and      r12,r14
+8c0f0a22: mov      r15,r5
+8c0f0a24: mov      r14,r2
+8c0f0a26: shll     r2
+8c0f0a28: add      r14,r2
+
+[ckageapp_lobby_joined_dispatch] file_offset=0x000e1950 virt=0x8c0f1950 size=0x200
+note: Post-login lobby setup path that appears to request lists, attrs, and user data
+8c0f1950: sts.l    pr,@-r15
+8c0f1952: add      #-16,r15
+8c0f1954: mov      #12,r0
+8c0f1956: tst      r6,r6
+
+[cgameroom_state_label_lookup] file_offset=0x000e795a virt=0x8c0f795a size=0x40
+note: Small helper that resolves CGameRoom state labels from a shared table
+8c0f795a: sts.l    pr,@-r15
+8c0f795c: add      #-8,r15
+8c0f795e: mov      #1,r3
+8c0f7960: mov.l    r4,@(4,r15)
+8c0f7962: mov.l    r3,@r15
+8c0f7964: mov.l    0x8c0f79b0,r3
+8c0f7966: jsr      @r3
+8c0f7968: mov      r15,r4
+8c0f796a: mov      r0,r4
+8c0f796c: tst      r4,r4
+8c0f796e: bt       0x8c0f7978
+8c0f7970: add      #8,r15
+8c0f7972: lds.l    @r15+,pr
+8c0f7974: rts      
+8c0f7976: mov      #-3,r0
+8c0f7978: mov.l    0x8c0f79a0,r1
+8c0f797a: mov.w    0x8c0f799e,r0
+8c0f797c: mov.l    @r1,r2
+8c0f797e: mov.l    @(4,r15),r3
+8c0f7980: add      r2,r0
+8c0f7982: mov.l    r0,@r3
+8c0f7984: mov      #0,r0
+8c0f7986: add      #8,r15
+8c0f7988: lds.l    @r15+,pr
+8c0f798a: rts      
+8c0f798c: nop      
+8c0f798e: mov.b    @(r0,r13),r9
+
+[cgameroom_query_user_in_callback] file_offset=0x000e80b8 virt=0x8c0f80b8 size=0x80
+note: QueryUserIn callback and object accessor region for game rooms
+8c0f80b8: sts.l    pr,@-r15
+8c0f80ba: mov.l    @r2,r0
+8c0f80bc: tst      #1,r0
+8c0f80be: bt       0x8c0f80d0
+8c0f80c0: mov.l    0x8c0f8184,r1
+8c0f80c2: jsr      @r1
+8c0f80c4: nop      
+8c0f80c6: lds.l    @r15+,pr
+8c0f80c8: mov.l    0x8c0f8188,r1
+8c0f80ca: shll2    r0
+8c0f80cc: rts      
+8c0f80ce: mov.l    @(r0,r1),r0
+8c0f80d0: mov.l    0x8c0f818c,r4
+8c0f80d2: mov.b    @r4,r1
+8c0f80d4: tst      r1,r1
+8c0f80d6: bt       0x8c0f80de
+8c0f80d8: lds.l    @r15+,pr
+8c0f80da: rts      
+8c0f80dc: mov      r4,r0
+8c0f80de: mov      #0,r0
+8c0f80e0: lds.l    @r15+,pr
+8c0f80e2: rts      
+8c0f80e4: nop      
+8c0f80e6: mov.l    0x8c0f8190,r7
+8c0f80e8: mov.l    @(4,r7),r6
+8c0f80ea: tst      r6,r6
+8c0f80ec: bf       0x8c0f8102
+8c0f80ee: tst      r4,r4
+8c0f80f0: bt/s     0x8c0f80f6
+8c0f80f2: mov      #0,r6
+8c0f80f4: mov.l    r6,@r4
+8c0f80f6: tst      r5,r5
+8c0f80f8: bt/s     0x8c0f80fe
+8c0f80fa: mov      #-19,r0
+8c0f80fc: mov.l    r6,@r5
+8c0f80fe: rts      
+8c0f8100: nop      
+8c0f8102: tst      r4,r4
+8c0f8104: bt       0x8c0f8108
+8c0f8106: mov.l    r6,@r4
+8c0f8108: tst      r5,r5
+8c0f810a: bt       0x8c0f8110
+8c0f810c: mov.l    @(8,r7),r3
+8c0f810e: mov.l    r3,@r5
+8c0f8110: mov      #0,r0
+8c0f8112: rts      
+8c0f8114: nop      
+8c0f8116: mov.l    0x8c0f8194,r3
+8c0f8118: rts      
+8c0f811a: mov.l    @r3,r0
+8c0f811c: mov.l    r14,@-r15
+8c0f811e: sts.l    pr,@-r15
+8c0f8120: bsr      0x8c0f7b08
+8c0f8122: nop      
+8c0f8124: cmp/eq   #5,r0
+8c0f8126: bt       0x8c0f8130
+8c0f8128: lds.l    @r15+,pr
+8c0f812a: mov      #-10,r0
+8c0f812c: rts      
+8c0f812e: mov.l    @r15+,r14
+8c0f8130: mov.l    0x8c0f8174,r2
+8c0f8132: mov      #0,r14
+8c0f8134: mov.l    0x8c0f8198,r3
+8c0f8136: mov.l    r14,@r2
+
+[room_list_and_query_callback_cluster] file_offset=0x000e67e0 virt=0x8c0f67e0 size=0x1a0
+note: Room list, room attribute, and room user callback cluster
+8c0f67e0: add      #-4,r15
+8c0f67e2: mov      #0,r2
+8c0f67e4: mov      r5,r14
+8c0f67e6: mov.l    r4,@r15
+8c0f67e8: mov.l    r2,@r14
+8c0f67ea: bsr      0x8c0f6006
+8c0f67ec: mov      r15,r4
+8c0f67ee: mov      r0,r13
+8c0f67f0: tst      r13,r13
+8c0f67f2: bf       0x8c0f682c
+8c0f67f4: mov.l    @r15,r0
+8c0f67f6: mov.l    0x8c0f6868,r2
+8c0f67f8: mov.l    0x8c0f6864,r11
+8c0f67fa: cmp/eq   #1,r0
+8c0f67fc: bt/s     0x8c0f6810
+8c0f67fe: mov.l    @r2,r12
+8c0f6800: cmp/eq   #4,r0
+8c0f6802: bt       0x8c0f6810
+8c0f6804: cmp/eq   #2,r0
+8c0f6806: bt       0x8c0f6816
+8c0f6808: cmp/eq   #3,r0
+8c0f680a: bt       0x8c0f681c
+8c0f680c: bra      0x8c0f682a
+8c0f680e: nop      
+8c0f6810: mov.w    0x8c0f685c,r5
+8c0f6812: bra      0x8c0f6820
+8c0f6814: mov      #4,r6
+8c0f6816: mov.w    0x8c0f685e,r5
+8c0f6818: bra      0x8c0f6820
+8c0f681a: mov      #4,r6
+8c0f681c: mov.w    0x8c0f6860,r5
+8c0f681e: mov      #4,r6
+8c0f6820: add      r12,r5
+8c0f6822: jsr      @r11
+8c0f6824: mov      r14,r4
+8c0f6826: bra      0x8c0f682c
+8c0f6828: nop      
+8c0f682a: mov      #-3,r13
+8c0f682c: mov      r13,r0
+8c0f682e: add      #4,r15
+8c0f6830: lds.l    @r15+,pr
+8c0f6832: mov.l    @r15+,r11
+8c0f6834: mov.l    @r15+,r12
+8c0f6836: mov.l    @r15+,r13
+8c0f6838: rts      
+8c0f683a: mov.l    @r15+,r14
+8c0f683c: cmp/pl   r5
+8c0f683e: bf/s     0x8c0f6852
+8c0f6840: mov      #0,r6
+8c0f6842: mov.b    @r4,r2
+8c0f6844: tst      r2,r2
+8c0f6846: bt       0x8c0f6852
+8c0f6848: add      #-1,r5
+8c0f684a: cmp/pl   r5
+8c0f684c: add      #1,r4
+8c0f684e: bt/s     0x8c0f6842
+8c0f6850: add      #1,r6
+8c0f6852: rts      
+8c0f6854: mov      r6,r0
+8c0f6856: mov.b    @(r0,r10),r0
+
+[online_rules_and_start_path] file_offset=0x000a8d80 virt=0x8c0b8d80 size=0x120
+note: Online battle object update path near rules/start logging strings
+8c0b8d80: tst      r2,r2
+8c0b8d82: bf       0x8c0b8dd2
+8c0b8d84: mov      r6,r5
+8c0b8d86: shll2    r5
+8c0b8d88: add      r6,r5
+8c0b8d8a: shll2    r5
+8c0b8d8c: shll     r5
+8c0b8d8e: add      r12,r5
+8c0b8d90: mov      #4,r0
+
+[disconnect_reason_dispatch] file_offset=0x000d3ce0 virt=0x8c0e3ce0 size=0x90
+note: Disconnect / timeout reason dispatch and string selection
+8c0e3ce0: bf       0x8c0e3ce6
+8c0e3ce2: bra      0x8c0e4090
+8c0e3ce4: nop      
+8c0e3ce6: mov      r2,r0
+8c0e3ce8: cmp/eq   #15,r0
+8c0e3cea: bf       0x8c0e3cf0
+8c0e3cec: bra      0x8c0e408a
+8c0e3cee: nop      
+8c0e3cf0: mov      r2,r0
+8c0e3cf2: cmp/eq   #16,r0
+8c0e3cf4: bf       0x8c0e3cfa
+8c0e3cf6: bra      0x8c0e4084
+8c0e3cf8: nop      
+8c0e3cfa: mov      r2,r0
+8c0e3cfc: cmp/eq   #17,r0
+8c0e3cfe: bf       0x8c0e3d04
+8c0e3d00: bra      0x8c0e407e
+8c0e3d02: nop      
+8c0e3d04: mov      r2,r0
+8c0e3d06: cmp/eq   #18,r0
+8c0e3d08: bf       0x8c0e3d0e
+8c0e3d0a: bra      0x8c0e4078
+8c0e3d0c: nop      
+8c0e3d0e: mov      r2,r0
+8c0e3d10: cmp/eq   #19,r0
+8c0e3d12: bf       0x8c0e3d18
+8c0e3d14: bra      0x8c0e4072
+8c0e3d16: nop      
+8c0e3d18: mov      r2,r0
+8c0e3d1a: cmp/eq   #20,r0
+8c0e3d1c: bf       0x8c0e3d22
+8c0e3d1e: bra      0x8c0e406c
+8c0e3d20: nop      
+8c0e3d22: mov      r2,r0
+8c0e3d24: cmp/eq   #21,r0
+8c0e3d26: bt       0x8c0e3d2c
+8c0e3d28: bra      0x8c0e4066
+8c0e3d2a: nop      
+8c0e3d2c: mov.l    0x8c0e3d44,r2
+8c0e3d2e: rts      
+8c0e3d30: mov      r2,r0
+8c0e3d32: mov.l    0x8c0e3d48,r0
+8c0e3d34: rts      
+8c0e3d36: nop      
+8c0e3d38: mov.l    0x8c0e3d4c,r0
+8c0e3d3a: rts      
+8c0e3d3c: nop      
+8c0e3d3e: mov.l    0x8c0e3d50,r0
+8c0e3d40: rts      
+8c0e3d42: nop      
+8c0e3d44: mov.w    0x8c0e3e50,r3
+
+[room_master_change_notice] file_offset=0x00099960 virt=0x8c0a9960 size=0x60
+note: Notice path used when the room master changes
+8c0a9960: mov      #0,r2
+8c0a9962: mov      r4,r0
+8c0a9964: cmp/eq   #39,r0
+8c0a9966: bf       0x8c0a996c
+8c0a9968: bra      0x8c0a9916
+8c0a996a: mov      #48,r2
+8c0a996c: add      #19,r4
+8c0a996e: bra      0x8c0a9916
+8c0a9970: extu.b   r4,r2
+8c0a9972: movca.l  r0,@r0
+8c0a9974: stc      r1_bank,r0
+8c0a9976: mov.b    @(r0,r14),r0
+
+[server_hostname_config_region] file_offset=0x000239f0 virt=0x8c0339f0 size=0x120
+note: Configuration region that references the hard-coded Bomberman master hostname
+8c0339f0: mov      #1,r4
+8c0339f2: mov.l    @(12,r15),r5
+8c0339f4: mov.l    r6,@(r0,r13)
+8c0339f6: mov.w    0x8c033ae8,r0
+8c0339f8: mov      r5,r6
+8c0339fa: mov.w    0x8c033aea,r1
+8c0339fc: mov.l    r4,@(r0,r13)
+8c0339fe: mov.w    0x8c033aec,r0
+8c033a00: mov.l    @(r0,r13),r2
+8c033a02: mov.w    0x8c033aee,r0
+8c033a04: mov.l    r2,@(r0,r13)
+8c033a06: shll     r2
+8c033a08: add      r2,r6
+8c033a0a: mov.w    r4,@r6
+8c033a0c: mov      r13,r4
+8c033a0e: mov.l    @(r0,r13),r6
+8c033a10: add      r1,r4
+8c033a12: mov.w    0x8c033af0,r0
+8c033a14: mov.l    0x8c033b00,r1
+8c033a16: mov.l    r6,@(r0,r13)
+8c033a18: add      #1,r6
+8c033a1a: mov.w    0x8c033af2,r0
+8c033a1c: shll     r6
+8c033a1e: mov.l    r1,@(28,r15)
+8c033a20: mov.l    @(r0,r13),r2
+8c033a22: mov.w    0x8c033af4,r0
+8c033a24: jsr      @r1
+8c033a26: mov.l    r2,@(r0,r13)
+8c033a28: mov.w    0x8c033aee,r0
+8c033a2a: mov      r13,r4
+8c033a2c: mov.w    0x8c033af6,r1
+8c033a2e: mov.l    @(r0,r13),r6
+8c033a30: add      r1,r4
+8c033a32: mov.l    @(16,r15),r5
+8c033a34: add      #1,r6
+8c033a36: mov.l    @(28,r15),r1
+8c033a38: jsr      @r1
+8c033a3a: shll     r6
+8c033a3c: mov.w    0x8c033aec,r0
+8c033a3e: mov      #0,r1
+8c033a40: mov.l    @(12,r15),r3
+8c033a42: mov.l    @(r0,r13),r2
+8c033a44: shll     r2
+8c033a46: add      r2,r3
+8c033a48: bra      0x8c0336e8
+8c033a4a: mov.w    r1,@r3
+8c033a4c: mov.l    0x8c033b04,r2
+8c033a4e: jsr      @r2
+8c033a50: nop      
+8c033a52: mov      r0,r2

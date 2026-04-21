@@ -19,6 +19,7 @@
 #include <string>
 #include <cstdarg>
 #include <ctime>
+#include <vector>
 
 const char *LevelNames[] = {
 	"ERROR",
@@ -38,23 +39,53 @@ void logger(Log::LEVEL level, Game game, const char* file, int line, const char 
 {
 	va_list args;
 	va_start(args, format);
-	char *temp;
-	if (vasprintf(&temp, format, args) < 0)
+	va_list argsCopy;
+	va_copy(argsCopy, args);
+	const int tempLen = vsnprintf(nullptr, 0, format, argsCopy);
+	va_end(argsCopy);
+	if (tempLen < 0) {
+		va_end(args);
 		throw std::bad_alloc();
+	}
+	std::vector<char> temp(tempLen + 1);
+	vsnprintf(temp.data(), temp.size(), format, args);
 	va_end(args);
 
 	time_t now = time(nullptr);
 	struct tm tm = *localtime(&now);
 
-	char *msg;
 	if (game < Game::None || game > Game::PropellerA)
 		game = Game::None;
-	const int len = asprintf(&msg, "[%02d/%02d %02d:%02d:%02d] %s:%u %c[%s] %s\n",
-			tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
-			file, line, LevelNames[(int)level][0], Games[(int)game + 1], temp);
-	free(temp);
-	if (len < 0)
+	const int msgLen = snprintf(
+		nullptr,
+		0,
+		"[%02d/%02d %02d:%02d:%02d] %s:%u %c[%s] %s\n",
+		tm.tm_mon + 1,
+		tm.tm_mday,
+		tm.tm_hour,
+		tm.tm_min,
+		tm.tm_sec,
+		file,
+		line,
+		LevelNames[(int)level][0],
+		Games[(int)game + 1],
+		temp.data());
+	if (msgLen < 0)
 		throw std::bad_alloc();
-	fputs(msg, stderr);
-	free(msg);
+	std::vector<char> msg(msgLen + 1);
+	snprintf(
+		msg.data(),
+		msg.size(),
+		"[%02d/%02d %02d:%02d:%02d] %s:%u %c[%s] %s\n",
+		tm.tm_mon + 1,
+		tm.tm_mday,
+		tm.tm_hour,
+		tm.tm_min,
+		tm.tm_sec,
+		file,
+		line,
+		LevelNames[(int)level][0],
+		Games[(int)game + 1],
+		temp.data());
+	fputs(msg.data(), stderr);
 }

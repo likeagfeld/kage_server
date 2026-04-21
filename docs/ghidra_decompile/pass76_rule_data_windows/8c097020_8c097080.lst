@@ -1,0 +1,35 @@
+; range: 8c097020 - 8c097080
+
+8c097020  0b 43        jsr @r3
+8c097022  d3 64        _mov r13,r4
+8c097024  1e ad        bra 0x8c096a64
+8c097026  09 00        _nop
+8c097028  cc 00        undefined2 00CCh
+8c09702a  b4 02        undefined2 02B4h
+8c09702c  e8 22        undefined2 22E8h
+8c09702e  e0 00        undefined2 00E0h
+8c097030  d8 00        undefined2 00D8h
+8c097032  5c 24        undefined2 245Ch
+8c097034  30 01        undefined2 0130h
+8c097036  32 01        undefined2 0132h
+8c097038  33 01        undefined2 0133h
+8c09703a  2f 01        undefined2 012Fh
+8c09703c  d8 22        undefined2 22D8h
+8c09703e  d4 22        undefined2 22D4h
+8c097040  e4 72 0e 8c  addr 8c0e72e4
+8c097044  14 5f 18 8c  addr 8c185f14
+8c097048  f0 4f 0f 8c  addr 8c0f4ff0
+8c09704c  2e a2 09 8c  addr 8c09a22e
+8c097050  ea 58 0f 8c  addr 8c0f58ea
+8c097054  f8 58 0f 8c  addr 8c0f58f8
+8c097058  d4 58 0f 8c  addr 8c0f58d4
+8c09705c  c6 85 09 8c  addr 8c0985c6
+8c097060  e8 45 0f 8c  addr 8c0f45e8
+8c097064  90 9f 09 8c  addr 8c099f90
+8c097068  ce 4a 0e 8c  addr 8c0e4ace
+8c09706c  bc a3 09 8c  addr 8c09a3bc
+8c097070  fc 4e 0f 8c  addr 8c0f4efc
+8c097074  7e 4e 0f 8c  addr 8c0f4e7e
+8c097078  c8 81 09 8c  addr 8c0981c8
+8c09707c  94 4f 0f 8c  addr 8c0f4f94
+8c097080  94 88 09 8c  addr 8c098894

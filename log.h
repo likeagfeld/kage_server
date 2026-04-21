@@ -21,11 +21,11 @@
 namespace Log {
 enum LEVEL
 {
-	ERROR = 0,
-	WARNING = 1,
-	NOTICE = 2,
-	INFO = 3,
-	DEBUG = 4,
+	ErrorLevel = 0,
+	WarningLevel = 1,
+	NoticeLevel = 2,
+	InfoLevel = 3,
+	DebugLevel = 4,
 };
 }
 
@@ -33,28 +33,28 @@ void logger(Log::LEVEL level, Game game, const char *file, int line, const char 
 
 #define ERROR_LOG(game, ...)                      \
 	do {                                    \
-		logger(Log::ERROR, game, __FILE__, __LINE__, __VA_ARGS__);    \
+		logger(Log::ErrorLevel, game, __FILE__, __LINE__, __VA_ARGS__);    \
 	} while (0)
 
 #define WARN_LOG(game, ...)                       \
 	do {                                    \
-		logger(Log::WARNING, game, __FILE__, __LINE__, __VA_ARGS__);    \
+		logger(Log::WarningLevel, game, __FILE__, __LINE__, __VA_ARGS__);    \
 	} while (0)
 
 #define NOTICE_LOG(game, ...)                     \
 	do {                                    \
-		logger(Log::NOTICE, game, __FILE__, __LINE__, __VA_ARGS__);    \
+		logger(Log::NoticeLevel, game, __FILE__, __LINE__, __VA_ARGS__);    \
 	} while (0)
 
 #define INFO_LOG(game, ...)                       \
 	do {                                    \
-		logger(Log::INFO, game, __FILE__, __LINE__, __VA_ARGS__);    \
+		logger(Log::InfoLevel, game, __FILE__, __LINE__, __VA_ARGS__);    \
 	} while (0)
 
 #ifndef NDEBUG
 #define DEBUG_LOG(game, ...)                      \
 	do {                                    \
-		logger(Log::DEBUG, game, __FILE__, __LINE__, __VA_ARGS__);    \
+		logger(Log::DebugLevel, game, __FILE__, __LINE__, __VA_ARGS__);    \
 	} while (0)
 #else
 #define DEBUG_LOG(...)

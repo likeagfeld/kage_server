@@ -1,0 +1,5 @@
+target=8c096be4
+symbol=DAT_8c096be4
+ref[0] from=8c096b88 type=READ opIndex=0 function=FUN_8c096928 entry=8c096928
+ref[1] from=8c096bae type=READ opIndex=0 function=FUN_8c096928 entry=8c096928
+count=2

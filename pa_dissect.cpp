@@ -3,8 +3,13 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <arpa/inet.h>
 #include <unistd.h>
+#endif
 #include <stdlib.h>
 #include <map>
 
@@ -82,7 +87,12 @@ int main(int argc, char *argv[])
 
 			if (firstChunk)
 			{
-				printf("[%02ld:%02ld:%02ld.%03ld] ", h.ts / 3600000, (h.ts % 3600000) / 60000, (h.ts % 60000) / 1000, h.ts % 1000);
+				printf(
+					"[%02lld:%02lld:%02lld.%03lld] ",
+					(long long)(h.ts / 3600000),
+					(long long)((h.ts % 3600000) / 60000),
+					(long long)((h.ts % 60000) / 1000),
+					(long long)(h.ts % 1000));
 				inet_ntop(AF_INET, &h.addr, ip, INET_ADDRSTRLEN);
 				printf(" %15s:%d\t", ip, h.port);
 				firstChunk = false;

@@ -1,0 +1,4 @@
+target=8c096d76
+symbol=DAT_8c096d76
+ref[0] from=8c096cec type=READ opIndex=0 function=FUN_8c096928 entry=8c096928
+count=1

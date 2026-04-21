@@ -1,0 +1,4 @@
+target=8c189b58
+symbol=s_ROOM_FOUND_USERIN_8c189b58
+ref[0] from=8c0e7868 type=DATA opIndex=0 function=<none> entry=<none>
+count=1

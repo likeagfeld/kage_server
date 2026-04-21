@@ -1,0 +1,31 @@
+; range: 8c0ea430 - 8c0ea470
+
+8c0ea430  c0 a0 18 8c  addr 8c18a0c0
+8c0ea434  dc a0 18 8c  addr 8c18a0dc
+8c0ea438  f8 a0 18 8c  addr 8c18a0f8
+8c0ea43c  14 a1 18 8c  addr 8c18a114
+8c0ea440  80 e6 1b 8c  addr 8c1be680
+8c0ea444  84 90 0e 8c  addr 8c0e9084
+8c0ea448  42 d0 11 8c  addr 8c11d042
+8c0ea44c  ec 90 0e 8c  addr 8c0e90ec
+8c0ea450  28 91 0e 8c  addr 8c0e9128
+8c0ea454  96 91 0e 8c  addr 8c0e9196
+8c0ea458  dc 91 0e 8c  addr 8c0e91dc
+8c0ea45c  a2 92 0e 8c  addr 8c0e92a2
+8c0ea460  c6           ?? C6h
+8c0ea461  2f           ?? 2Fh    /
+8c0ea462  d6           ?? D6h
+8c0ea463  2f           ?? 2Fh    /
+8c0ea464  e6           ?? E6h
+8c0ea465  2f           ?? 2Fh    /
+8c0ea466  22           ?? 22h    "
+8c0ea467  4f           ?? 4Fh    O
+8c0ea468  d4           ?? D4h
+8c0ea469  7f           ?? 7Fh    
+8c0ea46a  50           ?? 50h    P
+8c0ea46b  62           ?? 62h    b
+8c0ea46c  63           ?? 63h    c
+8c0ea46d  6d           ?? 6Dh    m
+8c0ea46e  2c           ?? 2Ch    ,
+8c0ea46f  62           ?? 62h    b
+8c0ea470  28           ?? 28h    (

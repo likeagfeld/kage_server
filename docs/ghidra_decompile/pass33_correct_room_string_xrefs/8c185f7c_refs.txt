@@ -1,0 +1,5 @@
+target=8c185f7c
+symbol=s_The_number_of_players_in_this_ro_8c185f7c
+ref[0] from=8c0971ec type=DATA opIndex=0 function=<none> entry=<none>
+ref[1] from=8c09712c type=PARAM opIndex=1 function=FUN_8c096928 entry=8c096928
+count=2

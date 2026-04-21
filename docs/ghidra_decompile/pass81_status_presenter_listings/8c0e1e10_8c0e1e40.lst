@@ -1,0 +1,28 @@
+; range: 8c0e1e10 - 8c0e1e40
+
+8c0e1e10  0b 00        rts
+8c0e1e12  56 04        _mov.l r5,@(r0,r4)
+8c0e1e14  53 60        mov r5,r0
+8c0e1e16  01 88        cmp/eq #0x1,r0
+8c0e1e18  0c 89        bt 0x8c0e1e34
+8c0e1e1a  53 60        mov r5,r0
+8c0e1e1c  02 88        cmp/eq #0x2,r0
+8c0e1e1e  09 89        bt 0x8c0e1e34
+8c0e1e20  53 60        mov r5,r0
+8c0e1e22  03 88        cmp/eq #0x3,r0
+8c0e1e24  02 8b        bf 0x8c0e1e2c
+8c0e1e26  01 e3        mov #0x1,r3
+8c0e1e28  58 e0        mov #0x58,r0
+8c0e1e2a  36 04        mov.l r3,@(r0,r4)
+8c0e1e2c  02 e3        mov #0x2,r3
+8c0e1e2e  58 e0        mov #0x58,r0
+8c0e1e30  0b 00        rts
+8c0e1e32  36 04        _mov.l r3,@(r0,r4)
+8c0e1e34  00 e3        mov #0x0,r3
+8c0e1e36  58 e0        mov #0x58,r0
+8c0e1e38  36 04        mov.l r3,@(r0,r4)
+8c0e1e3a  f4 af        bra 0x8c0e1e26
+8c0e1e3c  09 00        _nop
+8c0e1e3e  44           ?? 44h    D
+8c0e1e3f  02           ?? 02h
+8c0e1e40  14 02        undefined2 0214h
