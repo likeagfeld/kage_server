@@ -2505,3 +2505,30 @@ Next validation:
   command
 - bomb work remains blocked on identifying the authoritative bomb/event path;
   `cmd=02` object-table relay and state-only probes are falsified by hardware
+
+## 2026-04-22 Periodic Slot Heartbeat Falsified And Removed
+
+- latest hardware run:
+  - `D:\kageserver\data\22_13-13-24_BM_test.dmp`
+  - `D:\kageserver\data\22_13-13-24_BM_test_out.dmp`
+- server-side outcome:
+  - battle start reached the board and first-round timer/second-round reset sequence still worked
+  - FARKUS timed out at `13:19:48`; FARKUS2 timed out one minute later after manual/disconnect cleanup
+- parser evidence:
+  - inbound live `cmd=01/02/03` counts stayed high: `2596`, `2595`, `2594`
+  - outbound aggregate relay still populated both occupied slots for most packets (`mask=03`)
+  - inbound and outbound `cmd=02` object tables remained default-only: `0` non-default tables
+  - repeated reliable `REQ_CHAT cmd=0x0a` counted `301` packets over about `350s`
+  - non-reliable liveness `REQ_CHAT cmd=0x1c` counted `583` packets over about `383s`
+- falsification:
+  - the periodic `in_game_slot_heartbeat` did not prove movement or bomb sync
+  - it correlated with repeated `model.cpp` packet `f` / `REQ_CHAT` send failures to FARKUS starting at `13:19:17`
+  - because the high-frequency reliable `REQ_CHAT` lane was the heartbeat, do not reintroduce periodic reliable `cmd=0x0a`
+- current implementation:
+  - removed periodic `in_game_slot_heartbeat`
+  - retained one-shot `post_map_slot_refresh` and one-shot `live_slot_refresh`
+  - retained non-reliable in-game liveness `cmd=0x1c`
+- next evidence target:
+  - movement failure is no longer a simple slot-roster-refresh problem
+  - continue with live-state authority/source semantics or an additional companion gameplay command
+  - bomb placement remains blocked because A-button tests still never produce non-default committed `cmd=02` object tables

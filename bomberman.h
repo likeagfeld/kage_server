@@ -217,7 +217,6 @@ private:
 	bool battleEndSent = false;
 	bool liveSlotRefreshSent = false;
 	bool awaitingPostEndMapMarker = false;
-	uint32_t inGameRosterRefreshBeat = 0;
 };
 
 class BombermanServer : public LobbyServer

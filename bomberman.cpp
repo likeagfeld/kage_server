@@ -32,7 +32,6 @@ constexpr uint32_t BombermanStatusPending = 0;
 constexpr uint32_t BombermanStatusAccepted = 3;
 constexpr auto AdminPollInterval = 500ms;
 constexpr auto BombermanInGameLivenessInterval = 1s;
-constexpr uint32_t BombermanInGameRosterRefreshBeats = 3;
 constexpr uint32_t BombermanInGameLivenessValue = 0x10000000u;
 constexpr uint32_t BombermanGameFramesPerSecond = 60;
 constexpr uint32_t BombermanBombProbeMaterializeTicks = 4;
@@ -789,7 +788,6 @@ void BMRoom::resetMatchSync()
 	battleEndSent = false;
 	liveSlotRefreshSent = false;
 	awaitingPostEndMapMarker = false;
-	inGameRosterRefreshBeat = 0;
 	livePlayerStates.clear();
 	bombProbe = {};
 }
@@ -1267,7 +1265,6 @@ void BMRoom::prepareNextRoundFromPostEndFlow(Player *player, uint8_t command)
 	battleEndSent = false;
 	liveSlotRefreshSent = false;
 	awaitingPostEndMapMarker = true;
-	inGameRosterRefreshBeat = 0;
 	livePlayerStates.clear();
 	bombProbe = {};
 
@@ -1516,15 +1513,6 @@ void BMRoom::handleInGameLivenessTimer(const std::error_code& ec)
 	if (ec || syncState != SyncState::InGame || players.empty())
 		return;
 
-	if (allHumanPlayersHaveLiveState())
-	{
-		inGameRosterRefreshBeat++;
-		if (inGameRosterRefreshBeat >= BombermanInGameRosterRefreshBeats)
-		{
-			inGameRosterRefreshBeat = 0;
-			sendRosterUpdate("in_game_slot_heartbeat");
-		}
-	}
 	broadcastInGameLiveness("heartbeat");
 	startInGameLiveness();
 }
