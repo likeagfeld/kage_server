@@ -37,6 +37,7 @@ constexpr uint32_t BombermanGameFramesPerSecond = 60;
 constexpr uint32_t BombermanBombProbeMaterializeTicks = 4;
 constexpr uint32_t BombermanBombProbeUpdateTicks = 8;
 constexpr uint32_t BombermanBombProbeTicks = BombermanBombProbeMaterializeTicks + BombermanBombProbeUpdateTicks;
+constexpr bool BombermanSyntheticObjectInjectionEnabled = false;
 constexpr uint16_t BombermanSyntheticBombMaterializePackets = 6;
 constexpr uint16_t BombermanSyntheticBombPlacedPackets = 360;
 constexpr uint8_t BombermanObjectSubtypeBomb = 0x0e;
@@ -973,6 +974,8 @@ bool BMRoom::buildAggregatedLivePayload(uint8_t command, const uint8_t *payload,
 
 bool BMRoom::hasSyntheticBombObjects() const
 {
+	if (!BombermanSyntheticObjectInjectionEnabled)
+		return false;
 	return std::any_of(syntheticBombObjects.begin(), syntheticBombObjects.end(),
 		[](const SyntheticBombObject& object) { return object.active; });
 }
@@ -1024,6 +1027,15 @@ void BMRoom::armSyntheticBombObject(Player *player, size_t recordIndex, const ui
 
 	const uint16_t objectPosition = read16(record, 0);
 	const uint8_t actionSubtype = (uint8_t)(record[3] & 0x0f);
+	if (!BombermanSyntheticObjectInjectionEnabled)
+	{
+		INFO_LOG(Game::Bomberman,
+			"%s: observed cmd=01 action source=%s [%x] record=%zu action=%02x%02x%02x%02x%02x%02x action_subtype=%x object=%04x; synthetic object injection disabled after f002/f00e item-card falsification",
+			name.c_str(), player->getName().c_str(), player->getId(), recordIndex,
+			record[0], record[1], record[2], record[3], record[4], record[5],
+			actionSubtype, objectPosition);
+		return;
+	}
 	SyntheticBombObject& object = syntheticBombObjects[recordIndex];
 	if (object.active && object.sourcePlayerId == player->getId()
 		&& object.objectPosition == objectPosition && object.subtype == BombermanObjectSubtypeBomb)

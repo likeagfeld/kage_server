@@ -1,0 +1,85 @@
+; range: 8c09e780 - 8c09e810
+
+8c09e780  f7           ?? F7h
+8c09e781  ff           ?? FFh
+8c09e782  ff           ?? FFh
+8c09e783  ff           ?? FFh
+8c09e784  fb           ?? FBh
+8c09e785  ff           ?? FFh
+8c09e786  ff           ?? FFh
+8c09e787  ff           ?? FFh
+8c09e788  fd           ?? FDh
+8c09e789  ff           ?? FFh
+8c09e78a  ff           ?? FFh
+8c09e78b  ff           ?? FFh
+8c09e78c  fe           ?? FEh
+8c09e78d  ff           ?? FFh
+8c09e78e  ff           ?? FFh
+8c09e78f  ff           ?? FFh
+8c09e790  36 2f        mov.l r3,@-r15
+8c09e792  18 63        swap.b r1,r3
+8c09e794  16 2f        mov.l r1,@-r15
+8c09e796  1c 61        extu.b r1,r1
+8c09e798  46 2f        mov.l r4,@-r15
+8c09e79a  3c 63        extu.b r3,r3
+8c09e79c  56 2f        mov.l r5,@-r15
+8c09e79e  20 e5        mov #0x20,r5
+8c09e7a0  21 64        mov.w @r2,r4
+8c09e7a2  18 35        sub r1,r5
+8c09e7a4  43 61        mov r4,r1
+8c09e7a6  5d 40        shld r5,r0
+8c09e7a8  10 73        add #0x10,r3
+8c09e7aa  3d 41        shld r3,r1
+8c09e7ac  0a 21        xor r0,r1
+8c09e7ae  5b 65        neg r5,r5
+8c09e7b0  5d 41        shld r5,r1
+8c09e7b2  5d 40        shld r5,r0
+8c09e7b4  5b 65        neg r5,r5
+8c09e7b6  38 35        sub r3,r5
+8c09e7b8  5d 41        shld r5,r1
+8c09e7ba  f6 65        mov.l @r15+,r5
+8c09e7bc  4a 21        xor r4,r1
+8c09e7be  f6 64        mov.l @r15+,r4
+8c09e7c0  11 22        mov.w r1,@r2
+8c09e7c2  f6 61        mov.l @r15+,r1
+8c09e7c4  0b 00        rts
+8c09e7c6  f6 63        _mov.l @r15+,r3
+8c09e7c8  16 2f        mov.l r1,@-r15
+8c09e7ca  18 60        swap.b r1,r0
+8c09e7cc  36 2f        mov.l r3,@-r15
+8c09e7ce  0c 63        extu.b r0,r3
+8c09e7d0  20 60        mov.b @r2,r0
+8c09e7d2  1c 61        extu.b r1,r1
+8c09e7d4  e0 71        add #-0x20,r1
+8c09e7d6  18 73        add #0x18,r3
+8c09e7d8  3d 40        shld r3,r0
+8c09e7da  1d 40        shld r1,r0
+8c09e7dc  f6 63        mov.l @r15+,r3
+8c09e7de  0b 00        rts
+8c09e7e0  f6 61        _mov.l @r15+,r1
+8c09e7e2  00           ?? 00h
+8c09e7e3  00           ?? 00h
+8c09e7e4  16 2f        mov.l r1,@-r15
+8c09e7e6  18 60        swap.b r1,r0
+8c09e7e8  36 2f        mov.l r3,@-r15
+8c09e7ea  0c 63        extu.b r0,r3
+8c09e7ec  21 60        mov.w @r2,r0
+8c09e7ee  1c 61        extu.b r1,r1
+8c09e7f0  e0 71        add #-0x20,r1
+8c09e7f2  10 73        add #0x10,r3
+8c09e7f4  3d 40        shld r3,r0
+8c09e7f6  1d 40        shld r1,r0
+8c09e7f8  f6 63        mov.l @r15+,r3
+8c09e7fa  0b 00        rts
+8c09e7fc  f6 61        _mov.l @r15+,r1
+8c09e7fe  00           ?? 00h
+8c09e7ff  00           ?? 00h
+8c09e800  08 20        tst r0,r0
+8c09e802  26 2f        mov.l r2,@-r15
+8c09e804  4b 89        bt 0x8c09e89e
+8c09e806  36 2f        mov.l r3,@-r15
+8c09e808  00 e2        mov #0x0,r2
+8c09e80a  27 21        div0s r2,r1
+8c09e80c  3a 33        subc r3,r3
+8c09e80e  2a 31        subc r2,r1
+8c09e810  07 23        div0s r0,r3

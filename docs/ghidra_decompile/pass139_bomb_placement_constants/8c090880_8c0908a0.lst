@@ -1,0 +1,14 @@
+; range: 8c090880 - 8c0908a0
+
+8c090880  b4 ee 09 8c  addr 8c09eeb4
+8c090884  c0 40 08 8c  addr 8c0840c0
+8c090888  0c b5 07 8c  addr 8c07b50c
+8c09088c  90 e7 09 8c  addr 8c09e790
+8c090890  e4 e7 09 8c  addr 8c09e7e4
+8c090894  6a 20        xor r6,r0
+8c090896  08 20        tst r0,r0
+8c090898  01 8b        bf 0x8c09089e
+8c09089a  cd a0        bra 0x8c090a38
+8c09089c  09 00        _nop
+8c09089e  b2 91        mov.w 0x8c090a06,r1
+8c0908a0  0b 4d        jsr @r13

@@ -1,0 +1,29 @@
+; range: 8c090860 - 8c0908a0
+
+8c090860  1a 00        sts MACL,r0
+8c090862  6c 30        add r6,r0
+8c090864  08 40        shll2 r0
+8c090866  ae 06        mov.l @(r0,r10),r6
+8c090868  68 26        tst r6,r6
+8c09086a  29 00        movt r0
+8c09086c  12 a0        bra 0x8c090894
+8c09086e  01 e6        _mov #0x1,r6
+8c090870  88 0a        undefined2 0A88h
+8c090872  c0 0a        undefined2 0AC0h
+8c090874  05 06        undefined2 0605h
+8c090876  ef 00        undefined2 00EFh
+8c090878  f0 00        undefined2 00F0h
+8c09087a  98 0a        undefined2 0A98h
+8c09087c  00 00 00 47  undefined4 47000000h
+8c090880  b4 ee 09 8c  addr 8c09eeb4
+8c090884  c0 40 08 8c  addr 8c0840c0
+8c090888  0c b5 07 8c  addr 8c07b50c
+8c09088c  90 e7 09 8c  addr 8c09e790
+8c090890  e4 e7 09 8c  addr 8c09e7e4
+8c090894  6a 20        xor r6,r0
+8c090896  08 20        tst r0,r0
+8c090898  01 8b        bf 0x8c09089e
+8c09089a  cd a0        bra 0x8c090a38
+8c09089c  09 00        _nop
+8c09089e  b2 91        mov.w 0x8c090a06,r1
+8c0908a0  0b 4d        jsr @r13

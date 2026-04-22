@@ -1217,3 +1217,11 @@ Correction:
 - decompiled local bomb placement at `0x8C0906F4` sets object subtype `0x0e`
 - Kage now sends synthetic bomb materialization as subtype `0x0e`, not the
   action-record low nibble `0x02`
+
+### 2026-04-22 `f00e` object injection falsified
+
+- hardware result: `f00e` still rendered the same power-up/card object, and pickup displayed a clock icon plus `Judge!!`
+- log evidence: `object=3160:f00e`, `object=0420:f00e`, `object=3560:f00e` left Kage
+- `0x8C0DD74E` / `0x8C0DD698` prove compact `cmd=02` object records bit-pack fields; the low nibble is not the large object subtype byte
+- `0x8C0906F4` writes true local bomb subtype `0x0e` into large object byte `+0x0a`, so copying that value into the network low nibble was the wrong translation
+- current source disables automatic synthetic object injection and preserves action-lane logging for the next evidence pass

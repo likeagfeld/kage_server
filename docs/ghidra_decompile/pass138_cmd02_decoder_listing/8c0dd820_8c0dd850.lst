@@ -1,0 +1,28 @@
+; range: 8c0dd820 - 8c0dd850
+
+8c0dd820  f6 6d        mov.l @r15+,r13
+8c0dd822  f6 6c        mov.l @r15+,r12
+8c0dd824  f6 6b        mov.l @r15+,r11
+8c0dd826  0b 00        rts
+8c0dd828  f6 6a        _mov.l @r15+,r10
+8c0dd82a  04 04        undefined2 0404h
+8c0dd82c  04 08        undefined2 0804h
+8c0dd82e  01 0c        undefined2 0C01h
+8c0dd830  02 0d        undefined2 0D02h
+8c0dd832  01 0f        undefined2 0F01h
+8c0dd834  05 06        undefined2 0605h
+8c0dd836  00           ?? 00h
+8c0dd837  00           ?? 00h
+8c0dd838  00 ff 00 00  undefined4 0000FF00h
+8c0dd83c  90 e7 09 8c  addr 8c09e790
+8c0dd840  e4 e7 09 8c  addr 8c09e7e4
+8c0dd844  e0 ec 1e 8c  addr 8c1eece0
+8c0dd848  86           ?? 86h
+8c0dd849  2f           ?? 2Fh    /
+8c0dd84a  96           ?? 96h
+8c0dd84b  2f           ?? 2Fh    /
+8c0dd84c  a6           ?? A6h
+8c0dd84d  2f           ?? 2Fh    /
+8c0dd84e  b6           ?? B6h
+8c0dd84f  2f           ?? 2Fh    /
+8c0dd850  c6           ?? C6h

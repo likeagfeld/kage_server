@@ -2709,3 +2709,43 @@ Next validation:
   soft-block destruction, item reveal, death/win registration, and round return
 - if another item appears, keep the object path but continue mapping subtype/state
   from the binary before changing unrelated gameplay flow
+
+## 2026-04-22 `f00e` Object Injection Falsified
+
+Fresh hardware result after `9d2917d`:
+
+- opposite-console movement still renders
+- pressing A still renders the same power-up/card object rather than a placed bomb
+- walking over that object shows a small popup with a clock icon and `Judge!!`
+- therefore `f00e` is not a placed-bomb compact record in this context
+
+Server/log evidence:
+
+- latest non-empty logs showed synthetic records leaving Kage as `f00e`, for example:
+  - `object=3160:f00e`
+  - `object=0420:f00e`
+  - `object=3560:f00e`
+- the newest dump pair from that hardware run was zero length, so the log plus hardware result are the usable evidence for this pass.
+
+Binary correction:
+
+- `0x8C0DD74E` is the object-record compact encoder used by the `cmd=02` send builder `0x8C0DDC7A`.
+- `0x8C0DD698` is the matching compact decoder used by `cmd=02` receive handler `0x8C0DDBE4`.
+- the second word of each network object record is bit-packed:
+  - bits `15..12`: object/apply state read by `0x8C075A78`
+  - bits `11..8`: a separate 4-bit field, not the large object subtype byte
+  - bits `7..4`: field spec `0x0804`
+  - bit `3`: field spec `0x0c01`
+  - bits `2..1`: field spec `0x0d02`
+  - bit `0`: field spec `0x0f01`
+- decompiled local bomb placement at `0x8C0906F4` writes subtype byte `0x0e` into the large local object structure at byte `+0x0a`; the compact `cmd=02` low nibble does not directly write that byte.
+
+Current implementation correction:
+
+- automatic synthetic object injection from `cmd=01` action lanes is disabled to stop contaminating tests with the proven-wrong power-up/card object.
+- Kage still logs non-empty `cmd=01` action records and keeps the manual admin object probe available as a controlled diagnostic tool.
+- do not repeat `f002`, `f00e`, state-2-only, or staged `0xF -> 0x2` object probes as placed-bomb candidates.
+
+Next evidence target:
+
+- recover the missing authority/commit path that turns observed `cmd=01` action/check-pad records into local bomb placement, or recover a compact object record from a true placed bomb rather than deriving it from the large object subtype byte.
