@@ -106,6 +106,15 @@ def process_alive(process: subprocess.Popen[str] | None) -> bool:
     return process is not None and process.poll() is None
 
 
+def hidden_process_flags() -> int:
+    flags = 0
+    if hasattr(subprocess, "CREATE_NO_WINDOW"):
+        flags |= subprocess.CREATE_NO_WINDOW
+    if hasattr(subprocess, "CREATE_NEW_PROCESS_GROUP"):
+        flags |= subprocess.CREATE_NEW_PROCESS_GROUP
+    return flags
+
+
 def find_kage_process_pid() -> int | None:
     try:
         output = subprocess.check_output(
@@ -113,6 +122,7 @@ def find_kage_process_pid() -> int | None:
             text=True,
             encoding="utf-8",
             errors="replace",
+            creationflags=hidden_process_flags(),
         )
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
@@ -169,6 +179,8 @@ def read_bomberman_state() -> dict[str, Any]:
         "desired_bot_count": max(0, to_int(admin, "desired_bot_count")),
         "bot_name_prefix": admin.get("bot_name_prefix", runtime.get("bot_name_prefix", "CPU")) or "CPU",
         "room_id": max(0, to_int(admin, "room_id")),
+        "bomb_probe_counter": max(0, to_int(admin, "bomb_probe_counter")),
+        "bomb_probe_player_index": max(0, to_int(admin, "bomb_probe_player_index")),
         "active_room_present": runtime.get("active_room_present", "0") == "1",
         "active_room_id": max(0, to_int(runtime, "active_room_id")),
         "active_room_name": runtime.get("active_room_name", ""),
@@ -178,6 +190,9 @@ def read_bomberman_state() -> dict[str, Any]:
         "bot_count": bot_count,
         "player_slots": max(0, to_int(runtime, "player_slots")),
         "max_players": max(0, to_int(runtime, "max_players")),
+        "sync_state": runtime.get("sync_state", ""),
+        "bomb_probe_active": runtime.get("bomb_probe_active", "0") == "1",
+        "bomb_probe_ticks": max(0, to_int(runtime, "bomb_probe_ticks")),
         "bot_names": bot_names,
     }
 
@@ -258,6 +273,7 @@ def launch_build() -> tuple[bool, str]:
             stdout=log_handle,
             stderr=subprocess.STDOUT,
             text=True,
+            creationflags=hidden_process_flags(),
         )
         STATE.build_process = process
         STATE.build_started_at = time.time()
@@ -310,12 +326,6 @@ def launch_server() -> tuple[bool, str]:
         )
 
         log_handle = SERVER_LOG.open("a", encoding="utf-8")
-        creationflags = 0
-        if hasattr(subprocess, "CREATE_NO_WINDOW"):
-            creationflags |= subprocess.CREATE_NO_WINDOW
-        if hasattr(subprocess, "CREATE_NEW_PROCESS_GROUP"):
-            creationflags |= subprocess.CREATE_NEW_PROCESS_GROUP
-
         process = subprocess.Popen(
             [str(SERVER_EXE), CONFIG_PATH.name],
             cwd=str(ROOT_DIR),
@@ -323,7 +333,7 @@ def launch_server() -> tuple[bool, str]:
             stdout=log_handle,
             stderr=subprocess.STDOUT,
             text=True,
-            creationflags=creationflags,
+            creationflags=hidden_process_flags(),
         )
 
         STATE.server_process = process
@@ -360,7 +370,11 @@ def stop_server() -> tuple[bool, str]:
                 STATE.last_message = "The server is not running."
                 STATE.write_state()
                 return True, "The server is not running."
-            subprocess.run(["taskkill", "/PID", str(external_pid), "/T", "/F"], check=False)
+            subprocess.run(
+                ["taskkill", "/PID", str(external_pid), "/T", "/F"],
+                check=False,
+                creationflags=hidden_process_flags(),
+            )
             STATE.server_process = None
             STATE.server_exit_code = 0
             STATE.last_message = "Kage server stopped."
@@ -460,18 +474,48 @@ class Handler(BaseHTTPRequestHandler):
             desired_bot_count = max(0, min(7, int(payload.get("desired_bot_count", 0) or 0)))
             bot_name_prefix = str(payload.get("bot_name_prefix", "CPU")).strip() or "CPU"
             room_id = max(0, int(payload.get("room_id", 0) or 0))
+            admin = read_key_value_file(BOMBERMAN_ADMIN_PATH)
             write_key_value_file(
                 BOMBERMAN_ADMIN_PATH,
                 {
                     "desired_bot_count": str(desired_bot_count),
                     "bot_name_prefix": bot_name_prefix,
                     "room_id": str(room_id),
+                    "bomb_probe_counter": admin.get("bomb_probe_counter", "0"),
+                    "bomb_probe_player_index": admin.get("bomb_probe_player_index", "0"),
                 },
             )
             with STATE.lock:
                 STATE.last_message = (
                     f"Bomberman test seats updated to {desired_bot_count}. "
                     "They are seat fillers for room/start testing, not gameplay AI."
+                )
+                STATE.write_state()
+            self.send_json({"ok": True, "message": STATE.last_message})
+            return
+
+        if parsed.path == "/api/bomberman/bomb-probe":
+            player_index = max(0, min(7, int(payload.get("player_index", 0) or 0)))
+            room_id = max(0, int(payload.get("room_id", 0) or 0))
+            admin = read_key_value_file(BOMBERMAN_ADMIN_PATH)
+            try:
+                counter = int(admin.get("bomb_probe_counter", "0")) + 1
+            except ValueError:
+                counter = 1
+            write_key_value_file(
+                BOMBERMAN_ADMIN_PATH,
+                {
+                    "desired_bot_count": admin.get("desired_bot_count", "0"),
+                    "bot_name_prefix": admin.get("bot_name_prefix", "CPU") or "CPU",
+                    "room_id": str(room_id),
+                    "bomb_probe_counter": str(counter),
+                    "bomb_probe_player_index": str(player_index),
+                },
+            )
+            with STATE.lock:
+                STATE.last_message = (
+                    f"Bomberman bomb object probe armed for player slot {player_index + 1}. "
+                    "Use this only after both clients are on the game board."
                 )
                 STATE.write_state()
             self.send_json({"ok": True, "message": STATE.last_message})

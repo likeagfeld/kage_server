@@ -30,6 +30,9 @@ const elements = {
   bmAddButton: document.getElementById("bmAddButton"),
   bmRemoveButton: document.getElementById("bmRemoveButton"),
   bmClearButton: document.getElementById("bmClearButton"),
+  bmBombProbe: document.getElementById("bmBombProbe"),
+  bmBombPlayer: document.getElementById("bmBombPlayer"),
+  bmBombProbeButton: document.getElementById("bmBombProbeButton"),
 };
 
 let currentStatus = null;
@@ -137,6 +140,11 @@ function renderStatus(payload) {
   elements.bmOwner.textContent = bomberman.active_room_owner || "-";
   elements.bmHumans.textContent = `${bomberman.human_slots || 0} slots across ${bomberman.human_hosts || 0} host(s)`;
   elements.bmBots.textContent = `${bomberman.bot_count || 0} of ${bomberman.max_players || 0} max`;
+  elements.bmBombProbe.textContent = bomberman.bomb_probe_active
+    ? `Active (${bomberman.bomb_probe_ticks || 0} ticks left)`
+    : `Idle (#${bomberman.bomb_probe_counter || 0})`;
+  elements.bmBombPlayer.value = String(bomberman.bomb_probe_player_index || 0);
+  elements.bmBombProbeButton.disabled = !bomberman.active_room_present;
   elements.bmRoster.textContent = bomberman.bot_names && bomberman.bot_names.length
     ? bomberman.bot_names.join("\n")
     : "No bot seats applied.";
@@ -181,6 +189,17 @@ async function applyBombermanBots(desiredBotCount) {
     await post("/api/bomberman/bots", {
       desired_bot_count: safeCount,
       bot_name_prefix: elements.bmBotPrefix.value || "CPU",
+      room_id: currentStatus?.bomberman?.active_room_id || 0,
+    });
+  } catch (error) {
+    setBanner(error.message, "warn");
+  }
+}
+
+async function armBombermanBombProbe() {
+  try {
+    await post("/api/bomberman/bomb-probe", {
+      player_index: Number(elements.bmBombPlayer.value) || 0,
       room_id: currentStatus?.bomberman?.active_room_id || 0,
     });
   } catch (error) {
@@ -261,6 +280,10 @@ elements.bmRemoveButton.addEventListener("click", async () => {
 
 elements.bmClearButton.addEventListener("click", async () => {
   await applyBombermanBots(0);
+});
+
+elements.bmBombProbeButton.addEventListener("click", async () => {
+  await armBombermanBombProbe();
 });
 
 refresh();

@@ -1,0 +1,7 @@
+target=8c1854bc
+symbol=s_---SetCheckPads_PlayerID_%d_8c1854bc
+ref[0] from=8c076578 type=DATA opIndex=0 function=<none> entry=<none>
+ref[1] from=8c0766ac type=DATA opIndex=0 function=<none> entry=<none>
+ref[2] from=8c076500 type=DATA opIndex=0 function=FUN_8c07645a entry=8c07645a
+ref[3] from=8c07662a type=DATA opIndex=0 function=FUN_8c076580 entry=8c076580
+count=4

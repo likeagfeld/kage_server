@@ -18,6 +18,7 @@
 */
 #pragma once
 #include "model.h"
+#include <array>
 #include <filesystem>
 #include <map>
 
@@ -67,7 +68,7 @@ public:
 	int getBotPosition(size_t index) const;
 	uint8_t getOccupiedSlotMask() const;
 	bool syncAdminBots(uint32_t desiredCount, const std::string& prefix);
-	void sendRosterUpdate();
+	void sendRosterUpdate(const char *reason = "roster_update");
 
 	const std::array<uint8_t, 9>& getRules() const {
 		return rules;
@@ -81,12 +82,22 @@ public:
 	bool updateRuleAcceptance(Player *player, bool accepted);
 	bool beginStartBattle(Player *player);
 	void notePostMapMarker(Player *player);
+	void notePostMapMarker(Player *player, const char *reason);
+	void prepareNextRoundFromPostEndFlow(Player *player, uint8_t command);
+	bool isAwaitingPostEndMapMarker() const;
 	void broadcastStartTransition(const char *reason, uint16_t startWord) const;
 	bool canStartBattle() const;
 	uint32_t getAcceptedRuleCount() const;
 	uint32_t getStartAckCount() const;
 	uint32_t getJoinedPlayerCount() const;
 	const char *getSyncStateName() const;
+	void noteLiveGameData(Player *player, uint8_t command, const uint8_t *payload, size_t payloadSize);
+	bool buildAggregatedLivePayload(uint8_t command, const uint8_t *payload, size_t payloadSize,
+		std::vector<uint8_t>& output, uint8_t& slotMask) const;
+	void requestBombProbe(size_t playerIndex, const char *reason);
+	void tickBombProbe();
+	bool isBombProbeActive() const;
+	uint32_t getBombProbeTicksRemaining() const;
 	void resetMatchSync();
 
 private:
@@ -118,6 +129,29 @@ private:
 		BattleEndPhase battleEndPhase = BattleEndPhase::None;
 	};
 
+	struct LivePlayerState
+	{
+		bool valid = false;
+		bool hasCmd02Payload = false;
+		uint16_t word = 0;
+		uint8_t x = 0;
+		uint8_t y = 0;
+		uint8_t lowNibble = 0;
+		std::array<uint8_t, 4> playerRecord {};
+		std::array<uint8_t, 164> cmd02Payload {};
+	};
+
+	struct BombProbeState
+	{
+		bool active = false;
+		uint32_t sourcePlayerId = 0;
+		uint8_t x = 0;
+		uint8_t y = 0;
+		uint8_t lowNibble = 0;
+		uint8_t recordIndex = 0;
+		uint32_t ticksRemaining = 0;
+	};
+
 	void updateSlots();
 	void sendUdpPacketA(Packet& packet);
 	void writeRoomAttr(Packet& packet, const char attr[4]) const;
@@ -145,6 +179,7 @@ private:
 	bool allHumanPlayersAccepted() const;
 	bool allPendingStartAcked() const;
 	bool allPostMapMarkersSeen() const;
+	bool allHumanPlayersHaveLiveState() const;
 	uint32_t getPostMapMarkerCount() const;
 	void sendOwnerKeyholderSyncTo(Player *player, const char *reason) const;
 	void broadcastOwnerKeyholderSync(const char *reason) const;
@@ -167,6 +202,7 @@ private:
 	void sendBattleEndSequenceTo(Player *player, const char *reason);
 	void advanceBattleEndSequence(Player *player, SyncPlayerState& state, const char *reason);
 	void broadcastBattleEndSequence(const char *reason);
+	void sendBombProbePacket(const char *reason);
 
 	std::vector<int> slots;	// slots used by each player
 	std::vector<BotPlayer> bots;
@@ -174,9 +210,14 @@ private:
 	asio::steady_timer matchTimer;
 	std::array<uint8_t, 9> rules {};
 	std::map<uint32_t, SyncPlayerState> syncPlayers;
+	std::map<uint32_t, LivePlayerState> livePlayerStates;
+	BombProbeState bombProbe;
 	SyncState syncState = SyncState::Idle;
 	bool gameTimeInfoSent = false;
 	bool battleEndSent = false;
+	bool liveSlotRefreshSent = false;
+	bool awaitingPostEndMapMarker = false;
+	uint32_t inGameRosterRefreshBeat = 0;
 };
 
 class BombermanServer : public LobbyServer
@@ -199,4 +240,8 @@ private:
 	uint32_t desiredBotCount = 0;
 	std::string desiredBotPrefix = "CPU";
 	uint32_t targetRoomId = 0;
+	uint32_t bombProbeCounter = 0;
+	uint32_t bombProbePlayerIndex = 0;
+	uint32_t lastBombProbeCounter = 0;
+	bool bombProbeCounterInitialized = false;
 };

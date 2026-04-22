@@ -896,3 +896,207 @@ Implication:
     live-state shape
   - keep the ACK-stepped `0x16 -> 0x19 -> 0x15` timer-end sequence for the next
     stable long-run test
+
+### 2026-04-21 bomb object-record probe
+
+- dump validation before the next hardware pass:
+  - `21_09-17-33_BM_t`: `4288` inbound `cmd=02` packets, `0` non-default object tables
+  - `21_13-13-50_BM_t`: `1797` inbound `cmd=02` packets, `0` non-default object tables
+  - `21_13-49-06_BM_t`: `358` inbound `cmd=02` packets, `0` non-default object tables
+- binary evidence from the new bomb-focused passes:
+  - `0x8C075A78` applies the 28 compact `cmd=02` object records into local
+    panel/object state
+  - state/top-nibble values `2` and `3` route into the on-panel placement path
+    when the local panel object is in an empty/default state
+  - `0x8C08D534` and `0x8C0906F4` are panel placement helpers tied to the
+    `Now X=%d Y=%d allready put on Panel %d` assertion family
+- current Kage translation:
+  - keep normal `0x01`, `0x02`, and `0x03` relay peer-only
+  - record each real player's latest compact live position from `cmd=01/02/03`
+  - add an admin-only dashboard control that sends a repeated `cmd=02` object
+    probe with one object record set to state `2` at the selected player's last
+    live cell
+  - the probe is intentionally gated by manual admin action; it does not change
+    normal live relay behavior and it does not claim to have mapped the A-button
+    request path yet
+- validation target:
+  - after both real clients reach the game board, click `Drop Bomb Probe`
+  - logs should show `armed bomb object probe` and `bomb object probe ... sent`
+  - the next decision is evidence-based:
+    - if a bomb/object appears, the remaining work is binding a proven object
+      creation event to the correct input/request/authority path
+    - if no object appears, state `2` alone is not sufficient and the compact
+      object record fields or a companion command must be decoded before another
+      gameplay patch
+
+### 2026-04-21 state-2 probe failed; staged materialize probe deployed
+
+- fresh hardware result:
+  - the dashboard `Drop Bomb Probe` did not make a bomb/object appear
+  - clients stayed alive afterward, so the packet shape did not immediately
+    poison the live relay lane
+- flushed dump evidence from `21_16-57-44_BM_t` / `_out`:
+  - inbound live traffic still had `1806` `cmd=02` packets and `0`
+    non-default object tables
+  - outbound had `90` non-default `cmd=02` records, all matching the admin
+    probe shape such as `04382000`
+- binary interpretation:
+  - the `0x8C075A78` state `2/3` branch does not copy incoming compact
+    position bytes into the local object slot; it only updates a compatible
+    pre-existing object slot
+  - the state `0xF` branch is the branch that copies the incoming position,
+    builds local object position state, and routes into panel placement helpers
+- current Kage correction:
+  - the admin probe is now staged:
+    - first sends object state `0xF` for materialization
+    - then sends object state `0x2` as the follow-up update
+  - normal live gameplay relay remains unchanged and peer-only
+
+### 2026-04-21 staged materialize probe failed; `cmd=01` action lane targeted
+
+- fresh hardware result:
+  - staged state `0xF -> 0x2` admin probe still did not render a bomb/object
+- dump evidence from `21_17-17-09_BM_t` / `_out`:
+  - outbound had non-default staged object records such as `0438f000`,
+    `3578f000`, `04382000`, and `35782000`
+  - inbound `cmd=02` object tables stayed default-only
+- binary evidence now treated as the next target:
+  - `0x8C0DDA44` parses server command `0x01`, including the 24-entry compact
+    6-byte lane after the player records
+  - `0x8C09AD3C` sends command `0x01` from active game state
+  - `0x8C09A994` applies received command `0x01` state back into active game
+    buffers
+- current Kage correction:
+  - self-sync only active non-empty `cmd=01` compact action/check-pad records
+    back to the source Dreamcast
+  - keep `cmd=02` and `cmd=03` peer-only because broader sender echoes already
+    regressed live gameplay
+  - log `cmd=01 active check-pad self-sync ...` for the next validation run
+
+### 2026-04-22 `cmd=01` self-sync falsified
+
+- fresh hardware result:
+  - bombs still did not appear
+  - the line-disconnect popup appeared shortly after board load
+  - opposite-console movement was not visible
+- dump evidence from `22_08-30-56_BM_t` / `_out`:
+  - active `cmd=01` compact records were observed for FARKUS, including
+    `082040020000`
+  - FARKUS received the self-sync packets and then stopped sending live
+    `cmd=01/02/03` about 12 seconds after live gameplay began
+  - FARKUS2 did not receive equivalent active self-sync packets and continued
+    sending live packets until the later timeout
+  - Kage did relay FARKUS movement records to FARKUS2 before FARKUS stopped
+- current Kage correction:
+  - remove `cmd=01` self-sync behavior
+  - keep only an observation log for active `cmd=01` compact records
+  - leave `cmd=01`, `cmd=02`, and `cmd=03` normal relay peer-only
+- next evidence target if peer movement still does not render:
+  - determine whether Bomberman needs aggregated server-owned live-state frames
+    with all occupied slots populated, instead of raw per-sender relay packets
+
+### 2026-04-22 stable live-state run and aggregate relay patch
+
+- fresh hardware result:
+  - no line-disconnect popup during the main in-game window
+  - opposite-console movement was still invisible
+  - A-button attempts still produced only temporary yellow markers
+  - after the clock reached zero, both consoles eventually showed `Time Over!!`
+- dump evidence from `22_08-44-01_BM_test` / `_out`:
+  - both clients kept sending live `cmd=01`, `cmd=02`, and `cmd=03` through the
+    match timer
+  - outbound live packets were still one-slot raw peer relays:
+    - source `1001` populated slot `0`
+    - source `1002` populated slot `1`
+  - no committed non-default `cmd=02` object records appeared
+  - after server `0x19`, both clients sent reliable `REQ_GAME_DATA cmd=10`;
+    the old build left it unhandled immediately before final `0x15` failed
+- binary evidence:
+  - `0x8C0DDA44`, `0x8C0DDBE4`, and `0x8C0DDD64` parse eight compact player
+    records on receive
+  - `0x8C09AD3C` and `0x8C09AFE4` build `cmd=01` / `cmd=02` from full active
+    game-state buffers
+- current Kage translation:
+  - keep peer-only live relay and do not self-echo
+  - cache each real player's latest compact player record
+  - rebuild live `cmd=01`, `cmd=02`, and `cmd=03` outbound payloads so the
+    player-record array contains all observed occupied slots
+  - preserve the original source id, RUDP flag, action/check-pad lane, object
+    table, and trailer bytes
+  - ACK client `REQ_GAME_DATA cmd=10` as an end-state signal without relaying it
+
+### 2026-04-22 aggregate relay falsified; post-map slot refresh deployed
+
+- latest dump pair: `22_09-06-42_BM_test` / `_out`
+- aggregate live relay worked mechanically:
+  - outbound `cmd=01`, `cmd=02`, and `cmd=03` carried both occupied player slots
+  - logs showed `slots=03` for both FARKUS and FARKUS2 sources
+- hardware result still showed no opposite-console movement and no committed bomb
+- binary gate now treated as the active blocker:
+  - `0x8C099524` handles Bomberman `cmd=0x0a` and marks non-local real players as slot state `3`
+  - `0x8C09A994` / `0x8C09AAD8` only full-copy remote live records for state-3 slots
+- latest outbound dump had only two `cmd=0x0a` slot-table packets, both before battle start
+- current Kage build sends a post-map `udpA` slot-table refresh after all real clients emit `REQ_GAME_DATA cmd=0x0e` and before deferred `cmd=0x14`
+- expected validation line: `slot roster sync (post_map_slot_refresh) host_count=2 occupied_mask=03`
+- still falsified and should not be repeated without new binary evidence:
+  - live sender self-echo
+  - `cmd=02` self-echo
+  - state-2 object-only bomb probe
+  - staged state-`0xF -> 0x2` object-only bomb probe
+
+Timer-end reliability correction:
+
+- `22_09-06-42_BM_test` proved reliable `cmd=15` still is not ACKed after ACKed `cmd=16` and `cmd=19`
+- sending `cmd=15` reliably causes Kage retry failure on packet `f`
+- current build sends final no-payload `cmd=15` as non-reliable and logs `reliable=0`
+
+### 2026-04-22 live slot refresh and post-end second-round marker
+
+- latest proof pair: `22_09-51-15_BM_test` / `_out`
+- hardware result:
+  - post-map slot refresh did not make opposite-console movement render
+  - bombs still did not materialize; `cmd=02` object tables remained
+    default-only
+  - after the countdown, the clients displayed `Time Over!!`, then entered
+    additional panels and a second Battle Start / map-transfer sequence
+- dump evidence:
+  - outbound `cmd=01/02/03` aggregate relays continued through the match timer
+  - inbound `cmd=02` had `0` non-default object tables out of `1797`
+  - after final non-reliable `cmd=15`, clients sent a new sequence:
+    `cmd=04`, `cmd=05`, `cmd=1a`, `cmd=1b`, then `cmd=0f`
+- binary evidence:
+  - `0x8C09B698` walks state-3 remote slots and clears them to `0` if the
+    active battle-object lookup fails
+  - this makes the earlier pre-`cmd=14` `post_map_slot_refresh` a plausible
+    too-early refresh, because live battle objects are not proven active until
+    real `cmd=01/02/03` traffic begins
+- current Kage translation:
+  - retain the post-map `udpA` refresh before `cmd=14`
+  - add one `live_slot_refresh` after all real humans have sent live
+    `cmd=01/02/03` records
+  - reset per-round sync state on post-end `cmd=04/05/1a/1b`
+  - treat post-end `cmd=0f` as the second-round map-complete marker and re-run
+    the normal `cmd=14` / liveness / match-timer gate
+- validation lines:
+  - `live slot refresh armed by ... after all players sent live state`
+  - `slot roster sync (live_slot_refresh) host_count=2 occupied_mask=03`
+  - `post-end round reset ... waiting for next map-complete marker`
+  - `post-map marker (cmd0f_post_end) ...`
+
+### 2026-04-22 long stable gameplay-loop evidence
+
+Latest `22_10-20-25_BM_t` / `_out` dump parsing proves Kage's aggregate live
+relay reaches the opposite Dreamcast endpoint with both occupied slots in the
+payload, but the client still does not render remote movement.  Therefore raw
+peer relay, sender self-echo, and aggregate-only live relay are all insufficient
+by themselves.
+
+`cmd=02` object tables remained default-only for the whole run (`0/8256`
+non-default inbound and outbound), while `cmd=01` active check-pad/action records
+were present for both real players.  Bomb creation therefore still needs the
+authoritative object/event path; client-origin `cmd=02` object relay and staged
+object probes are falsified.
+
+The current server-side target is periodic in-game `udpA` / Bomberman `cmd=0x0a`
+slot-table refresh as `in_game_slot_heartbeat`, based on the binary-cleared
+remote-slot path at `0x8C09B698`.

@@ -1,0 +1,8 @@
+target=8c1858b0
+symbol=s_Now_X=%d_Y=%d_allready_put_on_Pa_8c1858b0
+ref[0] from=8c08d608 type=DATA opIndex=0 function=FUN_8c08d534 entry=8c08d534
+ref[1] from=8c08d650 type=DATA opIndex=0 function=<none> entry=<none>
+ref[2] from=8c090910 type=DATA opIndex=0 function=FUN_8c0906f4 entry=8c0906f4
+ref[3] from=8c090a1c type=DATA opIndex=0 function=<none> entry=<none>
+ref[4] from=8c08d3a8 type=DATA opIndex=0 function=<none> entry=<none>
+count=5

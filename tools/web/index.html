@@ -81,6 +81,7 @@
           <div><dt>Owner</dt><dd id="bmOwner">-</dd></div>
           <div><dt>Human Slots</dt><dd id="bmHumans">0</dd></div>
           <div><dt>Bot Slots</dt><dd id="bmBots">0</dd></div>
+          <div><dt>Bomb Probe</dt><dd id="bmBombProbe">Idle</dd></div>
         </div>
         <label>
           <span>Desired Bot Count</span>
@@ -97,6 +98,17 @@
           <button id="bmClearButton">Clear Bots</button>
         </div>
         <p class="hint">These are passive room seat fillers for Bomberman testing. They only apply after you click a bot action for an active room, and they are not gameplay AI yet.</p>
+        <label>
+          <span>Bomb Probe Source</span>
+          <select id="bmBombPlayer">
+            <option value="0">Player 1 / owner</option>
+            <option value="1">Player 2 / guest</option>
+          </select>
+        </label>
+        <div class="helper-buttons">
+          <button id="bmBombProbeButton">Drop Bomb Probe</button>
+        </div>
+        <p class="hint">Binary-backed object-lane probe: sends a compact cmd02 state=2 object record at the selected player's last live cell. Use only after both clients are on the game board.</p>
       </article>
 
       <article class="panel">

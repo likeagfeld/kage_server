@@ -1,0 +1,7 @@
+; range: 8c0dd838 - 8c0dd848
+
+8c0dd838  00 ff 00 00  undefined4 0000FF00h
+8c0dd83c  90 e7 09 8c  addr 8c09e790
+8c0dd840  e4 e7 09 8c  addr 8c09e7e4
+8c0dd844  e0 ec 1e 8c  addr 8c1eece0
+8c0dd848  86           ?? 86h

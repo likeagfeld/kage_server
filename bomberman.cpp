@@ -32,8 +32,12 @@ constexpr uint32_t BombermanStatusPending = 0;
 constexpr uint32_t BombermanStatusAccepted = 3;
 constexpr auto AdminPollInterval = 500ms;
 constexpr auto BombermanInGameLivenessInterval = 1s;
+constexpr uint32_t BombermanInGameRosterRefreshBeats = 3;
 constexpr uint32_t BombermanInGameLivenessValue = 0x10000000u;
 constexpr uint32_t BombermanGameFramesPerSecond = 60;
+constexpr uint32_t BombermanBombProbeMaterializeTicks = 4;
+constexpr uint32_t BombermanBombProbeUpdateTicks = 8;
+constexpr uint32_t BombermanBombProbeTicks = BombermanBombProbeMaterializeTicks + BombermanBombProbeUpdateTicks;
 constexpr const char *BombermanBotAdminPath = "tools/state/bomberman_bots.ini";
 constexpr const char *BombermanBotRuntimePath = "tools/state/bomberman_runtime.ini";
 
@@ -42,6 +46,8 @@ struct BombermanBotConfig
 	uint32_t desiredCount = 0;
 	std::string prefix = "CPU";
 	uint32_t roomId = 0;
+	uint32_t bombProbeCounter = 0;
+	uint32_t bombProbePlayerIndex = 0;
 };
 
 std::string trimCopy(const std::string& value)
@@ -77,6 +83,10 @@ BombermanBotConfig loadBotConfig()
 			config.prefix = value;
 		else if (key == "room_id")
 			config.roomId = (uint32_t)std::max(0, atoi(value.c_str()));
+		else if (key == "bomb_probe_counter")
+			config.bombProbeCounter = (uint32_t)std::max(0, atoi(value.c_str()));
+		else if (key == "bomb_probe_player_index")
+			config.bombProbePlayerIndex = (uint32_t)std::max(0, atoi(value.c_str()));
 	}
 	return config;
 }
@@ -98,6 +108,38 @@ bool isDefaultBombermanObjectTable(const uint8_t *payload, size_t payloadSize)
 			return false;
 	}
 	return true;
+}
+
+bool findActiveBombermanCmd01Record(const uint8_t *payload, size_t payloadSize, size_t& recordIndex,
+	const uint8_t *&record)
+{
+	constexpr size_t checkPadOffset = 40; // cmd+word + 8 compact players + 4-byte lane counter
+	constexpr size_t checkPadRecordCount = 24;
+	constexpr size_t checkPadRecordSize = 6;
+	if (payload == nullptr || payloadSize < checkPadOffset + checkPadRecordCount * checkPadRecordSize)
+		return false;
+
+	for (size_t i = 0; i < checkPadRecordCount; i++)
+	{
+		const uint8_t *candidate = payload + checkPadOffset + i * checkPadRecordSize;
+		bool emptyRecord = true;
+		for (size_t j = 0; j < checkPadRecordSize; j++)
+		{
+			if (candidate[j] != 0)
+			{
+				emptyRecord = false;
+				break;
+			}
+		}
+		if (!emptyRecord)
+		{
+			recordIndex = i;
+			record = candidate;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 }
@@ -538,12 +580,14 @@ bool BMRoom::syncAdminBots(uint32_t desiredCount, const std::string& prefix)
 	return changed;
 }
 
-void BMRoom::sendRosterUpdate()
+void BMRoom::sendRosterUpdate(const char *reason)
 {
 	if (players.empty())
 		return;
 	Packet packet;
 	sendUdpPacketA(packet);
+	INFO_LOG(Game::Bomberman, "%s: slot roster sync (%s) host_count=%u occupied_mask=%02x",
+		name.c_str(), reason != nullptr ? reason : "roster_update", getHostCount(), getOccupiedSlotMask());
 	Player::sendToAll(packet, players);
 }
 
@@ -743,6 +787,11 @@ void BMRoom::resetMatchSync()
 	syncState = SyncState::Idle;
 	gameTimeInfoSent = false;
 	battleEndSent = false;
+	liveSlotRefreshSent = false;
+	awaitingPostEndMapMarker = false;
+	inGameRosterRefreshBeat = 0;
+	livePlayerStates.clear();
+	bombProbe = {};
 }
 
 bool BMRoom::allHumanPlayersJoined() const
@@ -789,6 +838,17 @@ bool BMRoom::allPostMapMarkersSeen() const
 	return !players.empty();
 }
 
+bool BMRoom::allHumanPlayersHaveLiveState() const
+{
+	for (const Player *player : players)
+	{
+		const auto it = livePlayerStates.find(player->getId());
+		if (it == livePlayerStates.end() || !it->second.valid)
+			return false;
+	}
+	return players.size() > 1;
+}
+
 uint32_t BMRoom::getPostMapMarkerCount() const
 {
 	uint32_t count = 0;
@@ -799,6 +859,217 @@ uint32_t BMRoom::getPostMapMarkerCount() const
 			count++;
 	}
 	return count;
+}
+
+void BMRoom::noteLiveGameData(Player *player, uint8_t command, const uint8_t *payload, size_t payloadSize)
+{
+	if (player == nullptr || payload == nullptr || command < 1 || command > 3)
+		return;
+
+	const int playerPosition = getPlayerPosition(player);
+	if (playerPosition < 0 || playerPosition >= 8)
+		return;
+
+	const size_t playerRecordOffset = 4 + (size_t)playerPosition * 4;
+	if (payloadSize < playerRecordOffset + 4)
+		return;
+
+	LivePlayerState& state = livePlayerStates[player->getId()];
+	state.valid = true;
+	memcpy(state.playerRecord.data(), payload + playerRecordOffset, state.playerRecord.size());
+
+	const uint16_t packedPosition = read16(payload, (int)playerRecordOffset);
+	state.x = (uint8_t)((packedPosition >> 10) & 0x1f);
+	state.y = (uint8_t)((packedPosition >> 5) & 0x1f);
+	state.lowNibble = (uint8_t)(packedPosition & 0x0f);
+
+	if (command == 2 && payloadSize >= state.cmd02Payload.size())
+	{
+		state.word = payloadSize >= 4 ? read16(payload, 2) : 0;
+		memcpy(state.cmd02Payload.data(), payload, state.cmd02Payload.size());
+		state.hasCmd02Payload = true;
+	}
+
+	if (syncState == SyncState::InGame && !liveSlotRefreshSent && allHumanPlayersHaveLiveState())
+	{
+		liveSlotRefreshSent = true;
+		INFO_LOG(Game::Bomberman,
+			"%s: live slot refresh armed by %s [%x] cmd=%02x after all players sent live state",
+			name.c_str(), player->getName().c_str(), player->getId(), command);
+		sendRosterUpdate("live_slot_refresh");
+	}
+}
+
+bool BMRoom::buildAggregatedLivePayload(uint8_t command, const uint8_t *payload, size_t payloadSize,
+	std::vector<uint8_t>& output, uint8_t& slotMask) const
+{
+	output.clear();
+	slotMask = 0;
+	if (payload == nullptr || command < 1 || command > 3)
+		return false;
+
+	// Commands 0x01/0x02/0x03 all begin with command+word followed by 8 compact
+	// player records. The current hardware dumps show raw client packets only
+	// populate the sender's slot, while the binary receive paths parse all 8.
+	constexpr size_t livePlayerRecordsOffset = 4;
+	constexpr size_t livePlayerRecordSize = 4;
+	constexpr size_t livePlayerRecordCount = 8;
+	constexpr size_t minimumPayloadSize =
+		livePlayerRecordsOffset + livePlayerRecordCount * livePlayerRecordSize;
+	if (payloadSize < minimumPayloadSize)
+		return false;
+
+	output.assign(payload, payload + payloadSize);
+	uint32_t writtenSlots = 0;
+	for (Player *subject : players)
+	{
+		if (subject == nullptr)
+			continue;
+		const int playerPosition = getPlayerPosition(subject);
+		if (playerPosition < 0 || playerPosition >= (int)livePlayerRecordCount)
+			continue;
+		const auto stateIt = livePlayerStates.find(subject->getId());
+		if (stateIt == livePlayerStates.end() || !stateIt->second.valid)
+			continue;
+		const size_t playerRecordOffset = livePlayerRecordsOffset
+			+ (size_t)playerPosition * livePlayerRecordSize;
+		if (output.size() < playerRecordOffset + livePlayerRecordSize)
+			continue;
+		memcpy(output.data() + playerRecordOffset, stateIt->second.playerRecord.data(),
+			livePlayerRecordSize);
+		slotMask |= (uint8_t)(1u << playerPosition);
+		writtenSlots++;
+	}
+
+	return writtenSlots > 1;
+}
+
+void BMRoom::requestBombProbe(size_t playerIndex, const char *reason)
+{
+	if (playerIndex >= players.size())
+	{
+		WARN_LOG(Game::Bomberman, "%s: bomb object probe (%s) ignored, player index %zu is not present",
+			name.c_str(), reason, playerIndex);
+		return;
+	}
+
+	Player *subject = players[playerIndex];
+	const auto stateIt = livePlayerStates.find(subject->getId());
+	if (stateIt == livePlayerStates.end() || !stateIt->second.valid)
+	{
+		WARN_LOG(Game::Bomberman,
+			"%s: bomb object probe (%s) for %s [%x] ignored, no live player position has been observed yet",
+			name.c_str(), reason, subject->getName().c_str(), subject->getId());
+		return;
+	}
+
+	const int playerPosition = getPlayerPosition(subject);
+	bombProbe.active = true;
+	bombProbe.sourcePlayerId = subject->getId();
+	bombProbe.x = stateIt->second.x;
+	bombProbe.y = stateIt->second.y;
+	bombProbe.lowNibble = stateIt->second.lowNibble;
+	bombProbe.recordIndex = (uint8_t)std::max(0, std::min(playerPosition, 27));
+	bombProbe.ticksRemaining = BombermanBombProbeTicks;
+
+	INFO_LOG(Game::Bomberman,
+		"%s: armed staged bomb object probe (%s) from %s [%x] cell=(%u,%u) record=%u ticks=%u",
+		name.c_str(), reason, subject->getName().c_str(), subject->getId(), bombProbe.x, bombProbe.y,
+		bombProbe.recordIndex, bombProbe.ticksRemaining);
+}
+
+void BMRoom::tickBombProbe()
+{
+	if (!bombProbe.active)
+		return;
+	if (bombProbe.ticksRemaining == 0)
+	{
+		bombProbe.active = false;
+		return;
+	}
+
+	sendBombProbePacket("admin_probe_tick");
+	bombProbe.ticksRemaining--;
+	if (bombProbe.ticksRemaining == 0)
+	{
+		INFO_LOG(Game::Bomberman, "%s: bomb object probe completed", name.c_str());
+		bombProbe.active = false;
+	}
+}
+
+bool BMRoom::isBombProbeActive() const
+{
+	return bombProbe.active;
+}
+
+uint32_t BMRoom::getBombProbeTicksRemaining() const
+{
+	return bombProbe.ticksRemaining;
+}
+
+void BMRoom::sendBombProbePacket(const char *reason)
+{
+	if (!bombProbe.active)
+		return;
+
+	const auto stateIt = livePlayerStates.find(bombProbe.sourcePlayerId);
+	if (stateIt == livePlayerStates.end() || !stateIt->second.valid)
+	{
+		WARN_LOG(Game::Bomberman, "%s: bomb object probe (%s) has no source live state", name.c_str(), reason);
+		bombProbe.active = false;
+		return;
+	}
+
+	std::array<uint8_t, 164> payload {};
+	if (stateIt->second.hasCmd02Payload)
+	{
+		payload = stateIt->second.cmd02Payload;
+	}
+	else
+	{
+		write16(payload.data(), 0, (uint16_t)((2u << 9) | payload.size()));
+		write16(payload.data(), 2, stateIt->second.word);
+		int playerPosition = -1;
+		for (Player *candidate : players)
+		{
+			if (candidate != nullptr && candidate->getId() == bombProbe.sourcePlayerId)
+			{
+				playerPosition = getPlayerPosition(candidate);
+				break;
+			}
+		}
+		if (playerPosition >= 0 && playerPosition < 8)
+			memcpy(payload.data() + 4 + (size_t)playerPosition * 4, stateIt->second.playerRecord.data(),
+				stateIt->second.playerRecord.size());
+		for (size_t i = 0; i < 28; i++)
+			payload[36 + i * 4 + 2] = 0x10;
+	}
+
+	write16(payload.data(), 0, (uint16_t)((2u << 9) | payload.size()));
+	write16(payload.data(), 2, stateIt->second.word);
+	const size_t objectOffset = 36 + (size_t)bombProbe.recordIndex * 4;
+	const uint16_t objectPosition = (uint16_t)(((uint16_t)bombProbe.x << 10)
+		| ((uint16_t)(bombProbe.y & 0x1f) << 5) | 0x10 | (bombProbe.lowNibble & 0x0f));
+	const bool materializeStage = bombProbe.ticksRemaining > BombermanBombProbeUpdateTicks;
+	const uint16_t objectState = materializeStage ? 0xf000 : 0x2000;
+	const char *stageName = materializeStage ? "materialize_state_f" : "update_state_2";
+	write16(payload.data(), (int)objectOffset, objectPosition);
+	write16(payload.data(), (int)objectOffset + 2, objectState);
+
+	for (Player *recipient : players)
+	{
+		Packet packet;
+		packet.init(Packet::REQ_GAME_DATA);
+		packet.flags |= Packet::FLAG_RELAY;
+		write32(packet.data, packet.startOffset + 4, bombProbe.sourcePlayerId);
+		packet.writeData(payload.data(), (int)payload.size());
+		recipient->send(packet);
+	}
+
+	INFO_LOG(Game::Bomberman,
+		"%s: bomb object probe (%s/%s) sent source=%x cell=(%u,%u) record=%u object=%04x:%04x recipients=%zu ticks_left=%u",
+		name.c_str(), reason, stageName, bombProbe.sourcePlayerId, bombProbe.x, bombProbe.y,
+		bombProbe.recordIndex, objectPosition, objectState, players.size(), bombProbe.ticksRemaining);
 }
 
 void BMRoom::onRulesConfigured(Player *player, const uint8_t *p)
@@ -881,6 +1152,8 @@ bool BMRoom::beginStartBattle(Player *player)
 	}
 	gameTimeInfoSent = false;
 	battleEndSent = false;
+	liveSlotRefreshSent = false;
+	awaitingPostEndMapMarker = false;
 	syncPlayers[player->getId()].startAcked = true;
 
 	if (players.size() <= 1)
@@ -938,6 +1211,11 @@ void BMRoom::rudpAcked(Player *player)
 
 void BMRoom::notePostMapMarker(Player *player)
 {
+	notePostMapMarker(player, "cmd0e");
+}
+
+void BMRoom::notePostMapMarker(Player *player, const char *reason)
+{
 	if (player == nullptr)
 		return;
 
@@ -946,13 +1224,21 @@ void BMRoom::notePostMapMarker(Player *player)
 	if (!state.postMapMarkerSeen)
 	{
 		state.postMapMarkerSeen = true;
-		INFO_LOG(Game::Bomberman, "%s: post-map marker from %s [%x] (%u/%zu)",
-			name.c_str(), player->getName().c_str(), player->getId(), getPostMapMarkerCount(), players.size());
+		INFO_LOG(Game::Bomberman, "%s: post-map marker (%s) from %s [%x] (%u/%zu)",
+			name.c_str(), reason != nullptr ? reason : "post_map", player->getName().c_str(), player->getId(),
+			getPostMapMarkerCount(), players.size());
 	}
 
 	if (syncState == SyncState::InGame && !gameTimeInfoSent && allPostMapMarkersSeen())
 	{
 		gameTimeInfoSent = true;
+		awaitingPostEndMapMarker = false;
+		liveSlotRefreshSent = false;
+		// The live player receivers only apply full remote position records for
+		// slots marked state 3. Refresh the 0x0a slot table after PlayGame setup
+		// and before the deferred game-time gate so the battle slot table cannot
+		// be left in the room-only local/guest state.
+		sendRosterUpdate("post_map_slot_refresh");
 		// Live dumps showed that sending 0x14 immediately after 0x13 stops the
 		// map-block phase. Gate it behind both clients' post-map 0x0e markers.
 		broadcastGameTimeInfo("post_map_exchange", 0, 60 * 180, 0);
@@ -960,6 +1246,39 @@ void BMRoom::notePostMapMarker(Player *player)
 		startInGameLiveness();
 		startMatchEndTimer(60 * 180);
 	}
+}
+
+void BMRoom::prepareNextRoundFromPostEndFlow(Player *player, uint8_t command)
+{
+	if (player == nullptr || syncState != SyncState::InGame || !battleEndSent)
+		return;
+	if (command != 0x4 && command != 0x5 && command != 0x1a && command != 0x1b)
+		return;
+
+	refreshSyncPlayers();
+	for (auto& [id, state] : syncPlayers)
+	{
+		state.postMapMarkerSeen = false;
+		state.battleEndPhase = BattleEndPhase::None;
+	}
+	stopInGameLiveness();
+	stopMatchEndTimer();
+	gameTimeInfoSent = false;
+	battleEndSent = false;
+	liveSlotRefreshSent = false;
+	awaitingPostEndMapMarker = true;
+	inGameRosterRefreshBeat = 0;
+	livePlayerStates.clear();
+	bombProbe = {};
+
+	INFO_LOG(Game::Bomberman,
+		"%s: post-end round reset from %s [%x] cmd=%02x; waiting for next map-complete marker",
+		name.c_str(), player->getName().c_str(), player->getId(), command);
+}
+
+bool BMRoom::isAwaitingPostEndMapMarker() const
+{
+	return syncState == SyncState::InGame && awaitingPostEndMapMarker && !gameTimeInfoSent;
 }
 
 uint32_t BMRoom::getAcceptedRuleCount() const
@@ -1197,6 +1516,15 @@ void BMRoom::handleInGameLivenessTimer(const std::error_code& ec)
 	if (ec || syncState != SyncState::InGame || players.empty())
 		return;
 
+	if (allHumanPlayersHaveLiveState())
+	{
+		inGameRosterRefreshBeat++;
+		if (inGameRosterRefreshBeat >= BombermanInGameRosterRefreshBeats)
+		{
+			inGameRosterRefreshBeat = 0;
+			sendRosterUpdate("in_game_slot_heartbeat");
+		}
+	}
 	broadcastInGameLiveness("heartbeat");
 	startInGameLiveness();
 }
@@ -1241,14 +1569,17 @@ void BMRoom::sendBattleStateCommandTo(Player *player, uint8_t command, uint32_t 
 	cmd.size = command == 0x15 ? 0 : 4;
 	Packet packet;
 	packet.init(Packet::REQ_CHAT);
-	packet.flags |= Packet::FLAG_RUDP;
+	// Hardware logs show 0x16 and 0x19 are ACKed, but the no-payload 0x15 final
+	// marker is not. Sending 0x15 reliably only creates retry/time-out fallout.
+	if (command != 0x15)
+		packet.flags |= Packet::FLAG_RUDP;
 	packet.writeData(cmd.full);
 	packet.writeData((uint16_t)0);
 	if (cmd.size != 0)
 		packet.writeData(value);
-	INFO_LOG(Game::Bomberman, "%s: battle state sync (%s) -> %s [%x] cmd=%02x value=%08x",
+	INFO_LOG(Game::Bomberman, "%s: battle state sync (%s) -> %s [%x] cmd=%02x value=%08x reliable=%u",
 		name.c_str(), reason != nullptr ? reason : "battle", player->getName().c_str(), player->getId(),
-		command, value);
+		command, value, command != 0x15 ? 1 : 0);
 	player->send(packet);
 }
 
@@ -1270,8 +1601,7 @@ void BMRoom::advanceBattleEndSequence(Player *player, SyncPlayerState& state, co
 	case BattleEndPhase::CompletedDeadBits:
 		INFO_LOG(Game::Bomberman, "%s: battle end ack (%s) from %s [%x] cmd=19 -> cmd=15",
 			name.c_str(), reason != nullptr ? reason : "acked", player->getName().c_str(), player->getId());
-		state.battleEndPhase = BattleEndPhase::FinalState;
-		player->notifyRoomOnAck();
+		state.battleEndPhase = BattleEndPhase::Done;
 		sendBattleStateCommandTo(player, 0x15, 0, "final_state");
 		break;
 
@@ -1346,6 +1676,19 @@ void BombermanServer::syncAdminState()
 	desiredBotCount = config.desiredCount;
 	desiredBotPrefix = config.prefix;
 	targetRoomId = config.roomId;
+	bombProbeCounter = config.bombProbeCounter;
+	bombProbePlayerIndex = config.bombProbePlayerIndex;
+	bool bombProbeRequested = false;
+	if (!bombProbeCounterInitialized)
+	{
+		lastBombProbeCounter = bombProbeCounter;
+		bombProbeCounterInitialized = true;
+	}
+	else if (bombProbeCounter != lastBombProbeCounter)
+	{
+		bombProbeRequested = true;
+		lastBombProbeCounter = bombProbeCounter;
+	}
 
 	BMRoom *displayRoom = nullptr;
 	BMRoom *targetRoom = nullptr;
@@ -1375,7 +1718,14 @@ void BombermanServer::syncAdminState()
 			{
 				INFO_LOG(Game::Bomberman, "Applied %u admin bot seat(s) to room %s", bmRoom->getBotCount(), bmRoom->getName().c_str());
 			}
+			if (bombProbeRequested && bmRoom == targetRoom)
+				bmRoom->requestBombProbe((size_t)bombProbePlayerIndex, "admin_console");
+			bmRoom->tickBombProbe();
 		}
+	}
+	if (bombProbeRequested && targetRoom == nullptr)
+	{
+		WARN_LOG(Game::Bomberman, "Bomb object probe requested but target room %u was not found", targetRoomId);
 	}
 
 	writeAdminRuntimeState(displayRoom);
@@ -1391,9 +1741,12 @@ void BombermanServer::writeAdminRuntimeState(const BMRoom *activeRoom) const
 	out << "desired_bot_count=" << desiredBotCount << "\n";
 	out << "bot_name_prefix=" << desiredBotPrefix << "\n";
 	out << "room_id=" << targetRoomId << "\n";
+	out << "bomb_probe_counter=" << bombProbeCounter << "\n";
+	out << "bomb_probe_player_index=" << bombProbePlayerIndex << "\n";
 	if (activeRoom == nullptr)
 	{
 		out << "active_room_present=0\n";
+		out << "bomb_probe_active=0\n";
 		return;
 	}
 
@@ -1410,6 +1763,8 @@ void BombermanServer::writeAdminRuntimeState(const BMRoom *activeRoom) const
 	out << "accepted_rules=" << activeRoom->getAcceptedRuleCount() << "\n";
 	out << "start_ack_count=" << activeRoom->getStartAckCount() << "\n";
 	out << "can_start=" << (activeRoom->canStartBattle() ? 1 : 0) << "\n";
+	out << "bomb_probe_active=" << (activeRoom->isBombProbeActive() ? 1 : 0) << "\n";
+	out << "bomb_probe_ticks=" << activeRoom->getBombProbeTicksRemaining() << "\n";
 	for (size_t i = 0; i < activeRoom->getBots().size(); i++)
 		out << "bot_name_" << (i + 1) << "=" << activeRoom->getBots()[i].name << "\n";
 }
@@ -1544,6 +1899,7 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 
 			if (room != nullptr)
 			{
+				room->prepareNextRoundFromPostEndFlow(player, (uint8_t)cmd.command);
 				relayPacket.init(Packet::REQ_CHAT);
 				relayPacket.flags |= Packet::FLAG_RUDP;
 				relayPacket.writeData(&data[0x10], (int)(len - 0x10));
@@ -1638,7 +1994,29 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 			relayPacket.flags |= Packet::FLAG_RUDP;
 			relayPacket.writeData(cmd.full);
 			relayPacket.writeData(read16(data, 0x12));
+			if (room != nullptr && room->isAwaitingPostEndMapMarker())
+			{
+				if (!replyPacket.empty())
+				{
+					player->send(replyPacket);
+					replyPacket.reset();
+				}
+				Player::sendToAll(relayPacket, room->getPlayers(), player);
+				relayPacket.reset();
+				room->notePostMapMarker(player, "cmd0f_post_end");
+			}
 			break;
+
+		case 0x10:	// Client battle-end/settle signal observed after server cmd 0x19
+			{
+				const uint16_t word = len >= 0x14 ? read16(data, 0x12) : 0;
+				const uint32_t tail = len >= 0x18 ? read32(data, 0x14) : 0;
+				INFO_LOG(Game::Bomberman, "%s: battle end client signal cmd=10 word=%04x tail=%08x",
+					player->getName().c_str(), word, tail);
+				replyPacket.init(Packet::REQ_NOP);
+				player->ackPacket(replyPacket, data);
+				break;
+			}
 
 		case 0x1:	// In-game live state block observed after sprites spawn
 		case 0x2:	// In-game live state block observed after sprites spawn
@@ -1652,6 +2030,14 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 				const size_t payloadSize = len > 0x10 ? len - 0x10 : 0;
 				const uint16_t word = len >= 0x14 ? read16(data, 0x12) : 0;
 				const uint32_t payload0 = len >= 0x18 ? read32(data, 0x14) : 0;
+				size_t activeCmd01RecordIndex = 0;
+				const uint8_t *activeCmd01Record = nullptr;
+				const bool activeCmd01Lane = cmd.command == 0x1
+					&& findActiveBombermanCmd01Record(&data[0x10], payloadSize, activeCmd01RecordIndex, activeCmd01Record);
+				if (room != nullptr)
+					room->prepareNextRoundFromPostEndFlow(player, (uint8_t)cmd.command);
+				if (room != nullptr)
+					room->noteLiveGameData(player, (uint8_t)cmd.command, &data[0x10], payloadSize);
 				static std::map<uint64_t, uint32_t> loggedGameDataRelays;
 				const uint64_t logKey = ((uint64_t)player->getId() << 32)
 					| ((uint64_t)cmd.command << 16) | cmd.size;
@@ -1690,7 +2076,7 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 							relay.writeData(&data[0x10], (int)payloadSize);
 							recipient->send(relay);
 						}
-						room->notePostMapMarker(player);
+						room->notePostMapMarker(player, "cmd0e");
 					}
 					else
 					{
@@ -1717,7 +2103,46 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 						if (flags & Packet::FLAG_RUDP)
 							relayPacket.flags |= Packet::FLAG_RUDP;
 						write32(relayPacket.data, relayPacket.startOffset + 4, player->getId());
-						relayPacket.writeData(&data[0x10], (int)payloadSize);
+						std::vector<uint8_t> aggregatePayload;
+						uint8_t aggregateSlotMask = 0;
+						const bool aggregateLivePayload = cmd.command >= 0x1 && cmd.command <= 0x3
+							&& room->buildAggregatedLivePayload((uint8_t)cmd.command, &data[0x10], payloadSize,
+								aggregatePayload, aggregateSlotMask);
+						if (aggregateLivePayload)
+						{
+							static std::map<uint64_t, uint32_t> loggedLiveAggregates;
+							const uint64_t aggregateLogKey = ((uint64_t)player->getId() << 32)
+								| ((uint64_t)cmd.command << 16) | aggregateSlotMask;
+							uint32_t& aggregateLogCount = loggedLiveAggregates[aggregateLogKey];
+							if (aggregateLogCount < 6)
+							{
+								INFO_LOG(Game::Bomberman,
+									"%s: live aggregate relay cmd=%02x source=%x slots=%02x size=%zu",
+									player->getName().c_str(), cmd.command, player->getId(), aggregateSlotMask,
+									aggregatePayload.size());
+								aggregateLogCount++;
+							}
+							relayPacket.writeData(aggregatePayload.data(), (int)aggregatePayload.size());
+						}
+						else
+						{
+							relayPacket.writeData(&data[0x10], (int)payloadSize);
+						}
+						if (activeCmd01Lane)
+						{
+							static std::map<uint32_t, uint32_t> loggedCmd01ActiveRecords;
+							uint32_t& activeLogCount = loggedCmd01ActiveRecords[player->getId()];
+							if (activeLogCount < 6)
+							{
+								INFO_LOG(Game::Bomberman,
+									"%s: cmd=01 active check-pad record observed idx=%zu record=%02x%02x%02x%02x%02x%02x word=%04x size=%zu",
+									player->getName().c_str(), activeCmd01RecordIndex,
+									activeCmd01Record[0], activeCmd01Record[1], activeCmd01Record[2],
+									activeCmd01Record[3], activeCmd01Record[4], activeCmd01Record[5],
+									word, payloadSize);
+								activeLogCount++;
+							}
+						}
 					}
 				}
 				break;
