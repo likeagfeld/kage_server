@@ -2532,3 +2532,30 @@ Next validation:
   - movement failure is no longer a simple slot-roster-refresh problem
   - continue with live-state authority/source semantics or an additional companion gameplay command
   - bomb placement remains blocked because A-button tests still never produce non-default committed `cmd=02` object tables
+
+## 2026-04-22 Clean No-Heartbeat Gameplay Baseline
+
+- latest hardware run:
+  - `D:\kageserver\data\22_14-07-06_BM_t.dmp`
+  - `D:\kageserver\data\22_14-07-06_BM_t_out.dmp`
+- user manually disconnected after the test; Kage timed both clients out at `14:11:36`
+- server-side evidence:
+  - `START BATTLE` at `14:08:56`
+  - both clients sent post-map `cmd=0e` at `14:09:16`
+  - Kage sent only the one-shot `post_map_slot_refresh` and `live_slot_refresh`
+  - no `in_game_slot_heartbeat` lines appeared
+  - no `Sending packet f` retry storm appeared in this run
+- parser evidence:
+  - inbound `cmd=01/02/03`: `1023`, `1021`, `1021`
+  - outbound aggregate relay reached opposite endpoints for the same counts
+  - outbound live masks were almost entirely `03`, proving both occupied slot records left Kage
+  - reliable `REQ_CHAT cmd=0x0a` dropped to `6` total packets, matching one-shot/room refresh behavior rather than periodic spam
+  - non-reliable liveness `REQ_CHAT cmd=0x1c` continued normally
+  - `cmd=02` object tables were still default-only: `0/1021` non-default tables
+  - active `cmd=01` check-pad records were still observed for both players:
+    - FARKUS: `082040020000`, `044040020000`
+    - FARKUS2: `316040120000`
+- interpretation:
+  - removal of the periodic reliable slot heartbeat fixed the reliable packet-noise regression
+  - movement/bomb failure persists despite clean aggregate live relay and one-shot slot refreshes
+  - next implementation/reverse-engineering target should be live-state authority/source semantics or an omitted companion gameplay command, not periodic slot refresh and not `cmd=02` object-only probes
