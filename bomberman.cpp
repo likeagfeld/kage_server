@@ -39,6 +39,8 @@ constexpr uint32_t BombermanBombProbeUpdateTicks = 8;
 constexpr uint32_t BombermanBombProbeTicks = BombermanBombProbeMaterializeTicks + BombermanBombProbeUpdateTicks;
 constexpr uint16_t BombermanSyntheticBombMaterializePackets = 6;
 constexpr uint16_t BombermanSyntheticBombPlacedPackets = 360;
+constexpr uint8_t BombermanObjectSubtypeBomb = 0x0e;
+constexpr uint8_t BombermanObjectSubtypeBombUpItem = 0x02;
 constexpr const char *BombermanBotAdminPath = "tools/state/bomberman_bots.ini";
 constexpr const char *BombermanBotRuntimePath = "tools/state/bomberman_runtime.ini";
 
@@ -990,7 +992,7 @@ bool BMRoom::applySyntheticBombObjectsToPayload(uint8_t *payload, size_t payload
 			continue;
 
 		const uint16_t state = (uint16_t)((object.materializePacketsRemaining > 0 ? 0xf000 : 0x2000)
-			| (object.lowNibble & 0x0f));
+			| (object.subtype & 0x0f));
 		const size_t offset = objectTableOffset + i * objectRecordSize;
 		write16(payload, (unsigned)offset, object.objectPosition);
 		write16(payload, (unsigned)offset + 2, state);
@@ -1021,20 +1023,27 @@ void BMRoom::armSyntheticBombObject(Player *player, size_t recordIndex, const ui
 		return;
 
 	const uint16_t objectPosition = read16(record, 0);
-	const uint8_t lowNibble = (uint8_t)(record[3] & 0x0f);
+	const uint8_t actionSubtype = (uint8_t)(record[3] & 0x0f);
 	SyntheticBombObject& object = syntheticBombObjects[recordIndex];
+	if (object.active && object.sourcePlayerId == player->getId()
+		&& object.objectPosition == objectPosition && object.subtype == BombermanObjectSubtypeBomb)
+	{
+		return;
+	}
+
 	object.active = true;
 	object.sourcePlayerId = player->getId();
 	object.objectPosition = objectPosition;
-	object.lowNibble = lowNibble;
+	object.subtype = BombermanObjectSubtypeBomb;
 	object.materializePacketsRemaining = BombermanSyntheticBombMaterializePackets;
 	object.placedPacketsRemaining = BombermanSyntheticBombPlacedPackets;
 
 	INFO_LOG(Game::Bomberman,
-		"%s: armed synthetic bomb from cmd=01 action source=%s [%x] record=%zu action=%02x%02x%02x%02x%02x%02x object=%04x:f00%x",
+		"%s: armed synthetic bomb from cmd=01 action source=%s [%x] record=%zu action=%02x%02x%02x%02x%02x%02x action_subtype=%x%s object=%04x:f00%x",
 		name.c_str(), player->getName().c_str(), player->getId(), recordIndex,
 		record[0], record[1], record[2], record[3], record[4], record[5],
-		objectPosition, lowNibble);
+		actionSubtype, actionSubtype == BombermanObjectSubtypeBombUpItem ? " (bomb-up item in 22_15-57-44)" : "",
+		objectPosition, BombermanObjectSubtypeBomb);
 }
 
 void BMRoom::requestBombProbe(size_t playerIndex, const char *reason)

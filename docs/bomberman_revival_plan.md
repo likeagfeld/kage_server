@@ -2654,3 +2654,58 @@ Next validation:
 - expect non-default outbound `REQ_CHAT cmd=02` object records in the dump
 - first pass/fail criterion is whether a committed bomb/object appears after A
   press on both consoles
+
+## 2026-04-22 Object Lane Proven, Bomb-Up Item Identified
+
+Hardware result after `545475e`:
+
+- opposite-console movement still renders on both Dreamcasts
+- pressing A no longer only creates the temporary yellow marker
+- instead, the synthetic object appears as a bomb power-up item card
+
+Fresh dump pair:
+
+- `D:\kageserver\data\22_15-57-44_BM_teqr.dmp`
+- `D:\kageserver\data\22_15-57-44_BM_teqr_out.dmp`
+
+Parser evidence:
+
+- outbound `REQ_CHAT cmd=02` now has non-default object records:
+  `1774/5916`
+- representative outbound record: `0440f002`
+- representative inbound/client-follow-up record: `04402000`
+- active `cmd=01` action records in the same run:
+  - FARKUS: `044000020000`
+  - FARKUS2: `356040120000`
+
+Interpretation:
+
+- the server-owned object-table path is proven to reach the client renderer
+- `f002` maps to a bomb-up power-up item card in this observed context
+- that object state should be preserved as a known future hidden-item/drop tool
+- it is not the placed-bomb object state
+
+Manual/gameplay context:
+
+- the Dreamcast manual says A places bombs, bombs destroy soft blocks, and some
+  soft blocks may contain power-up items
+- the manual lists the BOMB item as increasing the amount of bombs a player can
+  place by one, matching the observed bomb-up card behavior
+
+Binary correction:
+
+- decompiled local bomb placement at `0x8C0906F4` allocates an object slot,
+  marks it active, sets object state byte `0x0a`, and writes subtype byte
+  `0x0e`
+- Kage now uses subtype `0x0e` for the synthetic placed-bomb attempt instead of
+  copying the action-record low nibble `0x02`
+- repeated re-arming of the same active synthetic object is suppressed so one
+  sustained action burst does not constantly reset the object lifetime/log line
+
+Next validation:
+
+- logs should show `object=....:f00e` rather than `f002`
+- if a placed bomb appears, the next lifecycle target is explosion timing,
+  soft-block destruction, item reveal, death/win registration, and round return
+- if another item appears, keep the object path but continue mapping subtype/state
+  from the binary before changing unrelated gameplay flow

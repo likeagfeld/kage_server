@@ -1195,3 +1195,25 @@ Validation target:
 - first visual goal is a committed bomb/object after A press; explosion/result
   lifecycle remains a separate follow-up unless the state `0xF -> 0x2`
   sequence also advances naturally
+
+### 2026-04-22 object lane proven, bomb-up item identified
+
+Fresh hardware result:
+
+- movement still works on opposite consoles
+- A press produced a visible bomb power-up item card, not a placed bomb
+
+Evidence:
+
+- `D:\kageserver\data\22_15-57-44_BM_teqr.dmp`
+- `D:\kageserver\data\22_15-57-44_BM_teqr_out.dmp`
+- outbound `REQ_CHAT cmd=02` had `1774/5916` non-default object tables
+- representative outbound object record: `0440f002`
+- representative client follow-up object record: `04402000`
+
+Correction:
+
+- `f002` is now recorded as a bomb-up item-card form for later hidden-item drops
+- decompiled local bomb placement at `0x8C0906F4` sets object subtype `0x0e`
+- Kage now sends synthetic bomb materialization as subtype `0x0e`, not the
+  action-record low nibble `0x02`

@@ -166,7 +166,7 @@ private:
 		bool active = false;
 		uint32_t sourcePlayerId = 0;
 		uint16_t objectPosition = 0;
-		uint8_t lowNibble = 0;
+		uint8_t subtype = 0;
 		uint16_t materializePacketsRemaining = 0;
 		uint16_t placedPacketsRemaining = 0;
 	};
