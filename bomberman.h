@@ -92,8 +92,11 @@ public:
 	uint32_t getJoinedPlayerCount() const;
 	const char *getSyncStateName() const;
 	void noteLiveGameData(Player *player, uint8_t command, const uint8_t *payload, size_t payloadSize);
+	void noteActionLane(Player *player, bool active, size_t recordIndex, const uint8_t *record);
 	bool buildAggregatedLivePayload(uint8_t command, const uint8_t *payload, size_t payloadSize,
 		std::vector<uint8_t>& output, uint8_t& slotMask) const;
+	bool hasSyntheticBombObjects() const;
+	bool applySyntheticBombObjectsToPayload(uint8_t *payload, size_t payloadSize);
 	void requestBombProbe(size_t playerIndex, const char *reason);
 	void tickBombProbe();
 	bool isBombProbeActive() const;
@@ -152,6 +155,22 @@ private:
 		uint32_t ticksRemaining = 0;
 	};
 
+	struct ActionLaneState
+	{
+		bool active = false;
+		std::array<uint8_t, 6> record {};
+	};
+
+	struct SyntheticBombObject
+	{
+		bool active = false;
+		uint32_t sourcePlayerId = 0;
+		uint16_t objectPosition = 0;
+		uint8_t lowNibble = 0;
+		uint16_t materializePacketsRemaining = 0;
+		uint16_t placedPacketsRemaining = 0;
+	};
+
 	void updateSlots();
 	void sendUdpPacketA(Packet& packet);
 	void writeRoomAttr(Packet& packet, const char attr[4]) const;
@@ -181,6 +200,7 @@ private:
 	bool allPostMapMarkersSeen() const;
 	bool allHumanPlayersHaveLiveState() const;
 	uint32_t getPostMapMarkerCount() const;
+	void armSyntheticBombObject(Player *player, size_t recordIndex, const uint8_t *record);
 	void sendOwnerKeyholderSyncTo(Player *player, const char *reason) const;
 	void broadcastOwnerKeyholderSync(const char *reason) const;
 	void broadcastOwnerChange() const;
@@ -211,6 +231,8 @@ private:
 	std::array<uint8_t, 9> rules {};
 	std::map<uint32_t, SyncPlayerState> syncPlayers;
 	std::map<uint32_t, LivePlayerState> livePlayerStates;
+	std::map<uint32_t, ActionLaneState> actionLaneStates;
+	std::array<SyntheticBombObject, 28> syntheticBombObjects {};
 	BombProbeState bombProbe;
 	SyncState syncState = SyncState::Idle;
 	bool gameTimeInfoSent = false;

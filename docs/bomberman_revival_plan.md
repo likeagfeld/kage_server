@@ -2603,3 +2603,54 @@ Next validation:
 - remote movement is the first validation target
 - if movement appears but bombs still do not commit, continue from the already-observed `cmd=01` action/check-pad lane and the still-default `cmd=02` object table evidence
 - if movement still does not appear, this packet-family correction is falsified and the next target is the remaining server-owned companion command/state gate, not sender echo and not periodic `cmd=0a`
+
+## 2026-04-22 Movement Success And Bomb Commit Patch
+
+Fresh hardware validation:
+
+- opposite-console movement now renders on both Dreamcasts
+- bombs still do not appear; A press still only produces the temporary yellow
+  tile marker
+
+Flushed dump pair:
+
+- `D:\kageserver\data\22_15-33-28_BM_t.dmp`
+- `D:\kageserver\data\22_15-33-28_BM_t_out.dmp`
+
+Parser evidence:
+
+- outbound live `cmd=01/02/03` is now `REQ_CHAT`, matching the movement success
+- inbound and outbound `cmd=02` object tables were still default-only before
+  the new patch: `0/4789` non-default in each direction
+- active `cmd=01` action records exist and include encoded cells different from
+  the last sprite-position records:
+  - `082040020000`
+  - `044040020000`
+  - `042040020000`
+  - `354040120000`
+  - `316040120000`
+  - `356040120000`
+
+Binary evidence used for the patch:
+
+- `0x8C093FDC` is the server-command dispatcher for live `cmd=01/02/03`
+- `0x8C0DDBE4` decodes compact `cmd=02` object records
+- `0x8C075A78` applies object records; state top-nibble `0xF` materializes
+  position into the local object slot and state top-nibble `0x2` routes into
+  the placed/on-panel path
+
+Current Kage translation:
+
+- leave the proven movement path alone
+- track non-empty `cmd=01` action-lane bursts per player
+- arm a synthetic compact object record using the action lane's encoded cell
+- merge synthetic object records into every outgoing `REQ_CHAT cmd=02` payload
+  so default object tables do not erase the commit
+- dashboard/admin bomb probe now uses `REQ_CHAT` rather than `REQ_GAME_DATA`
+
+Next validation:
+
+- expect `armed synthetic bomb from cmd=01 action` in `kageserver.log`
+- expect non-default outbound `REQ_CHAT cmd=02` object records in the dump
+- first pass/fail criterion is whether a committed bomb/object appears after A
+  press on both consoles

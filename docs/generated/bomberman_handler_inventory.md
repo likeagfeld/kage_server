@@ -1141,6 +1141,57 @@ Validation target:
   falsified and the next target is a remaining server-owned companion command or
   state gate, not periodic `cmd=0a` and not sender echo
 
-The current server-side target is periodic in-game `udpA` / Bomberman `cmd=0x0a`
-slot-table refresh as `in_game_slot_heartbeat`, based on the binary-cleared
-remote-slot path at `0x8C09B698`.
+### 2026-04-22 movement validated and synthetic bomb commit
+
+Fresh hardware/dump evidence:
+
+- `D:\kageserver\data\22_15-33-28_BM_t.dmp`
+- `D:\kageserver\data\22_15-33-28_BM_t_out.dmp`
+- user-visible result:
+  - opposite-console player movement now renders on both Dreamcasts
+  - bombs still do not appear; A press still only makes the temporary yellow
+    tile marker
+- parser evidence:
+  - outbound live `cmd=01`, `cmd=02`, and `cmd=03` are now `REQ_CHAT`
+  - inbound client `cmd=02` object tables stayed default-only:
+    `0/4789` non-default
+  - outbound pre-patch `REQ_CHAT cmd=02` object tables also stayed
+    default-only: `0/4789` non-default
+  - active `cmd=01` action/check-pad records were observed with encoded cells
+    distinct from the sprite-position records:
+    - `082040020000`
+    - `044040020000`
+    - `042040020000`
+    - `354040120000`
+    - `316040120000`
+    - `356040120000`
+
+Binary correlation:
+
+- `0x8C093FDC` is the server-command dispatcher that now explains movement
+  success for `cmd=01/02/03`
+- `0x8C0DDBE4` decodes `cmd=02` object tables
+- `0x8C075A78` applies those object records; state top-nibble `0xF` copies
+  incoming position into the local object slot, and state top-nibble `0x2`
+  routes through the placed/on-panel branch
+
+Current Kage translation:
+
+- preserve the validated live movement path: non-reliable `REQ_CHAT`
+  `cmd=01/02/03`
+- detect non-empty `cmd=01` action-lane bursts per player
+- arm one synthetic compact object record at the action-lane encoded cell, not
+  the last sprite cell
+- merge active synthetic object records into every outgoing `REQ_CHAT cmd=02`
+  payload so subsequent default object tables cannot immediately erase the
+  commit
+- update the admin bomb probe to use `REQ_CHAT` instead of `REQ_GAME_DATA` if
+  it is used again
+
+Validation target:
+
+- logs should show `armed synthetic bomb from cmd=01 action`
+- outbound dump should show non-default `REQ_CHAT cmd=02` object records
+- first visual goal is a committed bomb/object after A press; explosion/result
+  lifecycle remains a separate follow-up unless the state `0xF -> 0x2`
+  sequence also advances naturally

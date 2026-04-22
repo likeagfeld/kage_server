@@ -37,6 +37,8 @@ constexpr uint32_t BombermanGameFramesPerSecond = 60;
 constexpr uint32_t BombermanBombProbeMaterializeTicks = 4;
 constexpr uint32_t BombermanBombProbeUpdateTicks = 8;
 constexpr uint32_t BombermanBombProbeTicks = BombermanBombProbeMaterializeTicks + BombermanBombProbeUpdateTicks;
+constexpr uint16_t BombermanSyntheticBombMaterializePackets = 6;
+constexpr uint16_t BombermanSyntheticBombPlacedPackets = 360;
 constexpr const char *BombermanBotAdminPath = "tools/state/bomberman_bots.ini";
 constexpr const char *BombermanBotRuntimePath = "tools/state/bomberman_runtime.ini";
 
@@ -789,6 +791,8 @@ void BMRoom::resetMatchSync()
 	liveSlotRefreshSent = false;
 	awaitingPostEndMapMarker = false;
 	livePlayerStates.clear();
+	actionLaneStates.clear();
+	syntheticBombObjects = {};
 	bombProbe = {};
 }
 
@@ -898,6 +902,29 @@ void BMRoom::noteLiveGameData(Player *player, uint8_t command, const uint8_t *pa
 	}
 }
 
+void BMRoom::noteActionLane(Player *player, bool active, size_t recordIndex, const uint8_t *record)
+{
+	if (player == nullptr)
+		return;
+
+	ActionLaneState& state = actionLaneStates[player->getId()];
+	if (!active || record == nullptr)
+	{
+		state.active = false;
+		state.record = {};
+		return;
+	}
+
+	std::array<uint8_t, 6> current {};
+	memcpy(current.data(), record, current.size());
+	if (state.active && state.record == current)
+		return;
+
+	state.active = true;
+	state.record = current;
+	armSyntheticBombObject(player, recordIndex, record);
+}
+
 bool BMRoom::buildAggregatedLivePayload(uint8_t command, const uint8_t *payload, size_t payloadSize,
 	std::vector<uint8_t>& output, uint8_t& slotMask) const
 {
@@ -940,6 +967,74 @@ bool BMRoom::buildAggregatedLivePayload(uint8_t command, const uint8_t *payload,
 	}
 
 	return writtenSlots > 1;
+}
+
+bool BMRoom::hasSyntheticBombObjects() const
+{
+	return std::any_of(syntheticBombObjects.begin(), syntheticBombObjects.end(),
+		[](const SyntheticBombObject& object) { return object.active; });
+}
+
+bool BMRoom::applySyntheticBombObjectsToPayload(uint8_t *payload, size_t payloadSize)
+{
+	constexpr size_t objectTableOffset = 36;
+	constexpr size_t objectRecordSize = 4;
+	if (payload == nullptr || payloadSize < objectTableOffset + syntheticBombObjects.size() * objectRecordSize)
+		return false;
+
+	bool wrote = false;
+	for (size_t i = 0; i < syntheticBombObjects.size(); i++)
+	{
+		SyntheticBombObject& object = syntheticBombObjects[i];
+		if (!object.active)
+			continue;
+
+		const uint16_t state = (uint16_t)((object.materializePacketsRemaining > 0 ? 0xf000 : 0x2000)
+			| (object.lowNibble & 0x0f));
+		const size_t offset = objectTableOffset + i * objectRecordSize;
+		write16(payload, (unsigned)offset, object.objectPosition);
+		write16(payload, (unsigned)offset + 2, state);
+		wrote = true;
+
+		if (object.materializePacketsRemaining > 0)
+		{
+			object.materializePacketsRemaining--;
+		}
+		else if (object.placedPacketsRemaining > 0)
+		{
+			object.placedPacketsRemaining--;
+		}
+		else
+		{
+			INFO_LOG(Game::Bomberman,
+				"%s: synthetic bomb object expired source=%x record=%zu position=%04x",
+				name.c_str(), object.sourcePlayerId, i, object.objectPosition);
+			object.active = false;
+		}
+	}
+	return wrote;
+}
+
+void BMRoom::armSyntheticBombObject(Player *player, size_t recordIndex, const uint8_t *record)
+{
+	if (player == nullptr || record == nullptr || recordIndex >= syntheticBombObjects.size())
+		return;
+
+	const uint16_t objectPosition = read16(record, 0);
+	const uint8_t lowNibble = (uint8_t)(record[3] & 0x0f);
+	SyntheticBombObject& object = syntheticBombObjects[recordIndex];
+	object.active = true;
+	object.sourcePlayerId = player->getId();
+	object.objectPosition = objectPosition;
+	object.lowNibble = lowNibble;
+	object.materializePacketsRemaining = BombermanSyntheticBombMaterializePackets;
+	object.placedPacketsRemaining = BombermanSyntheticBombPlacedPackets;
+
+	INFO_LOG(Game::Bomberman,
+		"%s: armed synthetic bomb from cmd=01 action source=%s [%x] record=%zu action=%02x%02x%02x%02x%02x%02x object=%04x:f00%x",
+		name.c_str(), player->getName().c_str(), player->getId(), recordIndex,
+		record[0], record[1], record[2], record[3], record[4], record[5],
+		objectPosition, lowNibble);
 }
 
 void BMRoom::requestBombProbe(size_t playerIndex, const char *reason)
@@ -1057,9 +1152,7 @@ void BMRoom::sendBombProbePacket(const char *reason)
 	for (Player *recipient : players)
 	{
 		Packet packet;
-		packet.init(Packet::REQ_GAME_DATA);
-		packet.flags |= Packet::FLAG_RELAY;
-		write32(packet.data, packet.startOffset + 4, bombProbe.sourcePlayerId);
+		packet.init(Packet::REQ_CHAT);
 		packet.writeData(payload.data(), (int)payload.size());
 		recipient->send(packet);
 	}
@@ -1266,6 +1359,8 @@ void BMRoom::prepareNextRoundFromPostEndFlow(Player *player, uint8_t command)
 	liveSlotRefreshSent = false;
 	awaitingPostEndMapMarker = true;
 	livePlayerStates.clear();
+	actionLaneStates.clear();
+	syntheticBombObjects = {};
 	bombProbe = {};
 
 	INFO_LOG(Game::Bomberman,
@@ -2025,6 +2120,8 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 				if (room != nullptr)
 					room->prepareNextRoundFromPostEndFlow(player, (uint8_t)cmd.command);
 				if (room != nullptr)
+					room->noteActionLane(player, activeCmd01Lane, activeCmd01RecordIndex, activeCmd01Record);
+				if (room != nullptr)
 					room->noteLiveGameData(player, (uint8_t)cmd.command, &data[0x10], payloadSize);
 				static std::map<uint64_t, uint32_t> loggedGameDataRelays;
 				const uint64_t logKey = ((uint64_t)player->getId() << 32)
@@ -2092,7 +2189,21 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 							&& room->buildAggregatedLivePayload((uint8_t)cmd.command, &data[0x10], payloadSize,
 								aggregatePayload, aggregateSlotMask);
 						const uint8_t *relayPayload = aggregateLivePayload ? aggregatePayload.data() : &data[0x10];
-						const size_t relayPayloadSize = aggregateLivePayload ? aggregatePayload.size() : payloadSize;
+						size_t relayPayloadSize = aggregateLivePayload ? aggregatePayload.size() : payloadSize;
+						std::vector<uint8_t> objectMergedPayload;
+						if (cmd.command == 0x2 && room->hasSyntheticBombObjects())
+						{
+							if (aggregateLivePayload)
+								objectMergedPayload = aggregatePayload;
+							else
+								objectMergedPayload.assign(&data[0x10], &data[0x10] + payloadSize);
+							if (room->applySyntheticBombObjectsToPayload(objectMergedPayload.data(),
+								objectMergedPayload.size()))
+							{
+								relayPayload = objectMergedPayload.data();
+								relayPayloadSize = objectMergedPayload.size();
+							}
+						}
 						if (cmd.command >= 0x1 && cmd.command <= 0x3)
 						{
 							// Binary receive path 0x8C093FDC applies live cmd 01/02/03 as
