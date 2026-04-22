@@ -1097,6 +1097,50 @@ were present for both real players.  Bomb creation therefore still needs the
 authoritative object/event path; client-origin `cmd=02` object relay and staged
 object probes are falsified.
 
+### 2026-04-22 live `REQ_GAME_DATA` relay falsified as apply path
+
+Fresh hardware/dump evidence:
+
+- clean no-heartbeat dump pair `22_14-07-06_BM_t` / `_out` proved Kage's
+  aggregate live payloads reached the opposite consoles:
+  - outbound `REQ_GAME_DATA cmd=01/02/03` counts matched inbound live traffic
+  - outbound masks were almost entirely `03`, so both real-player slots were
+    present in the relayed bodies
+  - `REQ_CHAT cmd=0a` was down to one-shot refresh counts only, and no packet
+    retry storm occurred
+- hardware still showed no opposite-console movement and no committed bombs.
+
+Binary evidence:
+
+- `0x8C093FDC` is the server-command dispatcher that handles:
+  - `cmd=01` -> `0x8C0DDA44`
+  - `cmd=02` -> `0x8C0DDBE4`
+  - `cmd=03` -> `0x8C0DDD64`
+  - `cmd=1C` -> in-game liveness table updates
+- the same dispatcher family is already used by Kage's working
+  non-reliable `REQ_CHAT cmd=1c` in-game liveness sync.
+- `0x8C09758C` applies refreshed decoded buffers through:
+  - `0x8C09A994` for `cmd=01`
+  - `0x8C09AAD8` for `cmd=02`
+  - `0x8C09AC08` for `cmd=03`
+
+Current Kage translation:
+
+- keep aggregate body construction for live `cmd=01/02/03`
+- keep peer-only delivery and no sender echo
+- send live `cmd=01/02/03` as non-reliable `REQ_CHAT` server-command traffic so
+  the recovered `0x8C093FDC` decode/apply path is reached
+- keep map/state `cmd=05/0d/0e/1a/1b` on the existing `REQ_GAME_DATA` relay path
+
+Validation target:
+
+- next outbound dump should show `REQ_CHAT cmd=01/02/03` after board load
+- if remote movement appears, continue bomb work from the observed `cmd=01`
+  action/check-pad lane and the still-default `cmd=02` object-table evidence
+- if remote movement still does not appear, this packet-family correction is
+  falsified and the next target is a remaining server-owned companion command or
+  state gate, not periodic `cmd=0a` and not sender echo
+
 The current server-side target is periodic in-game `udpA` / Bomberman `cmd=0x0a`
 slot-table refresh as `in_game_slot_heartbeat`, based on the binary-cleared
 remote-slot path at `0x8C09B698`.

@@ -2559,3 +2559,47 @@ Next validation:
   - removal of the periodic reliable slot heartbeat fixed the reliable packet-noise regression
   - movement/bomb failure persists despite clean aggregate live relay and one-shot slot refreshes
   - next implementation/reverse-engineering target should be live-state authority/source semantics or an omitted companion gameplay command, not periodic slot refresh and not `cmd=02` object-only probes
+
+## 2026-04-22 Live-State Packet-Family Correction
+
+Fresh binary/dump correlation:
+
+- latest clean dump pair:
+  - `D:\kageserver\data\22_14-07-06_BM_t.dmp`
+  - `D:\kageserver\data\22_14-07-06_BM_t_out.dmp`
+- outbound aggregate `REQ_GAME_DATA cmd=01/02/03` reached the opposite endpoints with both occupied slots populated:
+  - `cmd=01 source=1001 mask=03`
+  - `cmd=01 source=1002 mask=03`
+  - same aggregate `mask=03` pattern for `cmd=02` and `cmd=03`
+- hardware still showed no opposite-console movement and no committed bombs, so the mechanical peer relay was falsified as the apply path.
+- recovered client dispatcher `0x8C093FDC` handles server-command traffic and directly dispatches:
+  - `cmd=01` to `0x8C0DDA44`
+  - `cmd=02` to `0x8C0DDBE4`
+  - `cmd=03` to `0x8C0DDD64`
+  - `cmd=1C` to the same in-game liveness table path already used by Kage
+- the decoded live buffers are then applied by `0x8C09758C` through:
+  - `0x8C09A994` for `cmd=01`
+  - `0x8C09AAD8` for `cmd=02`
+  - `0x8C09AC08` for `cmd=03`
+
+Data-driven conclusion:
+
+- The remaining movement failure is not because the live payload never left Kage.
+- The stronger mismatch is the outer packet family:
+  - Kage was relaying live `cmd=01/02/03` as peer `REQ_GAME_DATA`.
+  - The recovered client apply path for those same commands is the server-command dispatcher family used by `REQ_CHAT` command traffic.
+
+Current implementation:
+
+- Keep the existing aggregate body construction for `cmd=01/02/03`.
+- Keep peer-only delivery; do not echo live-state packets back to the sender.
+- Deliver live `cmd=01/02/03` as non-reliable `REQ_CHAT` server-command packets so they hit `0x8C093FDC` and the confirmed decode/apply functions.
+- Keep map/state packets `cmd=05/0d/0e/1a/1b` on the existing `REQ_GAME_DATA` relay path.
+- Do not change room join, rules, start transition, game time, timer-end, DreamPi bridge behavior, or one-shot slot refreshes.
+
+Next validation:
+
+- after board load, outbound dump should show `REQ_CHAT cmd=01/02/03` to the opposite consoles instead of `REQ_GAME_DATA cmd=01/02/03`
+- remote movement is the first validation target
+- if movement appears but bombs still do not commit, continue from the already-observed `cmd=01` action/check-pad lane and the still-default `cmd=02` object table evidence
+- if movement still does not appear, this packet-family correction is falsified and the next target is the remaining server-owned companion command/state gate, not sender echo and not periodic `cmd=0a`

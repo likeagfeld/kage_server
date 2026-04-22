@@ -20,6 +20,11 @@ REQ_CHAT = 0x0F
 REQ_GAME_DATA = 0x11
 FLAG_CONTINUE = 0x0800
 
+MSG_TYPE_NAMES = {
+    REQ_CHAT: "REQ_CHAT",
+    REQ_GAME_DATA: "REQ_GAME_DATA",
+}
+
 
 def iter_records(path: Path):
     data = path.read_bytes()
@@ -72,6 +77,7 @@ def is_default_object_record(record: bytes) -> bool:
 
 
 def summarize(path: Path):
+    bomberman_counts = Counter()
     command_counts = Counter()
     outbound_live_by_endpoint = Counter()
     live_masks = Counter()
@@ -87,8 +93,11 @@ def summarize(path: Path):
             if parsed is None:
                 continue
             command, size, word = parsed
+            if msg_type in (REQ_CHAT, REQ_GAME_DATA):
+                bomberman_counts[(msg_type, command)] += 1
             if msg_type == REQ_GAME_DATA:
                 command_counts[command] += 1
+            if msg_type in (REQ_CHAT, REQ_GAME_DATA):
                 if command in (1, 2, 3):
                     slot_mask = 0
                     for slot, record in enumerate(live_slot_records(body)):
@@ -115,6 +124,11 @@ def summarize(path: Path):
                                 cmd02_samples.append((index, timestamp, source_id, nondefault[:8]))
 
     print(path)
+    print("Bomberman command counts by packet type:")
+    for (msg_type, command), count in sorted(bomberman_counts.items()):
+        msg_name = MSG_TYPE_NAMES.get(msg_type, f"0x{msg_type:02x}")
+        print(f"  {msg_name} cmd={command:02x}: {count}")
+
     print("REQ_GAME_DATA command counts:")
     for command, count in sorted(command_counts.items()):
         print(f"  cmd={command:02x}: {count}")

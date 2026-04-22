@@ -2086,16 +2086,27 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 							}
 
 						}
-						relayPacket.init(Packet::REQ_GAME_DATA);
-						relayPacket.flags |= Packet::FLAG_RELAY;
-						if (flags & Packet::FLAG_RUDP)
-							relayPacket.flags |= Packet::FLAG_RUDP;
-						write32(relayPacket.data, relayPacket.startOffset + 4, player->getId());
 						std::vector<uint8_t> aggregatePayload;
 						uint8_t aggregateSlotMask = 0;
 						const bool aggregateLivePayload = cmd.command >= 0x1 && cmd.command <= 0x3
 							&& room->buildAggregatedLivePayload((uint8_t)cmd.command, &data[0x10], payloadSize,
 								aggregatePayload, aggregateSlotMask);
+						const uint8_t *relayPayload = aggregateLivePayload ? aggregatePayload.data() : &data[0x10];
+						const size_t relayPayloadSize = aggregateLivePayload ? aggregatePayload.size() : payloadSize;
+						if (cmd.command >= 0x1 && cmd.command <= 0x3)
+						{
+							// Binary receive path 0x8C093FDC applies live cmd 01/02/03 as
+							// server-command traffic, not as peer REQ_GAME_DATA relays.
+							relayPacket.init(Packet::REQ_CHAT);
+						}
+						else
+						{
+							relayPacket.init(Packet::REQ_GAME_DATA);
+							relayPacket.flags |= Packet::FLAG_RELAY;
+							if (flags & Packet::FLAG_RUDP)
+								relayPacket.flags |= Packet::FLAG_RUDP;
+							write32(relayPacket.data, relayPacket.startOffset + 4, player->getId());
+						}
 						if (aggregateLivePayload)
 						{
 							static std::map<uint64_t, uint32_t> loggedLiveAggregates;
@@ -2110,12 +2121,8 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 									aggregatePayload.size());
 								aggregateLogCount++;
 							}
-							relayPacket.writeData(aggregatePayload.data(), (int)aggregatePayload.size());
 						}
-						else
-						{
-							relayPacket.writeData(&data[0x10], (int)payloadSize);
-						}
+						relayPacket.writeData(relayPayload, (int)relayPayloadSize);
 						if (activeCmd01Lane)
 						{
 							static std::map<uint32_t, uint32_t> loggedCmd01ActiveRecords;
