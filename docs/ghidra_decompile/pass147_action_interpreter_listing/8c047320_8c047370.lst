@@ -1,0 +1,43 @@
+; range: 8c047320 - 8c047370
+
+8c047320  18 88        cmp/eq #0x18,r0
+8c047322  01 8b        bf 0x8c047328
+8c047324  1b a3        bra 0x8c04795e
+8c047326  09 00        _nop
+8c047328  c3 60        mov r12,r0
+8c04732a  19 88        cmp/eq #0x19,r0
+8c04732c  13 8b        bf 0x8c047356
+8c04732e  5c e0        mov #0x5c,r0
+8c047330  fd 03        mov.w @(r0,r15),r3
+8c047332  04 e0        mov #0x4,r0
+8c047334  b6 f8        fmov.s @(r0,r11),fr8
+8c047336  3d 64        extu.w r3,r4
+8c047338  3d f8        ftrc fr8,FPUL
+8c04733a  5a 02        sts FPUL,r2
+8c04733c  40 32        cmp/eq r4,r2
+8c04733e  0a 8b        bf 0x8c047356
+8c047340  08 e0        mov #0x8,r0
+8c047342  b6 f8        fmov.s @(r0,r11),fr8
+8c047344  ed 64        extu.w r14,r4
+8c047346  3d f8        ftrc fr8,FPUL
+8c047348  5a 02        sts FPUL,r2
+8c04734a  40 32        cmp/eq r4,r2
+8c04734c  03 8b        bf 0x8c047356
+8c04734e  0c 7b        add #0xc,r11
+8c047350  ba 1f        mov.l r11,@(0x28,r15)
+8c047352  01 e5        mov #0x1,r5
+8c047354  b2 6c        mov.l @r11,r12
+8c047356  58 25        tst r5,r5
+8c047358  01 89        bt 0x8c04735e
+8c04735a  64 af        bra 0x8c047226
+8c04735c  09 00        _nop
+8c04735e  fc 51        mov.l @(0x30,r15),r1
+8c047360  fb 53        mov.l @(0x2c,r15),r3
+8c047362  ff 71        add #-0x1,r1
+8c047364  01 73        add #0x1,r3
+8c047366  18 21        tst r1,r1
+8c047368  3b 1f        mov.l r3,@(0x2c,r15)
+8c04736a  02 8d        bt/s 0x8c047372
+8c04736c  1c 1f        _mov.l r1,@(0x30,r15)
+8c04736e  09 af        bra 0x8c047184
+8c047370  09 00        _nop

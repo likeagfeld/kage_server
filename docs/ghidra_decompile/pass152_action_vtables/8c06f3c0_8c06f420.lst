@@ -1,0 +1,72 @@
+; range: 8c06f3c0 - 8c06f420
+
+8c06f3c0  09           ?? 09h
+8c06f3c1  00           ?? 00h
+8c06f3c2  f1           ?? F1h
+8c06f3c3  57           ?? 57h    W
+8c06f3c4  14           ?? 14h
+8c06f3c5  d2           ?? D2h
+8c06f3c6  0b           ?? 0Bh
+8c06f3c7  42           ?? 42h    B
+8c06f3c8  71           ?? 71h    q
+8c06f3c9  54           ?? 54h    T
+8c06f3ca  0a           ?? 0Ah
+8c06f3cb  90           ?? 90h
+8c06f3cc  08           ?? 08h
+8c06f3cd  e5           ?? E5h
+8c06f3ce  8e           ?? 8Eh
+8c06f3cf  06           ?? 06h
+8c06f3d0  62           ?? 62h    b
+8c06f3d1  62           ?? 62h    b
+8c06f3d2  5b           ?? 5Bh    [
+8c06f3d3  22           ?? 22h    "
+8c06f3d4  c8           ?? C8h
+8c06f3d5  ae           ?? AEh
+8c06f3d6  22           ?? 22h    "
+8c06f3d7  26           ?? 26h    &
+8c06f3d8  db           ?? DBh
+8c06f3d9  ae           ?? AEh
+8c06f3da  01           ?? 01h
+8c06f3db  e5           ?? E5h
+8c06f3dc  80           ?? 80h
+8c06f3dd  00           ?? 00h
+8c06f3de  00           ?? 00h
+8c06f3df  03           ?? 03h
+8c06f3e0  8c           ?? 8Ch
+8c06f3e1  01           ?? 01h
+8c06f3e2  6c           ?? 6Ch    l
+8c06f3e3  07           ?? 07h
+8c06f3e4  b0           ?? B0h
+8c06f3e5  0a           ?? 0Ah
+8c06f3e6  f4           ?? F4h
+8c06f3e7  15           ?? 15h
+8c06f3e8  08           ?? 08h
+8c06f3e9  03           ?? 03h
+8c06f3ea  70           ?? 70h    p
+8c06f3eb  07           ?? 07h
+8c06f3ec  68           ?? 68h    h
+8c06f3ed  07           ?? 07h
+8c06f3ee  90           ?? 90h
+8c06f3ef  02           ?? 02h
+8c06f3f0  78           ?? 78h    x
+8c06f3f1  07           ?? 07h
+8c06f3f2  00           ?? 00h
+8c06f3f3  00           ?? 00h
+8c06f3f4  5c ed 01 8c  addr 8c01ed5c
+8c06f3f8  f4 70 04 8c  addr 8c0470f4
+8c06f3fc  08 23 18 8c  addr 8c182308
+8c06f400  d8 5c 05 8c  addr 8c055cd8
+8c06f404  0e 5b 05 8c  addr 8c055b0e
+8c06f408  00           ?? 00h
+8c06f409  d0           ?? D0h
+8c06f40a  27           ?? 27h    '
+8c06f40b  8c           ?? 8Ch
+8c06f40c  a0 96 0b 8c  addr 8c0b96a0
+8c06f410  5e ed 04 8c  addr 8c04ed5e
+8c06f414  fc 0e 01 8c  addr 8c010efc
+8c06f418  08 46 0b 8c  addr 8c0b4608
+8c06f41c  9e           ?? 9Eh
+8c06f41d  90           ?? 90h
+8c06f41e  8e           ?? 8Eh
+8c06f41f  04           ?? 04h
+8c06f420  9d           ?? 9Dh

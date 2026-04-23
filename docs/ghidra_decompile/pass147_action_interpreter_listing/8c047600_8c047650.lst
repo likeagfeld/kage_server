@@ -1,0 +1,43 @@
+; range: 8c047600 - 8c047650
+
+8c047600  3c 3d        add r3,r13
+8c047602  fe 03        mov.l @(r0,r15),r3
+8c047604  6c e0        mov #0x6c,r0
+8c047606  33 67        mov r3,r7
+8c047608  08 43        shll2 r3
+8c04760a  08 43        shll2 r3
+8c04760c  fe 00        mov.l @(r0,r15),r0
+8c04760e  78 33        sub r7,r3
+8c047610  00 43        shll r3
+8c047612  3c 3d        add r3,r13
+8c047614  00 40        shll r0
+8c047616  dd 02        mov.w @(r0,r13),r2
+8c047618  03 64        mov r0,r4
+8c04761a  28 22        tst r2,r2
+8c04761c  01 89        bt 0x8c047622
+8c04761e  e8 a1        bra 0x8c0479f2
+8c047620  09 00        _nop
+8c047622  00 e2        mov #0x0,r2
+8c047624  28 22        tst r2,r2
+8c047626  01 8b        bf 0x8c04762c
+8c047628  95 ae        bra 0x8c047356
+8c04762a  09 00        _nop
+8c04762c  93 ae        bra 0x8c047356
+8c04762e  0c 7b        _add #0xc,r11
+8c047630  44 e0        mov #0x44,r0
+8c047632  65 91        mov.w 0x8c047700,r1
+8c047634  fe 07        mov.l @(r0,r15),r7
+8c047636  04 e0        mov #0x4,r0
+8c047638  b6 f8        fmov.s @(r0,r11),fr8
+8c04763a  64 e0        mov #0x64,r0
+8c04763c  1c 37        add r1,r7
+8c04763e  3d f8        ftrc fr8,FPUL
+8c047640  73 61        mov r7,r1
+8c047642  5a 03        sts FPUL,r3
+8c047644  36 0f        mov.l r3,@(r0,r15)
+8c047646  5e 90        mov.w 0x8c047706,r0
+8c047648  76 0f        mov.l r7,@(r0,r15)
+8c04764a  58 e0        mov #0x58,r0
+8c04764c  fe 04        mov.l @(r0,r15),r4
+8c04764e  64 e0        mov #0x64,r0
+8c047650  fe 03        mov.l @(r0,r15),r3

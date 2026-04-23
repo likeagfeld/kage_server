@@ -1,0 +1,4 @@
+target=8c0479d2
+symbol=FUN_8c0479d2
+ref[0] from=8c0473a6 type=UNCONDITIONAL_CALL opIndex=0 function=FUN_8c047940 entry=8c047940
+count=1

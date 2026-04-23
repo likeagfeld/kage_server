@@ -1,0 +1,5 @@
+target=8c0470f4
+symbol=LAB_8c0470f4
+ref[0] from=8c06f274 type=DATA opIndex=0 function=<none> entry=<none>
+ref[1] from=8c06f3f8 type=DATA opIndex=0 function=<none> entry=<none>
+count=2

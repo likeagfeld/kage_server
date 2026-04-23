@@ -1225,3 +1225,25 @@ Correction:
 - `0x8C0DD74E` / `0x8C0DD698` prove compact `cmd=02` object records bit-pack fields; the low nibble is not the large object subtype byte
 - `0x8C0906F4` writes true local bomb subtype `0x0e` into large object byte `+0x0a`, so copying that value into the network low nibble was the wrong translation
 - current source disables automatic synthetic object injection and preserves action-lane logging for the next evidence pass
+
+### 2026-04-22 action-script placed-bomb path
+
+Fresh Ghidra evidence now separates the placed-bomb helper from the compact object subtype lane:
+
+- `0x8C0906F4` is reached through the action/script engine, not directly from `cmd=02` object low-nibble values.
+- `0x8C0470F4` is an action-engine entry referenced from data tables at `0x8C06F274` and `0x8C06F3F8`.
+- `0x8C0473A6` branches into `0x8C0479D2` when the current script/action record reaches the opcode-1 terminal path.
+- `0x8C0479D2` loads per-player/per-slot state via offsets `0x0768`, `0x0278`, and `0x00AC`, then calls `0x8C0906F4`.
+
+Server translation status:\n\n- preserve validated peer movement on non-reliable `REQ_CHAT cmd=01/02/03`\n- keep synthetic `cmd=02` object injection disabled\n- do not reintroduce active `cmd=01` sender self-sync unless a new binary distinction explains the prior `22_08-30-56_BM_t/_out` falsification\n- next target is action-table ownership / local-vs-remote `0x40` flag handling, not another echo variant
+
+### 2026-04-22 bomb action table follow-up
+
+Additional action-table decompilation shows the local bomb subtype is meaningful inside the client object/action system, but still not as a direct network low nibble:
+
+- `0x8C065588` iterates subtype/index values and special-cases `0x0e`.
+- the `0x0e` branch calls `0x8C018554(..., 5)`.
+- `0x8C018554` clears state under object offset `+0x0118`, calls `0x8C06471E` through `+0x0110` / `+0x0768`, and stores a handle at `+0x016c`.
+- these fields overlap the action-engine offsets that gate the `0x8C0479D2 -> 0x8C0906F4` local bomb-helper path.
+
+Conclusion: keep Kage unchanged for hardware. The next work should map the producer/consumer chain for `+0x0163`, `+0x016c`, and the `0x0e` action-table branch before sending any new bomb experiment.

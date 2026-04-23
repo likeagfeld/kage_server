@@ -2749,3 +2749,57 @@ Current implementation correction:
 Next evidence target:
 
 - recover the missing authority/commit path that turns observed `cmd=01` action/check-pad records into local bomb placement, or recover a compact object record from a true placed bomb rather than deriving it from the large object subtype byte.
+
+## 2026-04-22 Action-Lane Bomb Placement Path
+
+Fresh Ghidra passes:
+
+- `D:\kageserver\docs\ghidra_decompile\pass143_bomb_place_refs`
+- `D:\kageserver\docs\ghidra_decompile\pass144_bomb_place_caller`
+- `D:\kageserver\docs\ghidra_decompile\pass145_bomb_action_script_listing`
+- `D:\kageserver\docs\ghidra_decompile\pass146_action_interpreter_refs`
+- `D:\kageserver\docs\ghidra_decompile\pass147_action_interpreter_listing`
+- `D:\kageserver\docs\ghidra_decompile\pass150_action_function_start_listing`
+- `D:\kageserver\docs\ghidra_decompile\pass151_action_engine_refs`
+- `D:\kageserver\docs\ghidra_decompile\pass152_action_vtables`
+
+Binary evidence:
+
+- `0x8C0906F4` remains the local placed-bomb helper; it is not directly reached by the compact `cmd=02` network object low nibble.
+- The helper is reached through the action/script interpreter:
+  - `0x8C0470F4` is an action engine entry referenced from data tables at `0x8C06F274` and `0x8C06F3F8`.
+  - `0x8C0473A6` branches to `0x8C0479D2` when the current script record opcode is `1` and the local object flag at `+0x163`/related player state is not `0x40`.
+  - `0x8C0479D2` loads a per-player/per-slot pointer through offsets `0x0768`, `0x0278`, and `0x00AC`, then calls `0x8C0906F4`.
+- Earlier project evidence already falsified `cmd=01` active check-pad self-sync in `22_08-30-56_BM_t/_out`; do not reintroduce sender echo without a new binary distinction that explains why that prior run failed.
+
+Current safe translation:\n\n- Keep synthetic object injection disabled. Do not send `f002`, `f00e`, state-2-only, or staged `0xF -> 0x2` object probes automatically.\n- Keep live `cmd=01/02/03` peer delivery on non-reliable `REQ_CHAT`, because that is the proven movement path.\n- Do not deploy `cmd=01` sender self-dispatch: the prior `22_08-30-56_BM_t/_out` self-sync test is already recorded as falsified.\n- The next server change must come from a new binary/data distinction, likely around the action table ownership refs at `0x8C06F274` / `0x8C06F3F8` or the remote `0x40` flag branch, not from widening echo behavior.
+
+Validation target:\n\n- No hardware test should be run for another sender-echo variant yet.\n- Continue reversing upstream from `0x8C0470F4` and the data-table refs at `0x8C06F274` / `0x8C06F3F8` to identify the exact local/remote action ownership gate that commits a placed bomb.\n- Only create a new server experiment after the binary explains why the prior active `cmd=01` self-sync did not work.
+
+## 2026-04-22 Bomb Action Table Follow-Up
+
+Additional Ghidra passes:
+
+- `D:\kageserver\docs\ghidra_decompile\pass154_action_table_functions`
+- `D:\kageserver\docs\ghidra_decompile\pass155_action_table_constants`
+- `D:\kageserver\docs\ghidra_decompile\pass156_object_state_helpers`
+- `D:\kageserver\docs\ghidra_decompile\pass157_state_helper_listing`
+
+New binary facts:
+
+- the action table containing `0x8C0470F4` also points at object/action helpers including `0x8C065588`
+- `0x8C065588` iterates subtype/index values and has a special branch for `iVar3 == 0x0e`
+- that `0x0e` branch calls `0x8C018554(..., 5)`, while `0x0d` and other branches call nearby helpers with different state values
+- `0x8C018554` clears/initializes state at object offset `+0x0118`, then calls `0x8C06471E` using a pointer reached through `+0x0110` and `+0x0768`; it stores the returned handle at `+0x016c`
+- these offsets overlap the action-engine state offsets already seen around `0x0768`, `0x0278`, and the local/remote `0x40` branch
+
+Data-driven interpretation:
+
+- subtype/index `0x0e` is still strongly tied to the placed-bomb local object/action path
+- the missing server translation is not a compact object low nibble and not a sender echo retest
+- the next useful reverse-engineering target is the producer/consumer chain for the `0x0e` action-table branch and the `+0x0163` / `+0x016c` ownership flags, especially how remote-controlled objects avoid `0x8C0906F4` and what server-visible packet later carries the committed object
+
+Safe runtime state:
+
+- no Kage gameplay code change is deployed from this pass
+- the server has been rebuilt and restarted at `127.0.0.1:8765` with synthetic object injection disabled and without `cmd=01` sender self-dispatch

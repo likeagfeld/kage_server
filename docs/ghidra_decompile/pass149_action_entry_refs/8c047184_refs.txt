@@ -1,0 +1,4 @@
+target=8c047184
+symbol=LAB_8c047184
+ref[0] from=8c04736e type=UNCONDITIONAL_JUMP opIndex=0 function=FUN_8c047940 entry=8c047940
+count=1

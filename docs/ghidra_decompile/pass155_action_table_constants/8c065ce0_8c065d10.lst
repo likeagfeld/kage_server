@@ -1,0 +1,20 @@
+; range: 8c065ce0 - 8c065d10
+
+8c065ce0  09 00        _nop
+8c065ce2  34 01        undefined2 0134h
+8c065ce4  6c 07        undefined2 076Ch
+8c065ce6  40 0a        undefined2 0A40h
+8c065ce8  04 d0 27 8c  undefined4 8C27D004h
+8c065cec  08 23 18 8c  addr 8c182308
+8c065cf0  00 d0 27 8c  undefined4 8C27D000h
+8c065cf4  0e 5b 05 8c  addr 8c055b0e
+8c065cf8  d8 5c 05 8c  addr 8c055cd8
+8c065cfc  54 85 01 8c  addr 8c018554
+8c065d00  34 10 01 8c  addr 8c011034
+8c065d04  86 2f        mov.l r8,@-r15
+8c065d06  96 2f        mov.l r9,@-r15
+8c065d08  a6 2f        mov.l r10,@-r15
+8c065d0a  b6 2f        mov.l r11,@-r15
+8c065d0c  c6 2f        mov.l r12,@-r15
+8c065d0e  d6 2f        mov.l r13,@-r15
+8c065d10  e6 2f        mov.l r14,@-r15

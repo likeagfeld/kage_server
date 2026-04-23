@@ -1,0 +1,61 @@
+; range: 8c065a20 - 8c065aa0
+
+8c065a20  09 96        mov.w 0x8c065a36,r6
+8c065a22  15 a0        bra 0x8c065a50
+8c065a24  e3 62        _mov r14,r2
+8c065a26  6c 07        undefined2 076Ch
+8c065a28  38 01        undefined2 0138h
+8c065a2a  28 0a        undefined2 0A28h
+8c065a2c  00 01        undefined2 0100h
+8c065a2e  20 01        undefined2 0120h
+8c065a30  00 40        undefined2 4000h
+8c065a32  2c 0a        undefined2 0A2Ch
+8c065a34  08 03        undefined2 0308h
+8c065a36  f8 03        undefined2 03F8h
+8c065a38  08 23 18 8c  addr 8c182308
+8c065a3c  d8 5c 05 8c  addr 8c055cd8
+8c065a40  0e 5b 05 8c  addr 8c055b0e
+8c065a44  04 d0 27 8c  undefined4 8C27D004h
+8c065a48  00 d0 27 8c  undefined4 8C27D000h
+8c065a4c  00 80 00 00  undefined4 00008000h
+8c065a50  6c 32        add r6,r2
+8c065a52  e3 66        mov r14,r6
+8c065a54  28 1f        mov.l r2,@(0x20,r15)
+8c065a56  90 92        mov.w 0x8c065b7a,r2
+8c065a58  2c 36        add r2,r6
+8c065a5a  e3 62        mov r14,r2
+8c065a5c  69 1f        mov.l r6,@(0x24,r15)
+8c065a5e  8d 96        mov.w 0x8c065b7c,r6
+8c065a60  6c 32        add r6,r2
+8c065a62  2a 1f        mov.l r2,@(0x28,r15)
+8c065a64  0f e2        mov #0xf,r2
+8c065a66  2b 1f        mov.l r2,@(0x2c,r15)
+8c065a68  90 62        mov.b @r9,r2
+8c065a6a  2c 62        extu.b r2,r2
+8c065a6c  28 22        tst r2,r2
+8c065a6e  48 89        bt 0x8c065b02
+8c065a70  00 ee        mov #0x0,r14
+8c065a72  08 eb        mov #0x8,r11
+8c065a74  90 62        mov.b @r9,r2
+8c065a76  2c 66        extu.b r2,r6
+8c065a78  01 e2        mov #0x1,r2
+8c065a7a  ec 42        shad r14,r2
+8c065a7c  28 26        tst r2,r6
+8c065a7e  3d 89        bt 0x8c065afc
+8c065a80  f4 52        mov.l @(0x10,r15),r2
+8c065a82  a3 66        mov r10,r6
+8c065a84  7b 90        mov.w 0x8c065b7e,r0
+8c065a86  08 46        shll2 r6
+8c065a88  2e 08        mov.l @(r0,r2),r8
+8c065a8a  54 e2        mov #0x54,r2
+8c065a8c  e7 02        mul.l r14,r2
+8c065a8e  83 64        mov r8,r4
+8c065a90  0c 74        add #0xc,r4
+8c065a92  43 65        mov r4,r5
+8c065a94  63 60        mov r6,r0
+8c065a96  1a 02        sts MACL,r2
+8c065a98  2c 35        add r2,r5
+8c065a9a  5e 00        mov.l @(r0,r5),r0
+8c065a9c  ff 88        cmp/eq #-0x1,r0
+8c065a9e  1e 89        bt 0x8c065ade
+8c065aa0  54 e5        mov #0x54,r5

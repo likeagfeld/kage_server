@@ -1,0 +1,27 @@
+; range: 8c0473e0 - 8c047410
+
+8c0473e0  2d 05        mov.w @(r0,r2),r5
+8c0473e2  3c 3d        add r3,r13
+8c0473e4  dd 04        mov.w @(r0,r13),r4
+8c0473e6  1c 37        add r1,r7
+8c0473e8  00 45        shll r5
+8c0473ea  0e 7c        add #0xe,r12
+8c0473ec  09 a0        bra 0x8c047402
+8c0473ee  01 74        _add #0x1,r4
+8c0473f0  9c 00        undefined2 009Ch
+8c0473f2  6c 01        undefined2 016Ch
+8c0473f4  63 01        undefined2 0163h
+8c0473f6  68 07        undefined2 0768h
+8c0473f8  78 02        undefined2 0278h
+8c0473fa  ac 00        undefined2 00ACh
+8c0473fc  08 03        undefined2 0308h
+8c0473fe  e0 02        undefined2 02E0h
+8c047400  d0 02        undefined2 02D0h
+8c047402  0c 37        add r0,r7
+8c047404  5c 3e        add r5,r14
+8c047406  41 27        mov.w r4,@r7
+8c047408  c1 2e        mov.w r12,@r14
+8c04740a  f7 51        mov.l @(0x1c,r15),r1
+8c04740c  f6 53        mov.l @(0x18,r15),r3
+8c04740e  ff 71        add #-0x1,r1
+8c047410  01 73        add #0x1,r3

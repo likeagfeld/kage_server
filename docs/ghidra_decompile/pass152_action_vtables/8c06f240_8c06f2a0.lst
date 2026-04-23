@@ -1,0 +1,54 @@
+; range: 8c06f240 - 8c06f2a0
+
+8c06f240  b0           ?? B0h
+8c06f241  a4           ?? A4h
+8c06f242  28           ?? 28h    (
+8c06f243  8c           ?? 8Ch
+8c06f244  68 cc 04 8c  addr 8c04cc68
+8c06f248  94 ce 04 8c  addr 8c04ce94
+8c06f24c  54 48 06 8c  addr 8c064854
+8c06f250  62 1b 06 8c  addr 8c061b62
+8c06f254  ac 1b 06 8c  addr 8c061bac
+8c06f258  8c d3 07 8c  addr 8c07d38c
+8c06f25c  04 4f 06 8c  addr 8c064f04
+8c06f260  88 55 06 8c  addr 8c065588
+8c06f264  d0 95 06 8c  addr 8c0695d0
+8c06f268  f2 9b 0b 8c  addr 8c0b9bf2
+8c06f26c  38 9c 0b 8c  addr 8c0b9c38
+8c06f270  5c ed 01 8c  addr 8c01ed5c
+8c06f274  f4 70 04 8c  addr 8c0470f4
+8c06f278  1c e6 09 8c  addr 8c09e61c
+8c06f27c  08 23 18 8c  addr 8c182308
+8c06f280  ff           ?? FFh
+8c06f281  ff           ?? FFh
+8c06f282  7f           ?? 7Fh    
+8c06f283  00           ?? 00h
+8c06f284  04           ?? 04h
+8c06f285  d0           ?? D0h
+8c06f286  27           ?? 27h    '
+8c06f287  8c           ?? 8Ch
+8c06f288  0e           ?? 0Eh
+8c06f289  5b           ?? 5Bh    [
+8c06f28a  05           ?? 05h
+8c06f28b  8c           ?? 8Ch
+8c06f28c  d8           ?? D8h
+8c06f28d  5c           ?? 5Ch    \
+8c06f28e  05           ?? 05h
+8c06f28f  8c           ?? 8Ch
+8c06f290  0b           ?? 0Bh
+8c06f291  42           ?? 42h    B
+8c06f292  09           ?? 09h
+8c06f293  00           ?? 00h
+8c06f294  57           ?? 57h    W
+8c06f295  d2           ?? D2h
+8c06f296  0b           ?? 0Bh
+8c06f297  42           ?? 42h    B
+8c06f298  c2           ?? C2h
+8c06f299  64           ?? 64h    d
+8c06f29a  57           ?? 57h    W
+8c06f29b  d2           ?? D2h
+8c06f29c  00           ?? 00h
+8c06f29d  e5           ?? E5h
+8c06f29e  0b           ?? 0Bh
+8c06f29f  42           ?? 42h    B
+8c06f2a0  03           ?? 03h
