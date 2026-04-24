@@ -1819,3 +1819,22 @@ Implication:
     compact source-record family consumed by `0x8C073F36 -> 0x8C0844D4 ->
     0x8C075A78`
   - this still does not justify an honest `95%+` gameplay hardware test yet
+
+### 2026-04-24 queued value compare boundary tightened
+
+- `0x8C073F36` queued compare `confirmed`
+  - raw listing now proves it reads queued field `+0x0c` back through
+    `0x8C079ACE`
+  - it compares that queued value against a board/position-derived threshold
+    before entering the deeper promotion/object branch
+- `0x8C0793E0 -> 0x8C079324` producer family `confirmed`
+  - raw listing now proves this family:
+    - forces selector nibble `0x4`
+    - writes packed fields `0x0605`, `0x0C04`, and `0x0804`
+    - stores the resulting compact value into queued `+0x0c` through
+      `0x8C079AC0`
+- consequence:
+  - the remaining bomb target is now specifically a sibling producer or
+    transform in the `0x0793xx` family that can write the queued `+0x0c` value
+    required for `0x8C073F36` to take its promotion branch
+  - this still does not justify an honest `95%+` gameplay hardware test yet

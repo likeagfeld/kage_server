@@ -3696,3 +3696,39 @@ Data-driven consequence:
   test with honest `95%+` confidence
 - the remaining trustworthy target is the upstream promotion step that feeds the
   compact source-record family consumed by `0x8C073F36`
+
+## 2026-04-24 queued value compare boundary tightened
+
+Fresh raw-listing work narrowed the upstream promotion step further.
+
+Artifacts:
+
+- `D:\kageserver\docs\ghidra_decompile\pass269_073f36_mid`
+- `D:\kageserver\docs\ghidra_decompile\pass271_0792xx_range`
+
+New proven facts:
+
+- `0x8C073F36` does not jump straight from "new record differs" into object
+  creation:
+  - it first reads the queued `+0x0c` value back out through `0x8C079ACE`
+  - it derives a board/position-side threshold from the incoming compact record
+  - it only enters the deeper promotion branch when that queued value and the
+    board-side threshold satisfy the recovered compare chain
+- `0x8C0793E0 -> 0x8C079324` is now raw-listing-confirmed as one concrete
+  compact-source-record producer:
+  - it forces compact byte-`3` high nibble to selector `0x4`
+  - it writes packed fields through:
+    - `0x0605`
+    - `0x0C04`
+    - `0x0804`
+  - then stores the resulting compact value into queued field `+0x0c` through
+    `0x8C079AC0`
+
+Data-driven consequence:
+
+- the missing bomb step is now narrower than "find any producer"
+- the next trustworthy target is specifically a sibling producer or transform in
+  the `0x0793xx` family that writes the queued `+0x0c` value needed for
+  `0x8C073F36` to take its promotion branch
+- this still does not justify a gameplay patch or hardware test with honest
+  `95%+` confidence yet
