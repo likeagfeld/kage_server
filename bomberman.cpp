@@ -983,8 +983,10 @@ void BMRoom::noteActionLane(Player *player, bool active, size_t recordIndex, con
 	{
 		state.active = false;
 		state.pendingBombPromotion = false;
+		state.hasLastPromotedRecord = false;
 		state.recordIndex = 0;
 		state.record = {};
+		state.lastPromotedRecord = {};
 		return;
 	}
 
@@ -1019,8 +1021,12 @@ bool BMRoom::consumePendingBombPromotion(Player *player, size_t recordIndex, con
 	memcpy(current.data(), record, current.size());
 	if (state.record != current)
 		return false;
+	if (state.hasLastPromotedRecord && state.lastPromotedRecord == current)
+		return false;
 
 	state.pendingBombPromotion = false;
+	state.hasLastPromotedRecord = true;
+	state.lastPromotedRecord = current;
 	return true;
 }
 

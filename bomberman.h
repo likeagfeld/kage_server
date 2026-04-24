@@ -162,8 +162,10 @@ private:
 	{
 		bool active = false;
 		bool pendingBombPromotion = false;
+		bool hasLastPromotedRecord = false;
 		size_t recordIndex = 0;
 		std::array<uint8_t, 6> record {};
+		std::array<uint8_t, 6> lastPromotedRecord {};
 	};
 
 	struct SyntheticBombObject
