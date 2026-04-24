@@ -92,6 +92,7 @@ public:
 	uint32_t getJoinedPlayerCount() const;
 	const char *getSyncStateName() const;
 	void noteLiveGameData(Player *player, uint8_t command, const uint8_t *payload, size_t payloadSize);
+	void handleBattleEndClientSignal(Player *player, uint16_t word, uint32_t tail);
 	void noteActionLane(Player *player, bool active, size_t recordIndex, const uint8_t *record);
 	bool consumePendingBombPromotion(Player *player, size_t recordIndex, const uint8_t *record);
 	bool buildAggregatedLivePayload(uint8_t command, const uint8_t *payload, size_t payloadSize,

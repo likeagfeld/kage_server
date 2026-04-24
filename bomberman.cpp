@@ -1450,8 +1450,7 @@ void BMRoom::rudpAcked(Player *player)
 	}
 
 	if (syncState == SyncState::InGame && battleEndSent
-		&& state.battleEndPhase != BattleEndPhase::None
-		&& state.battleEndPhase != BattleEndPhase::Done)
+		&& state.battleEndPhase == BattleEndPhase::SettledDeadBits)
 	{
 		advanceBattleEndSequence(player, state, "acked");
 		return;
@@ -1825,9 +1824,9 @@ void BMRoom::advanceBattleEndSequence(Player *player, SyncPlayerState& state, co
 		break;
 
 	case BattleEndPhase::CompletedDeadBits:
-		INFO_LOG(Game::Bomberman, "%s: battle end ack (%s) from %s [%x] cmd=19 -> cmd=15",
+		INFO_LOG(Game::Bomberman, "%s: battle end completion (%s) from %s [%x] cmd=19 -> cmd=15",
 			name.c_str(), reason != nullptr ? reason : "acked", player->getName().c_str(), player->getId());
-		state.battleEndPhase = BattleEndPhase::Done;
+		state.battleEndPhase = BattleEndPhase::FinalState;
 		sendBattleStateCommandTo(player, 0x15, 0, "final_state");
 		break;
 
@@ -1840,6 +1839,21 @@ void BMRoom::advanceBattleEndSequence(Player *player, SyncPlayerState& state, co
 	default:
 		break;
 	}
+}
+
+void BMRoom::handleBattleEndClientSignal(Player *player, uint16_t word, uint32_t tail)
+{
+	if (player == nullptr || syncState != SyncState::InGame || !battleEndSent)
+		return;
+
+	refreshSyncPlayers();
+	SyncPlayerState& state = syncPlayers[player->getId()];
+	if (state.battleEndPhase != BattleEndPhase::CompletedDeadBits)
+		return;
+
+	INFO_LOG(Game::Bomberman, "%s: battle end client progression from %s [%x] word=%04x tail=%08x",
+		name.c_str(), player->getName().c_str(), player->getId(), word, tail);
+	advanceBattleEndSequence(player, state, "client_signal");
 }
 
 void BMRoom::sendBattleEndSequenceTo(Player *player, const char *reason)
@@ -2241,6 +2255,8 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 					player->getName().c_str(), word, tail);
 				replyPacket.init(Packet::REQ_NOP);
 				player->ackPacket(replyPacket, data);
+				if (room != nullptr)
+					room->handleBattleEndClientSignal(player, word, tail);
 				break;
 			}
 
