@@ -196,6 +196,19 @@ bool getBombermanCmd01RecordAt(const uint8_t *payload, size_t payloadSize, size_
 	return true;
 }
 
+std::array<uint8_t, 6> makeBombermanCmd01PromotionKey(const uint8_t *record)
+{
+	std::array<uint8_t, 6> key {};
+	if (record == nullptr)
+		return key;
+	memcpy(key.data(), record, key.size());
+	// The same logical in-game action can walk selector variants 4 -> 1 -> 0
+	// while keeping the rest of the compact action record stable. For promotion
+	// gating, treat those selector-only changes as one action.
+	key[2] = (uint8_t)(key[2] & 0x0f);
+	return key;
+}
+
 uint8_t getBombermanLiveSlotMask(const uint8_t *payload, size_t payloadSize)
 {
 	constexpr size_t livePlayerRecordsOffset = 4;
@@ -986,8 +999,11 @@ void BMRoom::noteActionLane(Player *player, bool active, size_t recordIndex, con
 
 	std::array<uint8_t, 6> current {};
 	memcpy(current.data(), record, current.size());
+	const std::array<uint8_t, 6> promotionKey = makeBombermanCmd01PromotionKey(record);
 	if (state.active && state.record == current)
 		return;
+	if (state.hasLastPromotedRecord && state.lastPromotedRecord != promotionKey)
+		state.hasLastPromotedRecord = false;
 
 	state.active = true;
 	const uint8_t currentSelector = (uint8_t)((current[2] >> 4) & 0x0f);
@@ -1013,14 +1029,15 @@ bool BMRoom::consumePendingBombPromotion(Player *player, size_t recordIndex, con
 
 	std::array<uint8_t, 6> current {};
 	memcpy(current.data(), record, current.size());
+	const std::array<uint8_t, 6> promotionKey = makeBombermanCmd01PromotionKey(record);
 	if (state.record != current)
 		return false;
-	if (state.hasLastPromotedRecord && state.lastPromotedRecord == current)
+	if (state.hasLastPromotedRecord && state.lastPromotedRecord == promotionKey)
 		return false;
 
 	state.pendingBombPromotion = false;
 	state.hasLastPromotedRecord = true;
-	state.lastPromotedRecord = current;
+	state.lastPromotedRecord = promotionKey;
 	return true;
 }
 
