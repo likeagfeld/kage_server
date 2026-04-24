@@ -3358,3 +3358,30 @@ Data-driven interpretation:
 - no honest `95%+` gameplay test recommendation is justified yet; the next
   trustworthy target is whichever caller pair writes and later consumes the
   `+0x08` / `+0x0c` queue entry fields around `0x8C073F36`
+
+Fresh follow-up on 2026-04-24 removes one more false lead from that search:
+
+- `0x8C0793E0 -> 0x8C079324 -> 0x8C079AC0` is a real compact action-record
+  writer chain, but it is not a direct placed-bomb producer.
+- `0x8C079324`:
+  - forces the staged six-byte record's byte `+3` high nibble to `0x4`
+  - copies caller-selected fields into the staged record
+  - commits the encoded action value through `0x8C079AC0`
+- string resolution around the shared helper `0x8C079458` proves the adjacent
+  `0x8C076338` / `0x8C076364` / `0x8C07645A` / `0x8C076580` family is the
+  movement/check-pad lane:
+  - `0x8C18549C`: `--- Missed X-Pos %d PlayerID %d`
+  - `0x8C1854D8`: `--- Missed Y-Pos %d PlayerID %d`
+  - `0x8C1854BC`: `---SetCheckPads PlayerID %d`
+  - `0x8C18545C`: `---mPosition %d:%d %d %d`
+- that same evidence shows `0x8C079458` is being used as a debug/log formatter
+  in this family, not as a network publish primitive.
+- the bomb/panel timeout strings instead belong to `0x8C07F510`, including:
+  - `Panel %d Chain FLAG_APPEAR Timeout.`
+  - `Panel %d Chain FLAG_JUDGE Timeout.`
+  - `Panel %d was Breaked.`
+- this split matters because it removes the already-recovered check-pad builders
+  from the remaining bomb hypothesis space.
+- the next trustworthy target is now the sibling compact-action family that
+  feeds the queued/networked bomb branch into `0x8C073F36`'s required
+  `type4=5/6` promotion, not the `0x8C0763xx` movement/check-pad builders.

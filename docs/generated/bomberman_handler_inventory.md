@@ -1584,3 +1584,30 @@ Conclusion:
   nibble inside the already observed `+0x0c` action word
 - the better next target is the companion queue metadata path at `+0x08` and
   the caller/consumer chain around `0x8C073F36`, not another blind relay tweak
+
+Fresh follow-up on 2026-04-24 further narrows that target:
+
+- `0x8C0793E0 -> 0x8C079324 -> 0x8C079AC0` is a real compact action-record
+  writer chain, but it does not by itself explain bomb commit.
+- `0x8C079324` forces byte `+3` high nibble `0x4`, copies caller-selected
+  fields into the staged six-byte record, and commits the encoded value through
+  `0x8C079AC0`.
+- string resolution around the shared helper `0x8C079458` proves the nearby
+  `0x8C076338` / `0x8C076364` / `0x8C07645A` / `0x8C076580` family is the
+  movement/check-pad lane, not the bomb lane:
+  - `--- Missed X-Pos %d PlayerID %d`
+  - `--- Missed Y-Pos %d PlayerID %d`
+  - `---SetCheckPads PlayerID %d`
+  - `---mPosition %d:%d %d %d`
+- this also proves `0x8C079458` is serving as a debug/log formatter in that
+  family, not a network publish primitive.
+- the panel/bomb timeout strings instead belong to `0x8C07F510`, including:
+  - `Panel %d Chain FLAG_APPEAR Timeout.`
+  - `Panel %d Chain FLAG_JUDGE Timeout.`
+  - `Panel %d was Breaked.`
+- that split removes the already-recovered check-pad builders from the
+  remaining bomb hypothesis space.
+- the next trustworthy reverse-engineering target is now the sibling
+  compact-action family that feeds the queued/networked bomb branch into
+  `0x8C073F36`'s required `type4=5/6` promotion, not the `0x8C0763xx`
+  movement/check-pad builders.

@@ -1,0 +1,59 @@
+; range: 8c075a40 - 8c075a90
+
+8c075a40  53           ?? 53h    S
+8c075a41  84           ?? 84h
+8c075a42  e9           ?? E9h
+8c075a43  20           ?? 20h     
+8c075a44  53           ?? 53h    S
+8c075a45  80           ?? 80h
+8c075a46  b8           ?? B8h
+8c075a47  ae           ?? AEh
+8c075a48  09           ?? 09h
+8c075a49  00           ?? 00h
+8c075a4a  0a           ?? 0Ah
+8c075a4b  d3           ?? D3h
+8c075a4c  32           ?? 32h    2
+8c075a4d  64           ?? 64h    d
+8c075a4e  d1           ?? D1h
+8c075a4f  af           ?? AFh
+8c075a50  4c           ?? 4Ch    L
+8c075a51  1f           ?? 1Fh
+8c075a52  b4           ?? B4h
+8c075a53  08           ?? 08h
+8c075a54  28           ?? 28h    (
+8c075a55  01           ?? 01h
+8c075a56  00           ?? 00h
+8c075a57  00           ?? 00h
+8c075a58  d4 44 08 8c  addr 8c0844d4
+8c075a5c  dc 9a 07 8c  addr 8c079adc
+8c075a60  c0 9a 07 8c  addr 8c079ac0
+8c075a64  08 23 18 8c  addr 8c182308
+8c075a68  00           ?? 00h
+8c075a69  d0           ?? D0h
+8c075a6a  27           ?? 27h    '
+8c075a6b  8c           ?? 8Ch
+8c075a6c  0e           ?? 0Eh
+8c075a6d  5b           ?? 5Bh    [
+8c075a6e  05           ?? 05h
+8c075a6f  8c           ?? 8Ch
+8c075a70  d8           ?? D8h
+8c075a71  5c           ?? 5Ch    \
+8c075a72  05           ?? 05h
+8c075a73  8c           ?? 8Ch
+8c075a74  04           ?? 04h
+8c075a75  d0           ?? D0h
+8c075a76  27           ?? 27h    '
+8c075a77  8c           ?? 8Ch
+8c075a78  86 2f        mov.l r8,@-r15
+8c075a7a  96 2f        mov.l r9,@-r15
+8c075a7c  a6 2f        mov.l r10,@-r15
+8c075a7e  b6 2f        mov.l r11,@-r15
+8c075a80  c6 2f        mov.l r12,@-r15
+8c075a82  d6 2f        mov.l r13,@-r15
+8c075a84  e6 2f        mov.l r14,@-r15
+8c075a86  eb ff        fmov.s fr14,@-r15
+8c075a88  22 4f        sts.l PR,@-r15
+8c075a8a  c0 7f        add #-0x40,r15
+8c075a8c  9e 90        mov.w 0x8c075bcc,r0
+8c075a8e  42 1f        mov.l r4,@(0x8,r15)
+8c075a90  4e 02        mov.l @(r0,r4),r2
