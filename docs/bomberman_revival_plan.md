@@ -3478,3 +3478,65 @@ Data-driven consequence:
   `0x8C075A78/0x8C073F36/0x8C09AC08`, specifically any remaining caller or
   serializer that can explain how `+0x08` reaches the later placed-bomb
   promotion path.
+
+## 2026-04-24 live battle serializer and true local bomb seed tightened
+
+Fresh caller recovery and raw listing work changed the compact-object picture in
+an important way: the real local bomb seed is no longer best described by the
+old state-4 serializer guess.
+
+Artifacts:
+
+- `D:\kageserver\docs\ghidra_decompile\pass248_serializer_refs`
+- `D:\kageserver\docs\ghidra_decompile\pass249_077fce_func`
+- `D:\kageserver\docs\ghidra_decompile\pass250_07826a_func`
+- `D:\kageserver\docs\ghidra_decompile\pass251_077fce_0785xx_listing`
+- `D:\kageserver\docs\ghidra_decompile\pass252_bomb_lifecycle_refs`
+- `D:\kageserver\docs\ghidra_decompile\pass253_action_entry_refs`
+
+New proven facts:
+
+- raw reference recovery now gives concrete live battle callers for both sides
+  of the compact object lane:
+  - `0x8C077FCE -> 0x8C0730A8`
+  - `0x8C078204 -> 0x8C0743EC`
+  - `0x8C0743EC -> 0x8C075A78`
+- the raw SH-4 listing around `0x8C077FCE` proves `0x8C0730A8` runs on the live
+  battle path before the dead-bit/update-history branch, not only on an
+  endgame-only path.
+- `0x8C07F510`, which owns the `Panel %d Chain FLAG_APPEAR Timeout.`,
+  `Panel %d Chain FLAG_JUDGE Timeout.`, and `Panel %d was Breaked.` strings, has
+  exactly one recovered caller:
+  - `0x8C07D38C`
+- `0x8C07D38C` already sits in the front-half helper chain of `0x8C0730A8`, so
+  the compact serializer and the local bomb/panel lifecycle are directly linked
+  inside the same local object pipeline.
+- the true local bomb helper `0x8C0906F4` now tightens further:
+  - it still has only one recovered direct caller: `0x8C0479D2`
+  - `0x8C0479D2` itself still has only one recovered caller: `0x8C0470F4`
+  - `0x8C047940` also only resolves back to that same action root
+- the key correction is inside `0x8C0906F4`:
+  - it allocates a free `0x74`-byte object/panel slot
+  - writes large subtype `+0x0A = 0x0E`
+  - then writes object state `+0x08 = 0x0A`
+- that means the old "state 4 is the true placed-bomb seed" hypothesis was too
+  narrow:
+  - state `4` in `0x8C0730A8` is a real compact serializer branch with high-byte
+    tag `0x40`
+  - but the true local bomb helper seeds a state-`0x0A` object, which then
+    falls into the generic `0x8C0730A8` serializer path for states other than
+    `4/6/7/8/0x0b/0x0c/0x0d`
+
+Data-driven consequence:
+
+- the remaining multiplayer bomb gap is now better described as:
+  - networked A-press reaches the queued selector-`0x0E` action path under
+    `0x8C0470F4`
+  - but it still does not get promoted into the same
+    `0x8C0479D2 -> 0x8C0906F4 -> state 0x0A -> 0x8C0730A8 -> 0x8C075A78`
+    lifecycle used by the true local placed-bomb path
+- this raises confidence in the overall model, but it still does not justify an
+  honest `95%+` gameplay test recommendation yet
+- the next trustworthy reverse-engineering target is the promotion step from
+  the queued selector-`0x0E` network path into the true local bomb seed, not
+  another compact object tag guess or live relay tweak

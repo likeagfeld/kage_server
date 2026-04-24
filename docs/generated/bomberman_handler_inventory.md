@@ -1677,3 +1677,42 @@ Implication:
   `0x8C075A78/0x8C073F36/0x8C09AC08`, specifically any remaining caller or
   serializer that can explain how `+0x08` reaches the later placed-bomb
   promotion path
+
+### 2026-04-24 live serializer path and local bomb seed corrected
+
+- `0x8C077FCE` caller recovery `confirmed`
+  - now has a concrete recovered call to `0x8C0730A8`
+  - raw listing proves that call happens on the live battle path before the
+    dead-bit/update-history branch
+- `0x8C078204` caller recovery `confirmed`
+  - concrete recovered caller for `0x8C0743EC`
+- `0x8C0743EC` caller recovery `confirmed`
+  - concrete recovered caller for `0x8C075A78`
+- `0x8C07F510` caller boundary `confirmed`
+  - the panel/bomb timeout owner now has exactly one recovered caller:
+    `0x8C07D38C`
+- `0x8C07D38C` serializer linkage `confirmed`
+  - already sits in the front-half helper chain of `0x8C0730A8`
+  - directly links the local compact serializer to the bomb/panel lifecycle in
+    the same object pipeline
+
+Most important correction:
+
+- `0x8C0906F4` `confirmed`
+  - still has only one recovered direct caller: `0x8C0479D2`
+  - `0x8C0479D2` still resolves only back to `0x8C0470F4`
+  - allocates a free `0x74`-byte object/panel slot
+  - writes large subtype `+0x0A = 0x0E`
+  - then writes object state `+0x08 = 0x0A`
+
+Implication:
+
+- the old state-4-only hypothesis was too narrow
+- state `4` in `0x8C0730A8` is still a real serializer branch with high-byte
+  tag `0x40`, but the true local placed-bomb seed is a state-`0x0A` object
+  created by `0x8C0906F4`
+- that state-`0x0A` object then falls into the generic `0x8C0730A8` serializer
+  path for states other than `4/6/7/8/0x0b/0x0c/0x0d`
+- the unresolved multiplayer gap is now better stated as the missing promotion
+  from the queued selector-`0x0E` network path into the true local
+  `0x8C0479D2 -> 0x8C0906F4 -> state 0x0A` lifecycle

@@ -1,0 +1,4 @@
+target=8c047940
+symbol=FUN_8c047940
+ref[0] from=8c04793a type=CONDITIONAL_JUMP opIndex=0 function=FUN_8c0470f4 entry=8c0470f4
+count=1
