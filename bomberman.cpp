@@ -179,6 +179,23 @@ bool buildPromotedBombermanCmd01Payload(const uint8_t *payload, size_t payloadSi
 	return true;
 }
 
+bool getBombermanCmd01RecordAt(const uint8_t *payload, size_t payloadSize, size_t recordIndex,
+	const uint8_t *&record)
+{
+	constexpr size_t checkPadOffset = 40;
+	constexpr size_t checkPadRecordSize = 6;
+	constexpr size_t checkPadRecordCount = 24;
+
+	record = nullptr;
+	if (payload == nullptr || recordIndex >= checkPadRecordCount)
+		return false;
+	if (payloadSize < checkPadOffset + checkPadRecordCount * checkPadRecordSize)
+		return false;
+
+	record = payload + checkPadOffset + recordIndex * checkPadRecordSize;
+	return true;
+}
+
 uint8_t getBombermanLiveSlotMask(const uint8_t *payload, size_t payloadSize)
 {
 	constexpr size_t livePlayerRecordsOffset = 4;
@@ -2302,9 +2319,11 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 						const uint8_t *relayPayload = &data[0x10];
 						size_t relayPayloadSize = payloadSize;
 						std::vector<uint8_t> promotedCmd01Payload;
+						const uint8_t *promotedCmd01Record = nullptr;
 						uint8_t previousCmd01Selector = 0;
 						uint8_t promotedCmd01Selector = 0;
 						std::vector<uint8_t> objectMergedPayload;
+						static std::map<uint32_t, uint32_t> bombPromotionTraceBudget;
 						if (cmd.command == 0x1 && activeCmd01Lane)
 						{
 							if (buildPromotedBombermanCmd01Payload(&data[0x10], payloadSize,
@@ -2313,12 +2332,23 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 							{
 								relayPayload = promotedCmd01Payload.data();
 								relayPayloadSize = promotedCmd01Payload.size();
+								getBombermanCmd01RecordAt(relayPayload, relayPayloadSize,
+									activeCmd01RecordIndex, promotedCmd01Record);
+								bombPromotionTraceBudget[player->getId()] = 18;
 								INFO_LOG(Game::Bomberman,
 									"%s: promoting cmd=01 action idx=%zu selector=%x->%x record=%02x%02x%02x%02x%02x%02x",
 									player->getName().c_str(), activeCmd01RecordIndex,
 									previousCmd01Selector, promotedCmd01Selector,
 									activeCmd01Record[0], activeCmd01Record[1], activeCmd01Record[2],
 									activeCmd01Record[3], activeCmd01Record[4], activeCmd01Record[5]);
+								if (promotedCmd01Record != nullptr)
+								{
+									INFO_LOG(Game::Bomberman,
+										"%s: promoted cmd=01 outbound idx=%zu record=%02x%02x%02x%02x%02x%02x",
+										player->getName().c_str(), activeCmd01RecordIndex,
+										promotedCmd01Record[0], promotedCmd01Record[1], promotedCmd01Record[2],
+										promotedCmd01Record[3], promotedCmd01Record[4], promotedCmd01Record[5]);
+								}
 							}
 						}
 						if (cmd.command == 0x2 && room->hasSyntheticBombObjects())
@@ -2362,6 +2392,44 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 									relayPayloadSize);
 								rawLogCount++;
 							}
+							uint32_t& traceBudget = bombPromotionTraceBudget[player->getId()];
+							if (traceBudget > 0)
+							{
+								if (cmd.command == 0x1)
+								{
+									const uint8_t *traceRecord = nullptr;
+									const bool haveTraceRecord = activeCmd01Lane
+										? getBombermanCmd01RecordAt(relayPayload, relayPayloadSize,
+											activeCmd01RecordIndex, traceRecord)
+										: false;
+									INFO_LOG(Game::Bomberman,
+										"%s: trace cmd=01 budget=%u slots=%02x active=%s idx=%zu inbound=%02x%02x%02x%02x%02x%02x outbound=%02x%02x%02x%02x%02x%02x",
+										player->getName().c_str(), traceBudget, rawLiveSlotMask,
+										activeCmd01Lane ? "yes" : "no", activeCmd01RecordIndex,
+										activeCmd01Lane ? activeCmd01Record[0] : 0,
+										activeCmd01Lane ? activeCmd01Record[1] : 0,
+										activeCmd01Lane ? activeCmd01Record[2] : 0,
+										activeCmd01Lane ? activeCmd01Record[3] : 0,
+										activeCmd01Lane ? activeCmd01Record[4] : 0,
+										activeCmd01Lane ? activeCmd01Record[5] : 0,
+										haveTraceRecord ? traceRecord[0] : 0,
+										haveTraceRecord ? traceRecord[1] : 0,
+										haveTraceRecord ? traceRecord[2] : 0,
+										haveTraceRecord ? traceRecord[3] : 0,
+										haveTraceRecord ? traceRecord[4] : 0,
+										haveTraceRecord ? traceRecord[5] : 0);
+								}
+								else
+								{
+									const uint16_t traceWord = relayPayloadSize >= 2 ? read16(relayPayload, 0) : 0;
+									const uint32_t traceHead = relayPayloadSize >= 4 ? read32(relayPayload, 0) : 0;
+									INFO_LOG(Game::Bomberman,
+										"%s: trace cmd=%02x budget=%u slots=%02x word=%04x head=%08x size=%zu",
+										player->getName().c_str(), cmd.command, traceBudget,
+										rawLiveSlotMask, traceWord, traceHead, relayPayloadSize);
+								}
+								traceBudget--;
+							}
 						}
 						relayPacket.writeData(relayPayload, (int)relayPayloadSize);
 						const bool selfDispatchCmd01 = room != nullptr
@@ -2389,9 +2457,25 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 							write32(selfPacket.data, selfPacket.startOffset + 4, player->getId());
 							selfPacket.writeData(relayPayload, (int)relayPayloadSize);
 							player->send(selfPacket);
-							INFO_LOG(Game::Bomberman,
-								"%s: cmd=01 raw self-echo size=%zu slots=%02x",
-								player->getName().c_str(), relayPayloadSize, rawLiveSlotMask);
+							const uint8_t *selfEchoRecord = nullptr;
+							const bool haveSelfEchoRecord = getBombermanCmd01RecordAt(relayPayload,
+								relayPayloadSize, activeCmd01RecordIndex, selfEchoRecord);
+							if (haveSelfEchoRecord)
+							{
+								INFO_LOG(Game::Bomberman,
+									"%s: cmd=01 self-echo size=%zu slots=%02x idx=%zu record=%02x%02x%02x%02x%02x%02x",
+									player->getName().c_str(), relayPayloadSize, rawLiveSlotMask,
+									activeCmd01RecordIndex,
+									selfEchoRecord[0], selfEchoRecord[1], selfEchoRecord[2],
+									selfEchoRecord[3], selfEchoRecord[4], selfEchoRecord[5]);
+							}
+							else
+							{
+								INFO_LOG(Game::Bomberman,
+									"%s: cmd=01 self-echo size=%zu slots=%02x idx=%zu record=unavailable",
+									player->getName().c_str(), relayPayloadSize, rawLiveSlotMask,
+									activeCmd01RecordIndex);
+							}
 						}
 					}
 				}
