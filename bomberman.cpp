@@ -37,12 +37,13 @@ constexpr uint32_t BombermanGameFramesPerSecond = 60;
 constexpr uint32_t BombermanBombProbeMaterializeTicks = 4;
 constexpr uint32_t BombermanBombProbeUpdateTicks = 8;
 constexpr uint32_t BombermanBombProbeTicks = BombermanBombProbeMaterializeTicks + BombermanBombProbeUpdateTicks;
-constexpr bool BombermanSyntheticObjectInjectionEnabled = true;
+constexpr bool BombermanSyntheticObjectInjectionEnabled = false;
 constexpr uint16_t BombermanSyntheticBombMaterializePackets = 6;
 constexpr uint16_t BombermanSyntheticBombPlacedPackets = 360;
 constexpr uint8_t BombermanObjectSubtypeBomb = 0x0e;
 constexpr uint8_t BombermanObjectSubtypeBombUpItem = 0x02;
 constexpr uint16_t BombermanSyntheticBombCompactLow = 0x0018;
+constexpr uint8_t BombermanCmd01BombPromotionSelector = 0x5;
 constexpr const char *BombermanBotAdminPath = "tools/state/bomberman_bots.ini";
 constexpr const char *BombermanBotRuntimePath = "tools/state/bomberman_runtime.ini";
 
@@ -145,6 +146,37 @@ bool findActiveBombermanCmd01Record(const uint8_t *payload, size_t payloadSize, 
 	}
 
 	return false;
+}
+
+bool buildPromotedBombermanCmd01Payload(const uint8_t *payload, size_t payloadSize, size_t recordIndex,
+	const uint8_t *record, std::vector<uint8_t>& output, uint8_t& previousSelector, uint8_t& promotedSelector)
+{
+	constexpr size_t checkPadOffset = 40;
+	constexpr size_t checkPadRecordSize = 6;
+	constexpr size_t checkPadRecordCount = 24;
+
+	output.clear();
+	previousSelector = 0;
+	promotedSelector = 0;
+	if (payload == nullptr || record == nullptr || recordIndex >= checkPadRecordCount)
+		return false;
+	if (payloadSize < checkPadOffset + checkPadRecordCount * checkPadRecordSize)
+		return false;
+
+	output.assign(payload, payload + payloadSize);
+	const size_t recordOffset = checkPadOffset + recordIndex * checkPadRecordSize;
+	uint8_t *candidate = output.data() + recordOffset;
+	const uint8_t actionSubtype = (uint8_t)(candidate[3] & 0x0f);
+	if (actionSubtype != BombermanObjectSubtypeBombUpItem)
+		return false;
+
+	previousSelector = (uint8_t)((candidate[2] >> 4) & 0x0f);
+	if (previousSelector == BombermanCmd01BombPromotionSelector)
+		return false;
+
+	candidate[2] = (uint8_t)((candidate[2] & 0x0f) | (BombermanCmd01BombPromotionSelector << 4));
+	promotedSelector = BombermanCmd01BombPromotionSelector;
+	return true;
 }
 
 uint8_t getBombermanLiveSlotMask(const uint8_t *payload, size_t payloadSize)
@@ -2269,7 +2301,26 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 							: 0;
 						const uint8_t *relayPayload = &data[0x10];
 						size_t relayPayloadSize = payloadSize;
+						std::vector<uint8_t> promotedCmd01Payload;
+						uint8_t previousCmd01Selector = 0;
+						uint8_t promotedCmd01Selector = 0;
 						std::vector<uint8_t> objectMergedPayload;
+						if (cmd.command == 0x1 && activeCmd01Lane)
+						{
+							if (buildPromotedBombermanCmd01Payload(&data[0x10], payloadSize,
+								activeCmd01RecordIndex, activeCmd01Record, promotedCmd01Payload,
+								previousCmd01Selector, promotedCmd01Selector))
+							{
+								relayPayload = promotedCmd01Payload.data();
+								relayPayloadSize = promotedCmd01Payload.size();
+								INFO_LOG(Game::Bomberman,
+									"%s: promoting cmd=01 action idx=%zu selector=%x->%x record=%02x%02x%02x%02x%02x%02x",
+									player->getName().c_str(), activeCmd01RecordIndex,
+									previousCmd01Selector, promotedCmd01Selector,
+									activeCmd01Record[0], activeCmd01Record[1], activeCmd01Record[2],
+									activeCmd01Record[3], activeCmd01Record[4], activeCmd01Record[5]);
+							}
+						}
 						if (cmd.command == 0x2 && room->hasSyntheticBombObjects())
 						{
 							objectMergedPayload.assign(&data[0x10], &data[0x10] + payloadSize);
