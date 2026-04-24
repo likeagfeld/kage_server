@@ -3592,5 +3592,8 @@ Data-driven consequence:
   - not "reuse `0x8C0844D4` as if it were the true bomb object path"
   - but specifically the pre-seeded compact record bytes that exist before the
     state-`0x0A` branch overwrites selector and adjacent nibble fields
+- `0x8C010EFC`, which is called in the pre-switch loop when the current compact
+  entry test is below `4`, now decompiles as a large update/display helper
+  rather than a compact object seeding primitive
 - this materially strengthens the model for a future fix, but it still does not
   justify an honest `95%+` gameplay-test recommendation yet

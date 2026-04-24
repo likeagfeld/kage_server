@@ -1748,6 +1748,8 @@ Implication:
 
 - the next trustworthy reverse-engineering target is the pre-seeded compact
   record state before the state-`0x0A` branch runs
+- `0x8C010EFC` is no longer a promising seed-path candidate; fresh decomp shows
+  it is a large update/display helper rather than a compact object builder
 - do not return to `0xF`/`0x2` object probing or to `0x0844D4`-family guesses
 - confidence in the model increased, but the evidence still does not justify an
   honest `95%+` hardware-test recommendation yet
