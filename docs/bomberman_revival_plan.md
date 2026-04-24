@@ -3657,3 +3657,42 @@ Data-driven consequence:
 - however, the remaining low-bit meaning around `0x0804` / `0x0D02` is still
   not fully proven, so this checkpoint still does not justify an honest
   `95%+` hardware-test recommendation yet
+
+## 2026-04-24 compact-create caller boundary correction
+
+Fresh raw-listing recovery tightened one more important boundary around the
+selector-`0x0F` create path.
+
+Artifacts:
+
+- `D:\kageserver\docs\ghidra_decompile\pass263_08467c_range`
+- `D:\kageserver\docs\ghidra_decompile\pass264_0844d4_full`
+- `D:\kageserver\docs\ghidra_decompile\pass266_073f36_callsite`
+- `D:\kageserver\docs\ghidra_decompile\pass267_073f36_wider`
+
+New proven facts:
+
+- `0x8C08467C` is only the embedded pointer to writer `0x8C09E790` inside
+  `0x8C0844D4`'s constant table; it is not a separate unresolved helper body
+- widened `0x8C073F36` callsite recovery now proves `0x8C0844D4` consumes a
+  pre-decoded compact source record:
+  - `r6` comes from a decoded source-record `0x0804`
+  - `r7` comes from a decoded source-record `0x0006`
+  - stack arg `1` comes from a decoded source-record `0x0605`
+  - stack arg `2` comes from the source compact record's byte-`2` low nibble
+  - stack arg `3` is forced `0`
+- therefore `0x8C0844D4` is downstream of an already-promoted compact record
+  family; it is not the missing direct bridge from the currently observed
+  `cmd=01` action lane into a fresh placed-bomb compact record
+
+Data-driven consequence:
+
+- the current Kage synthetic bomb path still guesses a direct
+  `cmd=01 action -> cmd=02 object` translation
+- this new boundary says the real client path first reaches another compact
+  record form and only then enters `0x8C073F36 -> 0x8C0844D4 -> 0x8C075A78`
+- so even though the selector-`0x0F` receive branch and fresh-slot zero-init are
+  better understood, that still does not justify a gameplay patch or hardware
+  test with honest `95%+` confidence
+- the remaining trustworthy target is the upstream promotion step that feeds the
+  compact source-record family consumed by `0x8C073F36`

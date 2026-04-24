@@ -1794,3 +1794,28 @@ Implication:
 - the next trustworthy fix must recover the exact low-bit contract for the
   selector-`0x0F` compact creation record before another bomb-placement
   hardware test
+
+### 2026-04-24 compact-create caller boundary correction
+
+- `0x8C08467C` `confirmed`
+  - it is only the embedded pointer to `0x8C09E790` inside `0x8C0844D4`'s
+    constant table, not a separate helper body
+- `0x8C0844D4` source-input boundary `confirmed`
+  - widened raw listings now prove it consumes:
+    - decoded source-record `0x0804`
+    - decoded source-record `0x0006`
+    - decoded source-record `0x0605`
+    - source compact byte-`2` low nibble
+    - forced trailing `0`
+- `0x8C073F36` callsite `confirmed`
+  - those values are decoded immediately before the call into `0x8C0844D4`
+  - so `0x8C0844D4` is downstream of an already-promoted compact source-record
+    family, not the missing direct translation from the observed `cmd=01`
+    action lane
+- consequence:
+  - the current Kage synthetic `cmd=01 -> cmd=02` bomb-object path remains
+    upstream-speculative
+  - the next trustworthy target is still the promotion step that feeds the
+    compact source-record family consumed by `0x8C073F36 -> 0x8C0844D4 ->
+    0x8C075A78`
+  - this still does not justify an honest `95%+` gameplay hardware test yet

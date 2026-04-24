@@ -1,0 +1,61 @@
+; range: 8c0742c0 - 8c074340
+
+8c0742c0  f7 54        mov.l @(0x1c,r15),r4
+8c0742c2  9c 36        add r9,r6
+8c0742c4  f9 57        mov.l @(0x24,r15),r7
+8c0742c6  62 84        mov.b @(0x2,r6),r0
+8c0742c8  0f e6        mov #0xf,r6
+8c0742ca  52 2f        mov.l r5,@r15
+8c0742cc  e3 65        mov r14,r5
+8c0742ce  03 62        mov r0,r2
+8c0742d0  69 22        and r6,r2
+8c0742d2  21 1f        mov.l r2,@(0x4,r15)
+8c0742d4  00 e2        mov #0x0,r2
+8c0742d6  20 e0        mov #0x20,r0
+8c0742d8  22 1f        mov.l r2,@(0x8,r15)
+8c0742da  0c d2        mov.l 0x8c07430c,r2
+8c0742dc  f6 f4        fmov.s @(r0,r15),fr4
+8c0742de  0b 42        jsr @r2
+8c0742e0  fe 56        _mov.l @(0x38,r15),r6
+8c0742e2  01 90        mov.w 0x8c0742e8,r0
+8c0742e4  14 a0        bra 0x8c074310
+8c0742e6  09 00        _nop
+8c0742e8  b4 08        undefined2 08B4h
+8c0742ea  ff 01        undefined2 01FFh
+8c0742ec  84 08        undefined2 0884h
+8c0742ee  6c 07        undefined2 076Ch
+8c0742f0  b4 0a        undefined2 0AB4h
+8c0742f2  88 00        undefined2 0088h
+8c0742f4  04 08        undefined2 0804h
+8c0742f6  05 06        undefined2 0605h
+8c0742f8  e4 e7 09 8c  addr 8c09e7e4
+8c0742fc  ce 9a 07 8c  addr 8c079ace
+8c074300  ac e7 0d 8c  addr 8c0de7ac
+8c074304  00 00 80 4f  undefined4 4F800000h
+8c074308  4c 58 28 8c  undefined4 8C28584Ch
+8c07430c  d4 44 08 8c  addr 8c0844d4
+8c074310  d3 65        mov r13,r5
+8c074312  2f d2        mov.l 0x8c0743d0,r2
+8c074314  e3 66        mov r14,r6
+8c074316  0b 42        jsr @r2
+8c074318  ae 04        _mov.l @(r0,r10),r4
+8c07431a  57 90        mov.w 0x8c0743cc,r0
+8c07431c  d3 65        mov r13,r5
+8c07431e  2d d2        mov.l 0x8c0743d4,r2
+8c074320  83 66        mov r8,r6
+8c074322  0b 42        jsr @r2
+8c074324  ae 04        _mov.l @(r0,r10),r4
+8c074326  d3 66        mov r13,r6
+8c074328  00 46        shll r6
+8c07432a  dc 36        add r13,r6
+8c07432c  f6 54        mov.l @(0x18,r15),r4
+8c07432e  00 46        shll r6
+8c074330  29 d7        mov.l 0x8c0743d8,r7
+8c074332  9c 36        add r9,r6
+8c074334  4b 92        mov.w 0x8c0743ce,r2
+8c074336  63 84        mov.b @(0x3,r6),r0
+8c074338  0f e5        mov #0xf,r5
+8c07433a  2c 37        add r2,r7
+8c07433c  59 20        and r5,r0
+8c07433e  7a 1f        mov.l r7,@(0x28,r15)
+8c074340  10 e5        mov #0x10,r5
