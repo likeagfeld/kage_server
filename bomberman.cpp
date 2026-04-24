@@ -981,12 +981,6 @@ void BMRoom::noteActionLane(Player *player, bool active, size_t recordIndex, con
 	ActionLaneState& state = actionLaneStates[player->getId()];
 	if (!active || record == nullptr)
 	{
-		state.active = false;
-		state.pendingBombPromotion = false;
-		state.hasLastPromotedRecord = false;
-		state.recordIndex = 0;
-		state.record = {};
-		state.lastPromotedRecord = {};
 		return;
 	}
 
