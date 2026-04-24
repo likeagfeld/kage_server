@@ -1634,3 +1634,46 @@ Implication:
   `type4=5/6` promotion
 - the remaining bomb gap is still upstream of object serialization, in the
   queued/action promotion path that must later feed `0x8C073F36`
+
+### 2026-04-24 queue metadata asymmetry tightened
+
+- `0x8C079AEA` `confirmed`
+  - getter for staged queue metadata field `+0x08`
+- `0x8C079AF8` `confirmed`
+  - getter for the staged active flag at `+0x00`
+- `0x8C079ADC` caller boundary `confirmed`
+  - fresh caller recovery still only surfaces `0x8C073F36` for the `+0x08`
+    writer
+- `0x8C079AC0` caller boundary `confirmed`
+  - fresh caller recovery surfaces `0x8C073F36` and `0x8C079324` for the
+    `+0x0c` writer
+- `0x8C079A70` caller boundary `confirmed`
+  - fresh caller recovery surfaces `0x8C09AC08` for the `+0x04` owner/id
+    writer
+- `0x8C09AC08` `confirmed`
+  - live receive/apply-side helper that reconstructs staged owner/id state
+    through `0x8C079A70`
+  - recovered body still does not show a matching `+0x08` metadata
+    reconstruction step
+- `0x8C09AD3C` sender asymmetry `confirmed`
+  - sender-side live `cmd=01` path uses `0x8C079A92` to test active entries and
+    `0x8C079ACE` to read `+0x0c`
+  - no recovered sender/live caller currently uses `0x8C079AEA` to read `+0x08`
+- `0x8C09B450` follow-up boundary `confirmed`
+  - reuses `0x8C079A92`, `0x8C09E7E4`, and `0x8C079ACE` in another battle
+    follow-up path
+  - still only surfaced the active test and `+0x0c` value lane, not a recovered
+    `+0x08` round-trip
+
+Implication:
+
+- `+0x08` is now the strongest remaining candidate for bomb-critical
+  queue-local metadata that is not represented in the already observed live
+  `cmd=01 +0x0c` words
+- `0x8C073F36` still looks like the only recovered place where that metadata is
+  written, while recovered sender/receiver evidence continues to expose only the
+  `+0x0c` lane
+- the next trustworthy target is the compact-record family around
+  `0x8C075A78/0x8C073F36/0x8C09AC08`, specifically any remaining caller or
+  serializer that can explain how `+0x08` reaches the later placed-bomb
+  promotion path

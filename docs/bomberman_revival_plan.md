@@ -3423,3 +3423,58 @@ Data-driven consequence:
 - the next trustworthy reverse-engineering target is the compact action/queue
   producer that should create that pre-serialization transition, not another
   `0x8C0730A8` tag guess or relay tweak
+
+## 2026-04-24 queue metadata asymmetry tightened
+
+Fresh caller recovery and adjacent range dumps narrow the unresolved queue
+metadata path further.
+
+Artifacts:
+
+- `D:\kageserver\docs\ghidra_decompile\pass239_queue_writer_callers`
+- `D:\kageserver\docs\ghidra_decompile\pass240_action_table_neighbors`
+- `D:\kageserver\docs\ghidra_decompile\pass241_action_table_getter_callers`
+- `D:\kageserver\docs\ghidra_decompile\pass242_0781xx_range`
+- `D:\kageserver\docs\ghidra_decompile\pass243_0783xx_range`
+
+New proven facts:
+
+- `0x8C079AEA` is the getter for staged queue metadata field `+0x08`.
+- `0x8C079AF8` is the getter for the staged entry active flag at `+0x00`.
+- fresh caller recovery for the action-table writers is now sharply
+  asymmetrical:
+  - `0x8C079ADC` (`+0x08` writer) is only recovered from `0x8C073F36`
+  - `0x8C079AC0` (`+0x0c` writer) is recovered from `0x8C073F36` and
+    `0x8C079324`
+  - `0x8C079A70` (`+0x04` writer) is recovered from `0x8C09AC08`
+- `0x8C09AC08` belongs to the live receive/apply family and does reconstruct
+  staged owner/id state through `0x8C079A70`, but the recovered receive path
+  still does not show a matching `+0x08` metadata reconstruction step.
+- sender-side live `cmd=01` evidence remains one-sided:
+  - `0x8C09AD3C` uses `0x8C079A92` to test active entries
+  - `0x8C09AD3C` uses `0x8C079ACE` to read `+0x0c`
+  - no recovered sender/live caller currently uses `0x8C079AEA` to read `+0x08`
+- the raw `0x8C0781F4` pointer-table hit for `0x8C079AEA` sits inside a
+  battle-end/abort constant pool; adjacent recovered functions
+  `0x8C078098/0x8C078354/0x8C0783F8/0x8C078482/0x8C0784D4/0x8C078514`
+  stayed in end-of-play or hyper-rule handling and did not expose a new live
+  `+0x08` consumer.
+- `0x8C09B450` reuses the same queue-family helpers (`0x8C079A92`,
+  `0x8C09E7E4`, `0x8C079ACE`) in another battle follow-up path, but still only
+  surfaced the active test and `+0x0c` value lane, not a recovered `+0x08`
+  round-trip.
+
+Data-driven consequence:
+
+- `+0x08` is now the strongest remaining candidate for bomb-critical
+  queue-local metadata that is not represented in the already observed live
+  `cmd=01 +0x0c` words.
+- `0x8C073F36` still looks like the only recovered place where that metadata is
+  written, while the sender/receiver evidence continues to expose only the
+  `+0x0c` lane.
+- that does not yet prove `+0x08` is never serialized elsewhere, but it does
+  prove the current recovered live path is incomplete for that field.
+- the next trustworthy target is the compact-record family around
+  `0x8C075A78/0x8C073F36/0x8C09AC08`, specifically any remaining caller or
+  serializer that can explain how `+0x08` reaches the later placed-bomb
+  promotion path.
