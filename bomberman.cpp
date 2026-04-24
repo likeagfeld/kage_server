@@ -2459,10 +2459,14 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 								traceBudget--;
 							}
 						}
+						const bool relayPayloadChanged = relayPayloadSize != payloadSize
+							|| relayPayload != &data[0x10]
+							|| memcmp(relayPayload, &data[0x10], relayPayloadSize) != 0;
 						relayPacket.writeData(relayPayload, (int)relayPayloadSize);
 						const bool selfDispatchCmd01 = room != nullptr
 							&& cmd.command == 0x1
-							&& activeCmd01Lane;
+							&& activeCmd01Lane
+							&& relayPayloadChanged;
 						if (activeCmd01Lane)
 						{
 							static std::map<uint32_t, uint32_t> loggedCmd01ActiveRecords;
@@ -2503,6 +2507,20 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 									"%s: cmd=01 self-echo size=%zu slots=%02x idx=%zu record=unavailable",
 									player->getName().c_str(), relayPayloadSize, rawLiveSlotMask,
 									activeCmd01RecordIndex);
+							}
+						}
+						else if (cmd.command == 0x1 && activeCmd01Lane && !relayPayloadChanged)
+						{
+							static std::map<uint32_t, uint32_t> loggedSkippedCmd01SelfEcho;
+							uint32_t& skippedLogCount = loggedSkippedCmd01SelfEcho[player->getId()];
+							if (skippedLogCount < 6)
+							{
+								INFO_LOG(Game::Bomberman,
+									"%s: suppressing unchanged cmd=01 self-echo idx=%zu record=%02x%02x%02x%02x%02x%02x",
+									player->getName().c_str(), activeCmd01RecordIndex,
+									activeCmd01Record[0], activeCmd01Record[1], activeCmd01Record[2],
+									activeCmd01Record[3], activeCmd01Record[4], activeCmd01Record[5]);
+								skippedLogCount++;
 							}
 						}
 					}
