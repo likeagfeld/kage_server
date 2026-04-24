@@ -3385,3 +3385,41 @@ Fresh follow-up on 2026-04-24 removes one more false lead from that search:
 - the next trustworthy target is now the sibling compact-action family that
   feeds the queued/networked bomb branch into `0x8C073F36`'s required
   `type4=5/6` promotion, not the `0x8C0763xx` movement/check-pad builders.
+
+## 2026-04-24 downstream serializer boundary tightened
+
+Fresh caller and raw-listing recovery narrows the remaining bomb gap further.
+
+Artifacts:
+
+- `D:\kageserver\docs\ghidra_decompile\pass236_50_branch_helpers`
+- `D:\kageserver\docs\ghidra_decompile\pass237_50_branch_callers`
+- `D:\kageserver\docs\ghidra_decompile\pass238_0730a8_constants`
+
+New proven facts:
+
+- `0x8C09E7C8` is the compact bitfield reader paired with `0x8C09E790`; this
+  read/write pair is reused by the queued `0x8C075A78` branch and the
+  downstream compact serializers.
+- fresh caller recovery for `0x8C09109C` is now sharply constrained:
+  - in the new caller dump, the only recovered Bomberman-side caller is
+    `0x8C075A78`
+  - this confirms `0x8C075A78` as the compact-record gate into the deeper
+    bomb/panel object path
+- raw listing recovery around `0x8C0730A8` proves its object-state serializer
+  tags are not the missing `type4=5/6` family:
+  - state `4` writes high-byte tag `0x40`
+  - state `7` writes high-byte tag `0xC0`
+  - state `8` writes high-byte tag `0xD0`
+  - the associated selectors in that serializer are `0x0004`, `0x0404`, and
+    `0x0605`
+
+Data-driven consequence:
+
+- the downstream object-state serializer is not where the missing
+  `type4=5/6` promotion is generated
+- the unresolved gap therefore still sits upstream of object serialization, in
+  the queued/action promotion path that must later feed `0x8C073F36`
+- the next trustworthy reverse-engineering target is the compact action/queue
+  producer that should create that pre-serialization transition, not another
+  `0x8C0730A8` tag guess or relay tweak

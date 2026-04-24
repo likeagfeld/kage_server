@@ -1611,3 +1611,26 @@ Fresh follow-up on 2026-04-24 further narrows that target:
   compact-action family that feeds the queued/networked bomb branch into
   `0x8C073F36`'s required `type4=5/6` promotion, not the `0x8C0763xx`
   movement/check-pad builders.
+
+### 2026-04-24 downstream serializer boundary tightened
+
+- `0x8C09E7C8` `confirmed`
+  - compact bitfield reader paired with `0x8C09E790`
+  - reused by the queued `0x8C075A78` branch and downstream compact serializers
+- `0x8C09109C` caller boundary `confirmed`
+  - fresh caller recovery only surfaced `0x8C075A78` as the Bomberman-side
+    caller in the current recovered set
+  - this confirms `0x8C075A78` as the compact-record gate into the deeper
+    bomb/panel object path
+- `0x8C0730A8` serializer tags `confirmed`
+  - state `4` writes high-byte tag `0x40`
+  - state `7` writes high-byte tag `0xC0`
+  - state `8` writes high-byte tag `0xD0`
+  - associated selectors are `0x0004`, `0x0404`, and `0x0605`
+
+Implication:
+
+- the downstream object-state serializer is not the source of the missing
+  `type4=5/6` promotion
+- the remaining bomb gap is still upstream of object serialization, in the
+  queued/action promotion path that must later feed `0x8C073F36`
