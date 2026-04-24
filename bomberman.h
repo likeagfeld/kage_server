@@ -94,7 +94,9 @@ public:
 	void noteLiveGameData(Player *player, uint8_t command, const uint8_t *payload, size_t payloadSize);
 	void noteActionLane(Player *player, bool active, size_t recordIndex, const uint8_t *record);
 	bool buildAggregatedLivePayload(uint8_t command, const uint8_t *payload, size_t payloadSize,
-		std::vector<uint8_t>& output, uint8_t& slotMask) const;
+		std::vector<uint8_t>& output, uint8_t& slotMask, uint8_t& actionMask) const;
+	bool shouldSelfDispatchAggregatedCmd01(Player *player, const uint8_t *payload, size_t payloadSize,
+		const uint8_t *aggregatePayload, size_t aggregatePayloadSize);
 	bool hasSyntheticBombObjects() const;
 	bool applySyntheticBombObjectsToPayload(uint8_t *payload, size_t payloadSize);
 	void requestBombProbe(size_t playerIndex, const char *reason);
@@ -158,6 +160,7 @@ private:
 	struct ActionLaneState
 	{
 		bool active = false;
+		size_t recordIndex = 0;
 		std::array<uint8_t, 6> record {};
 	};
 
@@ -166,7 +169,7 @@ private:
 		bool active = false;
 		uint32_t sourcePlayerId = 0;
 		uint16_t objectPosition = 0;
-		uint8_t subtype = 0;
+		uint16_t compactStateLow = 0;
 		uint16_t materializePacketsRemaining = 0;
 		uint16_t placedPacketsRemaining = 0;
 	};

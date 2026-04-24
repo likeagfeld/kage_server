@@ -37,11 +37,12 @@ constexpr uint32_t BombermanGameFramesPerSecond = 60;
 constexpr uint32_t BombermanBombProbeMaterializeTicks = 4;
 constexpr uint32_t BombermanBombProbeUpdateTicks = 8;
 constexpr uint32_t BombermanBombProbeTicks = BombermanBombProbeMaterializeTicks + BombermanBombProbeUpdateTicks;
-constexpr bool BombermanSyntheticObjectInjectionEnabled = false;
+constexpr bool BombermanSyntheticObjectInjectionEnabled = true;
 constexpr uint16_t BombermanSyntheticBombMaterializePackets = 6;
 constexpr uint16_t BombermanSyntheticBombPlacedPackets = 360;
 constexpr uint8_t BombermanObjectSubtypeBomb = 0x0e;
 constexpr uint8_t BombermanObjectSubtypeBombUpItem = 0x02;
+constexpr uint16_t BombermanSyntheticBombCompactLow = 0x0018;
 constexpr const char *BombermanBotAdminPath = "tools/state/bomberman_bots.ini";
 constexpr const char *BombermanBotRuntimePath = "tools/state/bomberman_runtime.ini";
 
@@ -144,6 +145,24 @@ bool findActiveBombermanCmd01Record(const uint8_t *payload, size_t payloadSize, 
 	}
 
 	return false;
+}
+
+uint8_t getBombermanLiveSlotMask(const uint8_t *payload, size_t payloadSize)
+{
+	constexpr size_t livePlayerRecordsOffset = 4;
+	constexpr size_t livePlayerRecordSize = 4;
+	constexpr size_t livePlayerRecordCount = 8;
+	if (payload == nullptr || payloadSize < livePlayerRecordsOffset + livePlayerRecordCount * livePlayerRecordSize)
+		return 0;
+
+	uint8_t mask = 0;
+	for (size_t i = 0; i < livePlayerRecordCount; i++)
+	{
+		const uint8_t *record = payload + livePlayerRecordsOffset + i * livePlayerRecordSize;
+		if (record[0] != 0 || record[1] != 0 || record[2] != 0 || record[3] != 0)
+			mask |= (uint8_t)(1u << i);
+	}
+	return mask;
 }
 
 }
@@ -914,6 +933,7 @@ void BMRoom::noteActionLane(Player *player, bool active, size_t recordIndex, con
 	if (!active || record == nullptr)
 	{
 		state.active = false;
+		state.recordIndex = 0;
 		state.record = {};
 		return;
 	}
@@ -924,15 +944,17 @@ void BMRoom::noteActionLane(Player *player, bool active, size_t recordIndex, con
 		return;
 
 	state.active = true;
+	state.recordIndex = recordIndex;
 	state.record = current;
 	armSyntheticBombObject(player, recordIndex, record);
 }
 
 bool BMRoom::buildAggregatedLivePayload(uint8_t command, const uint8_t *payload, size_t payloadSize,
-	std::vector<uint8_t>& output, uint8_t& slotMask) const
+	std::vector<uint8_t>& output, uint8_t& slotMask, uint8_t& actionMask) const
 {
 	output.clear();
 	slotMask = 0;
+	actionMask = 0;
 	if (payload == nullptr || command < 1 || command > 3)
 		return false;
 
@@ -942,6 +964,9 @@ bool BMRoom::buildAggregatedLivePayload(uint8_t command, const uint8_t *payload,
 	constexpr size_t livePlayerRecordsOffset = 4;
 	constexpr size_t livePlayerRecordSize = 4;
 	constexpr size_t livePlayerRecordCount = 8;
+	constexpr size_t actionRecordsOffset = 40;
+	constexpr size_t actionRecordSize = 6;
+	constexpr size_t actionRecordCount = 24;
 	constexpr size_t minimumPayloadSize =
 		livePlayerRecordsOffset + livePlayerRecordCount * livePlayerRecordSize;
 	if (payloadSize < minimumPayloadSize)
@@ -967,9 +992,43 @@ bool BMRoom::buildAggregatedLivePayload(uint8_t command, const uint8_t *payload,
 			livePlayerRecordSize);
 		slotMask |= (uint8_t)(1u << playerPosition);
 		writtenSlots++;
+
+		if (command == 1 && payloadSize >= actionRecordsOffset + actionRecordCount * actionRecordSize)
+		{
+			const auto actionIt = actionLaneStates.find(subject->getId());
+			if (actionIt != actionLaneStates.end() && actionIt->second.active
+				&& actionIt->second.recordIndex < actionRecordCount)
+			{
+				const size_t actionOffset = actionRecordsOffset
+					+ actionIt->second.recordIndex * actionRecordSize;
+				memcpy(output.data() + actionOffset, actionIt->second.record.data(), actionRecordSize);
+				actionMask |= (uint8_t)(1u << playerPosition);
+			}
+		}
 	}
 
 	return writtenSlots > 1;
+}
+
+bool BMRoom::shouldSelfDispatchAggregatedCmd01(Player *player, const uint8_t *payload, size_t payloadSize,
+	const uint8_t *aggregatePayload, size_t aggregatePayloadSize)
+{
+	constexpr size_t actionRecordsOffset = 40;
+	constexpr size_t actionRecordSize = 6;
+	constexpr size_t actionRecordCount = 24;
+	constexpr size_t actionTableSize = actionRecordCount * actionRecordSize;
+
+	if (player == nullptr || payload == nullptr || aggregatePayload == nullptr)
+		return false;
+	if (payloadSize < actionRecordsOffset + actionTableSize
+		|| aggregatePayloadSize < actionRecordsOffset + actionTableSize)
+	{
+		return false;
+	}
+
+	const uint8_t *sourceActionTable = payload + actionRecordsOffset;
+	const uint8_t *aggregateActionTable = aggregatePayload + actionRecordsOffset;
+	return memcmp(sourceActionTable, aggregateActionTable, actionTableSize) != 0;
 }
 
 bool BMRoom::hasSyntheticBombObjects() const
@@ -995,7 +1054,7 @@ bool BMRoom::applySyntheticBombObjectsToPayload(uint8_t *payload, size_t payload
 			continue;
 
 		const uint16_t state = (uint16_t)((object.materializePacketsRemaining > 0 ? 0xf000 : 0x2000)
-			| (object.subtype & 0x0f));
+			| object.compactStateLow);
 		const size_t offset = objectTableOffset + i * objectRecordSize;
 		write16(payload, (unsigned)offset, object.objectPosition);
 		write16(payload, (unsigned)offset + 2, state);
@@ -1012,8 +1071,8 @@ bool BMRoom::applySyntheticBombObjectsToPayload(uint8_t *payload, size_t payload
 		else
 		{
 			INFO_LOG(Game::Bomberman,
-				"%s: synthetic bomb object expired source=%x record=%zu position=%04x",
-				name.c_str(), object.sourcePlayerId, i, object.objectPosition);
+				"%s: synthetic bomb object expired source=%x record=%zu position=%04x compact_low=%04x",
+				name.c_str(), object.sourcePlayerId, i, object.objectPosition, object.compactStateLow);
 			object.active = false;
 		}
 	}
@@ -1038,7 +1097,7 @@ void BMRoom::armSyntheticBombObject(Player *player, size_t recordIndex, const ui
 	}
 	SyntheticBombObject& object = syntheticBombObjects[recordIndex];
 	if (object.active && object.sourcePlayerId == player->getId()
-		&& object.objectPosition == objectPosition && object.subtype == BombermanObjectSubtypeBomb)
+		&& object.objectPosition == objectPosition && object.compactStateLow == BombermanSyntheticBombCompactLow)
 	{
 		return;
 	}
@@ -1046,16 +1105,16 @@ void BMRoom::armSyntheticBombObject(Player *player, size_t recordIndex, const ui
 	object.active = true;
 	object.sourcePlayerId = player->getId();
 	object.objectPosition = objectPosition;
-	object.subtype = BombermanObjectSubtypeBomb;
+	object.compactStateLow = BombermanSyntheticBombCompactLow;
 	object.materializePacketsRemaining = BombermanSyntheticBombMaterializePackets;
 	object.placedPacketsRemaining = BombermanSyntheticBombPlacedPackets;
 
 	INFO_LOG(Game::Bomberman,
-		"%s: armed synthetic bomb from cmd=01 action source=%s [%x] record=%zu action=%02x%02x%02x%02x%02x%02x action_subtype=%x%s object=%04x:f00%x",
+		"%s: armed synthetic bomb from cmd=01 action source=%s [%x] record=%zu action=%02x%02x%02x%02x%02x%02x action_subtype=%x%s object=%04x low=%04x",
 		name.c_str(), player->getName().c_str(), player->getId(), recordIndex,
 		record[0], record[1], record[2], record[3], record[4], record[5],
 		actionSubtype, actionSubtype == BombermanObjectSubtypeBombUpItem ? " (bomb-up item in 22_15-57-44)" : "",
-		objectPosition, BombermanObjectSubtypeBomb);
+		objectPosition, object.compactStateLow);
 }
 
 void BMRoom::requestBombProbe(size_t playerIndex, const char *reason)
@@ -1165,7 +1224,7 @@ void BMRoom::sendBombProbePacket(const char *reason)
 	const uint16_t objectPosition = (uint16_t)(((uint16_t)bombProbe.x << 10)
 		| ((uint16_t)(bombProbe.y & 0x1f) << 5) | 0x10 | (bombProbe.lowNibble & 0x0f));
 	const bool materializeStage = bombProbe.ticksRemaining > BombermanBombProbeUpdateTicks;
-	const uint16_t objectState = materializeStage ? 0xf000 : 0x2000;
+	const uint16_t objectState = (uint16_t)((materializeStage ? 0xf000 : 0x2000) | BombermanSyntheticBombCompactLow);
 	const char *stageName = materializeStage ? "materialize_state_f" : "update_state_2";
 	write16(payload.data(), (int)objectOffset, objectPosition);
 	write16(payload.data(), (int)objectOffset + 2, objectState);
@@ -2204,20 +2263,16 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 							}
 
 						}
-						std::vector<uint8_t> aggregatePayload;
-						uint8_t aggregateSlotMask = 0;
-						const bool aggregateLivePayload = cmd.command >= 0x1 && cmd.command <= 0x3
-							&& room->buildAggregatedLivePayload((uint8_t)cmd.command, &data[0x10], payloadSize,
-								aggregatePayload, aggregateSlotMask);
-						const uint8_t *relayPayload = aggregateLivePayload ? aggregatePayload.data() : &data[0x10];
-						size_t relayPayloadSize = aggregateLivePayload ? aggregatePayload.size() : payloadSize;
+						const bool liveCmd = cmd.command >= 0x1 && cmd.command <= 0x3;
+						const uint8_t rawLiveSlotMask = liveCmd
+							? getBombermanLiveSlotMask(&data[0x10], payloadSize)
+							: 0;
+						const uint8_t *relayPayload = &data[0x10];
+						size_t relayPayloadSize = payloadSize;
 						std::vector<uint8_t> objectMergedPayload;
 						if (cmd.command == 0x2 && room->hasSyntheticBombObjects())
 						{
-							if (aggregateLivePayload)
-								objectMergedPayload = aggregatePayload;
-							else
-								objectMergedPayload.assign(&data[0x10], &data[0x10] + payloadSize);
+							objectMergedPayload.assign(&data[0x10], &data[0x10] + payloadSize);
 							if (room->applySyntheticBombObjectsToPayload(objectMergedPayload.data(),
 								objectMergedPayload.size()))
 							{
@@ -2225,11 +2280,14 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 								relayPayloadSize = objectMergedPayload.size();
 							}
 						}
-						if (cmd.command >= 0x1 && cmd.command <= 0x3)
+						if (liveCmd)
 						{
 							// Binary receive path 0x8C093FDC applies live cmd 01/02/03 as
 							// server-command traffic, not as peer REQ_GAME_DATA relays.
 							relayPacket.init(Packet::REQ_CHAT);
+							// Preserve the original sender id for live-state traffic instead
+							// of rewriting it to the recipient-local player id.
+							write32(relayPacket.data, relayPacket.startOffset + 4, player->getId());
 						}
 						else
 						{
@@ -2239,22 +2297,25 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 								relayPacket.flags |= Packet::FLAG_RUDP;
 							write32(relayPacket.data, relayPacket.startOffset + 4, player->getId());
 						}
-						if (aggregateLivePayload)
+						if (liveCmd)
 						{
-							static std::map<uint64_t, uint32_t> loggedLiveAggregates;
-							const uint64_t aggregateLogKey = ((uint64_t)player->getId() << 32)
-								| ((uint64_t)cmd.command << 16) | aggregateSlotMask;
-							uint32_t& aggregateLogCount = loggedLiveAggregates[aggregateLogKey];
-							if (aggregateLogCount < 6)
+							static std::map<uint64_t, uint32_t> loggedRawLiveRelays;
+							const uint64_t rawLogKey = ((uint64_t)player->getId() << 32)
+								| ((uint64_t)cmd.command << 16) | rawLiveSlotMask;
+							uint32_t& rawLogCount = loggedRawLiveRelays[rawLogKey];
+							if (rawLogCount < 6)
 							{
 								INFO_LOG(Game::Bomberman,
-									"%s: live aggregate relay cmd=%02x source=%x slots=%02x size=%zu",
-									player->getName().c_str(), cmd.command, player->getId(), aggregateSlotMask,
-									aggregatePayload.size());
-								aggregateLogCount++;
+									"%s: live raw relay cmd=%02x source=%x slots=%02x size=%zu",
+									player->getName().c_str(), cmd.command, player->getId(), rawLiveSlotMask,
+									relayPayloadSize);
+								rawLogCount++;
 							}
 						}
 						relayPacket.writeData(relayPayload, (int)relayPayloadSize);
+						const bool selfDispatchCmd01 = room != nullptr
+							&& cmd.command == 0x1
+							&& activeCmd01Lane;
 						if (activeCmd01Lane)
 						{
 							static std::map<uint32_t, uint32_t> loggedCmd01ActiveRecords;
@@ -2269,6 +2330,17 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 									word, payloadSize);
 								activeLogCount++;
 							}
+						}
+						if (selfDispatchCmd01)
+						{
+							Packet selfPacket;
+							selfPacket.init(Packet::REQ_CHAT);
+							write32(selfPacket.data, selfPacket.startOffset + 4, player->getId());
+							selfPacket.writeData(relayPayload, (int)relayPayloadSize);
+							player->send(selfPacket);
+							INFO_LOG(Game::Bomberman,
+								"%s: cmd=01 raw self-echo size=%zu slots=%02x",
+								player->getName().c_str(), relayPayloadSize, rawLiveSlotMask);
 						}
 					}
 				}
