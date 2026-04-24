@@ -31,8 +31,6 @@ constexpr uint32_t BombermanBotIdBase = 0x0B000000;
 constexpr uint32_t BombermanStatusPending = 0;
 constexpr uint32_t BombermanStatusAccepted = 3;
 constexpr auto AdminPollInterval = 500ms;
-constexpr auto BombermanInGameLivenessInterval = 1s;
-constexpr uint32_t BombermanInGameLivenessValue = 0x10000000u;
 constexpr uint32_t BombermanGameFramesPerSecond = 60;
 constexpr uint32_t BombermanBombProbeMaterializeTicks = 4;
 constexpr uint32_t BombermanBombProbeUpdateTicks = 8;
@@ -1505,8 +1503,6 @@ void BMRoom::notePostMapMarker(Player *player, const char *reason)
 		// Live dumps showed that sending 0x14 immediately after 0x13 stops the
 		// map-block phase. Gate it behind both clients' post-map 0x0e markers.
 		broadcastGameTimeInfo("post_map_exchange", 0, 60 * 180, 0);
-		broadcastInGameLiveness("post_map_exchange");
-		startInGameLiveness();
 		startMatchEndTimer(60 * 180);
 	}
 }
@@ -1736,38 +1732,17 @@ void BMRoom::broadcastGameTimeInfo(const char *reason, uint32_t startFrame, uint
 
 void BMRoom::sendInGameLivenessTo(Player *player, const char *reason) const
 {
-	if (player == nullptr)
-		return;
-
-	Packet packet;
-	UdpCommand cmd {};
-	cmd.command = 0x1c;
-	cmd.size = 4;
-	const uint8_t mask = getOccupiedSlotMask();
-	packet.init(Packet::REQ_CHAT);
-	packet.writeData(cmd.full);
-	packet.writeData((uint16_t)0);
-	packet.writeData(BombermanInGameLivenessValue);
-	packet.writeData(mask);
-	INFO_LOG(Game::Bomberman, "%s: in-game liveness sync (%s) -> %s [%x] value=%08x mask=%02x",
-		name.c_str(), reason != nullptr ? reason : "sync", player->getName().c_str(), player->getId(),
-		BombermanInGameLivenessValue, mask);
-	player->send(packet);
+	(void)player;
+	(void)reason;
 }
 
 void BMRoom::broadcastInGameLiveness(const char *reason) const
 {
-	for (Player *player : players)
-		sendInGameLivenessTo(player, reason);
+	(void)reason;
 }
 
 void BMRoom::startInGameLiveness()
 {
-	if (syncState != SyncState::InGame || players.empty())
-		return;
-
-	timer.expires_after(BombermanInGameLivenessInterval);
-	timer.async_wait(std::bind(&BMRoom::handleInGameLivenessTimer, this, asio::placeholders::error));
 }
 
 void BMRoom::stopInGameLiveness()
@@ -1777,11 +1752,7 @@ void BMRoom::stopInGameLiveness()
 
 void BMRoom::handleInGameLivenessTimer(const std::error_code& ec)
 {
-	if (ec || syncState != SyncState::InGame || players.empty())
-		return;
-
-	broadcastInGameLiveness("heartbeat");
-	startInGameLiveness();
+	(void)ec;
 }
 
 void BMRoom::startMatchEndTimer(uint32_t endFrame)
@@ -2594,18 +2565,20 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 		replyPacket.init(Packet::REQ_CHAT);
 		replyPacket.writeData(cmd.full);
 		replyPacket.writeData((uint16_t)0);
-		replyPacket.writeData(0x10000000u);	// LE int. ping value? only lsbyte used. 1,4,10,80,c8 is red
+		const uint32_t incomingValue = len >= 0x18 ? read32(data, 0x14) : 0;
+		replyPacket.writeData(incomingValue);
 		const uint8_t incomingMask = len > 0x18 ? data[0x18] : 0;
 		uint8_t replyMask = incomingMask;
 		if (room != nullptr)
 			replyMask = room->getOccupiedSlotMask();
 		static std::map<uint32_t, uint8_t> lastLoggedPingMask;
+		const uint8_t incomingLowByte = (uint8_t)(incomingValue & 0xff);
 		const uint8_t logValue = (uint8_t)((incomingMask << 4) | (replyMask & 0x0f));
 		if (lastLoggedPingMask[player->getId()] != logValue)
 		{
 			lastLoggedPingMask[player->getId()] = logValue;
-			INFO_LOG(Game::Bomberman, "%s: ping slot mask in=%02x out=%02x", player->getName().c_str(),
-				incomingMask, replyMask);
+			INFO_LOG(Game::Bomberman, "%s: ping slot mask in=%02x out=%02x low=%02x", player->getName().c_str(),
+				incomingMask, replyMask, incomingLowByte);
 		}
 		replyPacket.writeData(replyMask); // bitfield (8 flags), aggregated for the whole room
 		break;
