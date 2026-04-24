@@ -982,6 +982,7 @@ void BMRoom::noteActionLane(Player *player, bool active, size_t recordIndex, con
 	if (!active || record == nullptr)
 	{
 		state.active = false;
+		state.pendingBombPromotion = false;
 		state.recordIndex = 0;
 		state.record = {};
 		return;
@@ -993,9 +994,33 @@ void BMRoom::noteActionLane(Player *player, bool active, size_t recordIndex, con
 		return;
 
 	state.active = true;
+	state.pendingBombPromotion = ((current[3] & 0x0f) == BombermanObjectSubtypeBombUpItem)
+		&& (((current[2] >> 4) & 0x0f) == 0);
 	state.recordIndex = recordIndex;
 	state.record = current;
 	armSyntheticBombObject(player, recordIndex, record);
+}
+
+bool BMRoom::consumePendingBombPromotion(Player *player, size_t recordIndex, const uint8_t *record)
+{
+	if (player == nullptr || record == nullptr)
+		return false;
+
+	auto it = actionLaneStates.find(player->getId());
+	if (it == actionLaneStates.end())
+		return false;
+
+	ActionLaneState& state = it->second;
+	if (!state.active || !state.pendingBombPromotion || state.recordIndex != recordIndex)
+		return false;
+
+	std::array<uint8_t, 6> current {};
+	memcpy(current.data(), record, current.size());
+	if (state.record != current)
+		return false;
+
+	state.pendingBombPromotion = false;
+	return true;
 }
 
 bool BMRoom::buildAggregatedLivePayload(uint8_t command, const uint8_t *payload, size_t payloadSize,
@@ -2326,7 +2351,9 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 						static std::map<uint32_t, uint32_t> bombPromotionTraceBudget;
 						if (cmd.command == 0x1 && activeCmd01Lane)
 						{
-							if (buildPromotedBombermanCmd01Payload(&data[0x10], payloadSize,
+							if (room != nullptr
+								&& room->consumePendingBombPromotion(player, activeCmd01RecordIndex, activeCmd01Record)
+								&& buildPromotedBombermanCmd01Payload(&data[0x10], payloadSize,
 								activeCmd01RecordIndex, activeCmd01Record, promotedCmd01Payload,
 								previousCmd01Selector, promotedCmd01Selector))
 							{

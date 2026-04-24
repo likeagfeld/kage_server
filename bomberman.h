@@ -93,6 +93,7 @@ public:
 	const char *getSyncStateName() const;
 	void noteLiveGameData(Player *player, uint8_t command, const uint8_t *payload, size_t payloadSize);
 	void noteActionLane(Player *player, bool active, size_t recordIndex, const uint8_t *record);
+	bool consumePendingBombPromotion(Player *player, size_t recordIndex, const uint8_t *record);
 	bool buildAggregatedLivePayload(uint8_t command, const uint8_t *payload, size_t payloadSize,
 		std::vector<uint8_t>& output, uint8_t& slotMask, uint8_t& actionMask) const;
 	bool shouldSelfDispatchAggregatedCmd01(Player *player, const uint8_t *payload, size_t payloadSize,
@@ -160,6 +161,7 @@ private:
 	struct ActionLaneState
 	{
 		bool active = false;
+		bool pendingBombPromotion = false;
 		size_t recordIndex = 0;
 		std::array<uint8_t, 6> record {};
 	};
