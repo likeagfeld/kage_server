@@ -1532,3 +1532,55 @@ Fresh dump parsing tightens that further:
 - no obvious literal `0x0e` appears in the observed network form, so the
   queued selector is likely encoded indirectly or only recoverable through the
   sender/receiver helper pair rather than a simple on-wire opcode match
+
+### 2026-04-24 cmd01 action-word decode and queue layout
+
+Fresh helper recovery resolved the compact action-word decode math and the
+shared staged action-table entry layout:
+
+- `0x8C09E7E4` is a generic bitfield extractor:
+  - selector `0x0004` => top nibble of the 16-bit word
+  - selector `0x0804` => `(word >> 4) & 0xf`
+  - selector `0x0605` => `(word >> 5) & 0x1f`
+- the queued action table rooted at `object+0x50 + index*0x10` is now:
+  - `+0x00`: active flag (`0x8C079A5C`)
+  - `+0x04`: owner/id (`0x8C079A5C`, `0x8C079A70`)
+  - `+0x08`: queued metadata (`0x8C079ADC`)
+  - `+0x0c`: encoded live/action value (`0x8C079AC0`, read by `0x8C079ACE`)
+- `0x8C073F36` compares newly applied and previous `cmd=01` action buffers and,
+  on a specific decoded transition, promotes that change into deeper gameplay
+  work through:
+  - `0x8C0844D4`
+  - `0x8C079ADC`
+  - `0x8C079AC0`
+- `0x8C0844D4` is a real `0x74`-byte object allocator/initializer, so this is
+  already beyond passive packet bookkeeping
+
+Fresh dump decoding across `23_13-20-19_BM_t` and `23_18-36-42_BM_t` showed:
+
+- source `1001`, index `0` only used:
+  - `082040020000`, `042040020000`, `044040020000`
+- source `1002`, index `1` only used:
+  - `316040120000`, `354040120000`
+- decoded fields stayed in the same narrow set:
+  - source `1001`: `type4=0`, `nibble=4`, `arg5=0`, `tick9=0`
+  - source `1002`: `type4=1`, `nibble=4`, `arg5=1`, `tick9=0`
+  - only the 6-bit directional field moved between `8/16/24`
+- a scan across every captured `*BM*.dmp` file stayed inside that same boundary:
+  - decoded `type4` counts are only `0` and `1`
+  - no captured live `cmd=01` record has `type4=5` or `type4=6`
+
+That matters because `0x8C073F36` only enters its deeper promotion/object path
+on:
+
+- `new type4 == 6` with `old type4 == 4`
+- `new type4 == 5` with `old type4 == 4` or `0`
+
+Conclusion:
+
+- the latest bomb-attempt dumps still do not show a distinct new outbound
+  `cmd=01` word family for A-press
+- the missing commit signal is therefore less likely to be a simple extra
+  nibble inside the already observed `+0x0c` action word
+- the better next target is the companion queue metadata path at `+0x08` and
+  the caller/consumer chain around `0x8C073F36`, not another blind relay tweak

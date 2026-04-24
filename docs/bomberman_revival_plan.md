@@ -3290,3 +3290,71 @@ Practical consequence:
   without stronger binary evidence
 - the safer next line of work is action-record decoding and queued-`0x0e`
   round-trip correlation rather than more blind `cmd=02` object synthesis
+
+## 2026-04-24 Cmd01 Action Word Decode And Queue Entry Layout
+
+Fresh helper recovery resolved the compact action-word reader and the shared
+action-table entry layout that sits between the queued networked bomb path and
+live `cmd=01`.
+
+Artifacts:
+
+- `D:\kageserver\docs\ghidra_decompile\pass218_action_record_helpers`
+- `D:\kageserver\docs\ghidra_decompile\pass219_action_record_followups`
+- `D:\kageserver\docs\ghidra_decompile\pass220_action_table_family`
+- `D:\kageserver\data\23_13-20-19_BM_t.dmp`
+- `D:\kageserver\data\23_18-36-42_BM_t.dmp`
+
+New proven facts:
+
+- `0x8C09E7E4` is a generic compact bitfield extractor, not a bomb-specific
+  helper:
+  - with selector `0x0004`, it reads the top nibble of the 16-bit word
+  - with selector `0x0804`, it reads `(word >> 4) & 0xf`
+  - with selector `0x0605`, it reads `(word >> 5) & 0x1f`
+- the staged action table rooted at `object+0x50 + index*0x10` is now resolved:
+  - `0x8C079A5C` sets `+0x00 = 1` and stores owner/id at `+0x04`
+  - `0x8C079A70` stores a value at `+0x04`
+  - `0x8C079A92` tests active state and optionally matches owner/id
+  - `0x8C079ADC` stores queued metadata at `+0x08`
+  - `0x8C079AC0` stores the encoded live/action value at `+0x0c`
+  - `0x8C079ACE` returns that `+0x0c` value for live `cmd=01` send
+- `0x8C073F36` compares two applied `cmd=01` action buffers (`+0x5c` vs `+0x58`)
+  and on one specific decoded transition it:
+  - calls `0x8C0844D4`
+  - stores extra queue metadata through `0x8C079ADC` and `0x8C079AC0`
+- `0x8C0844D4` is a deeper object allocator/initializer for a `0x74`-byte
+  battle object slot, so `0x8C073F36` is already on a real gameplay-side
+  promotion path rather than a transport-only bookkeeping path
+
+Decoded live evidence from the latest two bomb-attempt dumps:
+
+- source `1001`, active record index `0`:
+  - `082040020000` -> `type4=0`, `nibble=4`, `dir6=8`, `arg5=0`, `tick9=0`
+  - `042040020000` -> `type4=0`, `nibble=4`, `dir6=8`, `arg5=0`, `tick9=0`
+  - `044040020000` -> `type4=0`, `nibble=4`, `dir6=16`, `arg5=0`, `tick9=0`
+- source `1002`, active record index `1`:
+  - `316040120000` -> `type4=1`, `nibble=4`, `dir6=24`, `arg5=1`, `tick9=0`
+  - `354040120000` -> `type4=1`, `nibble=4`, `dir6=16`, `arg5=1`, `tick9=0`
+
+Data-driven interpretation:
+
+- the latest two bomb-attempt dumps still do not show a distinctive new outbound
+  `cmd=01` action-word family for A-press; the observed compact records stay in
+  the same tiny decoded state set as movement-facing traffic
+- a wider scan across all captured `*BM*.dmp` files tightened that further:
+  - decoded `type4` values in the observed `cmd=01` action word only ever hit
+    `0` or `1`
+  - there are zero captured live `cmd=01` records with `type4=5` or `type4=6`
+- that matters because `0x8C073F36` only enters its real promotion branches on
+  those higher decoded states:
+  - `new type4 == 6` with `old type4 == 4`
+  - `new type4 == 5` with `old type4 == 4` or `0`
+- that means the missing bomb promotion signal is unlikely to be a simple
+  one-field delta inside the already observed outbound `cmd=01 +0x0c` values
+- the stronger remaining hypothesis is that the local queued bomb path also
+  depends on companion queue metadata (`+0x08`) or another authoritative apply
+  step that the remote side is not reconstructing from the current relay alone
+- no honest `95%+` gameplay test recommendation is justified yet; the next
+  trustworthy target is whichever caller pair writes and later consumes the
+  `+0x08` / `+0x0c` queue entry fields around `0x8C073F36`

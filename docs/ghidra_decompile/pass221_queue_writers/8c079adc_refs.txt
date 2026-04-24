@@ -1,0 +1,7 @@
+target=8c079adc
+symbol=FUN_8c079adc
+ref[0] from=8c0743d0 type=DATA opIndex=0 function=<none> entry=<none>
+ref[1] from=8c075a5c type=DATA opIndex=0 function=<none> entry=<none>
+ref[2] from=8c0781fc type=DATA opIndex=0 function=<none> entry=<none>
+ref[3] from=8c074316 type=COMPUTED_CALL opIndex=0 function=FUN_8c073f36 entry=8c073f36
+count=4
