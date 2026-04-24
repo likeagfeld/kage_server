@@ -3540,3 +3540,57 @@ Data-driven consequence:
 - the next trustworthy reverse-engineering target is the promotion step from
   the queued selector-`0x0E` network path into the true local bomb seed, not
   another compact object tag guess or live relay tweak
+
+## 2026-04-24 compact object encoder and state-0x0A serializer boundary
+
+Fresh raw listing work tightened the compact object story again and removed one
+more place where we could have guessed wrong.
+
+Artifacts:
+
+- `D:\kageserver\docs\ghidra_decompile\pass254_0844d4_refs`
+- `D:\kageserver\docs\ghidra_decompile\pass255_0844d4_callers`
+- `D:\kageserver\docs\ghidra_decompile\pass258_state0a_branch_full`
+- `D:\kageserver\docs\ghidra_decompile\pass259_0730a8_prefix`
+- `D:\kageserver\docs\ghidra_decompile\pass137_compact_listings\8c0dd740_8c0dd850.lst`
+
+New proven facts:
+
+- the raw action root listing at `0x8C0470F4` still directly proves the network
+  split:
+  - opcode `1` with local `+0x0163 bit 0x40` clear goes to `0x8C0479D2`
+  - opcode `1` with that bit set appends selector `0x0E` into the queued table
+    instead
+- `0x8C0844D4` is no longer a trustworthy placed-bomb target:
+  - fresh caller recovery shows it is shared by other object/effect creators,
+    not only by `0x8C073F36`
+  - its object family is `0x88` bytes wide, which does not match the true
+    `0x74`-byte local bomb/panel slot family created by `0x8C0906F4`
+- the compact network encoder `0x8C0DD74E` is now raw-listing-confirmed:
+  - first compact word is repacked from the source entry's first word
+  - second compact word packs:
+    - selector nibble from key `0x0004`
+    - bits `11..8` from source byte `+0x03` low nibble
+    - bits `7..4` from key `0x0404`
+    - bit `3` from source byte `+0x02 bit 3`
+    - bits `2..1` from key `0x0D02`
+    - bit `0` from source byte `+0x02 bit 0`
+- the generic `0x8C0730A8` state branch for object state `0x0A` is now bounded
+  more precisely:
+  - it writes selector/state nibble through `0x8C09E790(..., key 0x0004, out+2)`
+  - it writes the adjacent 4-bit field through
+    `0x8C09E7C8(obj+9, key 0x0004)` followed by
+    `0x8C09E790(..., key 0x0404, out+2)`
+  - it does not construct the full 4-byte compact record from scratch
+- this means the remaining bytes of the compact state-`0x0A` object record are
+  already seeded earlier in `0x8C0730A8` before the state-specific branch runs
+
+Data-driven consequence:
+
+- the next missing step is narrower than before:
+  - not "guess another compact object family"
+  - not "reuse `0x8C0844D4` as if it were the true bomb object path"
+  - but specifically the pre-seeded compact record bytes that exist before the
+    state-`0x0A` branch overwrites selector and adjacent nibble fields
+- this materially strengthens the model for a future fix, but it still does not
+  justify an honest `95%+` gameplay-test recommendation yet

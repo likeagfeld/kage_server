@@ -1,0 +1,20 @@
+target=8c0844d4
+symbol=FUN_8c0844d4
+ref[0] from=8c06c1a2 type=COMPUTED_CALL opIndex=0 function=FUN_8c06bfe0 entry=8c06bfe0
+ref[1] from=8c06c2ec type=DATA opIndex=0 function=<none> entry=<none>
+ref[2] from=8c08fcca type=COMPUTED_CALL opIndex=0 function=<none> entry=<none>
+ref[3] from=8c08fdb4 type=DATA opIndex=0 function=<none> entry=<none>
+ref[4] from=8c03c586 type=COMPUTED_CALL opIndex=0 function=<none> entry=<none>
+ref[5] from=8c08cfdc type=COMPUTED_CALL opIndex=0 function=FUN_8c08cf66 entry=8c08cf66
+ref[6] from=8c03c608 type=DATA opIndex=0 function=<none> entry=<none>
+ref[7] from=8c08d058 type=DATA opIndex=0 function=<none> entry=<none>
+ref[8] from=8c0400bc type=COMPUTED_CALL opIndex=0 function=FUN_8c03fe8c entry=8c03fe8c
+ref[9] from=8c04018c type=DATA opIndex=0 function=<none> entry=<none>
+ref[10] from=8c03b974 type=DATA opIndex=0 function=<none> entry=<none>
+ref[11] from=8c03c2ec type=DATA opIndex=0 function=<none> entry=<none>
+ref[12] from=8c08ce8e type=COMPUTED_CALL opIndex=0 function=FUN_8c08cd8c entry=8c08cd8c
+ref[13] from=8c08cf1c type=DATA opIndex=0 function=<none> entry=<none>
+ref[14] from=8c075a58 type=DATA opIndex=0 function=<none> entry=<none>
+ref[15] from=8c0742de type=COMPUTED_CALL opIndex=0 function=FUN_8c073f36 entry=8c073f36
+ref[16] from=8c07430c type=DATA opIndex=0 function=<none> entry=<none>
+count=17

@@ -1716,3 +1716,38 @@ Implication:
 - the unresolved multiplayer gap is now better stated as the missing promotion
   from the queued selector-`0x0E` network path into the true local
   `0x8C0479D2 -> 0x8C0906F4 -> state 0x0A` lifecycle
+
+### 2026-04-24 compact encoder and state-0x0A serializer boundary
+
+- `0x8C0470F4` raw split `confirmed`
+  - latest raw listing still directly proves the opcode-1 branch:
+    - `+0x0163 bit 0x40` clear -> `0x8C0479D2`
+    - `+0x0163 bit 0x40` set -> queued selector `0x0E` append
+- `0x8C0844D4` family correction `confirmed`
+  - fresh caller recovery shows it is shared by other object/effect creators
+  - recovered callers operate on an `0x88`-byte family, not the true local
+    `0x74`-byte bomb/panel slot family
+  - therefore it is no longer a trustworthy direct placed-bomb target
+- `0x8C0DD74E` compact encoder `confirmed`
+  - raw listing now fixes the exact packed second-word layout:
+    - selector from key `0x0004`
+    - bits `11..8` from source byte `+0x03` low nibble
+    - bits `7..4` from key `0x0404`
+    - bit `3` from source byte `+0x02 bit 3`
+    - bits `2..1` from key `0x0D02`
+    - bit `0` from source byte `+0x02 bit 0`
+- `0x8C0730A8` state-`0x0A` branch boundary `confirmed`
+  - the generic branch for object state `0x0A` only overwrites:
+    - selector/state nibble via `0x0004`
+    - adjacent nibble via `0x0404`
+  - it does not build the entire four-byte compact record from scratch
+  - therefore the remaining bytes of the state-`0x0A` compact record must be
+    pre-seeded earlier in `0x8C0730A8`
+
+Implication:
+
+- the next trustworthy reverse-engineering target is the pre-seeded compact
+  record state before the state-`0x0A` branch runs
+- do not return to `0xF`/`0x2` object probing or to `0x0844D4`-family guesses
+- confidence in the model increased, but the evidence still does not justify an
+  honest `95%+` hardware-test recommendation yet
