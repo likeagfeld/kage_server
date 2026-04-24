@@ -3732,3 +3732,50 @@ Data-driven consequence:
   `0x8C073F36` to take its promotion branch
 - this still does not justify a gameplay patch or hardware test with honest
   `95%+` confidence yet
+
+## 2026-04-24 selector-4 producer sibling forced and current cmd02 fix path falsified
+
+Fresh local recovery and the latest hardware result closed one more loop.
+
+Artifacts:
+
+- `D:\kageserver\docs\ghidra_decompile\pass274_079298_forced`
+- `D:\kageserver\logs\kageserver.log`
+- `D:\kageserver\data\22_15-57-44_BM_teqr_out.dmp`
+
+New proven facts:
+
+- `0x8C079298` is now a real recovered function, not just undecoded bytes in the
+  `0x0792xx` hub.
+- `0x8C079298` still lands in the same selector-`0x4` compact producer family as
+  `0x8C079324`:
+  - it ends by calling `0x8C079324` in one branch
+  - its alternate branch still forces compact byte-`3` high nibble `0x4`
+  - it still writes through the same `0x0605`, `0x0C04`, and `0x0804` field
+    family into queued `+0x0c`
+  - it still does not seed `0x0B01`
+- the latest hardware run with commit `87cabd7` proved the patched synthetic
+  `cmd=02` object lane is still the wrong family:
+  - Kage armed a synthetic object with `low=0018`
+  - the Dreamcast rendered the bomb-up item again instead of a placed bomb
+  - this cleanly falsifies the `0x0018` compact-low hypothesis for direct
+    `cmd=02` object injection
+- older flushed item-manifestation dump `22_15-57-44_BM_teqr_out.dmp` still
+  shows the same downstream object-table behavior:
+  - outbound non-default `cmd=02` tables included `0440f002`
+  - the client rendered that as the bomb-up item/card path
+
+Data-driven consequence:
+
+- the exact thing that was wrong in the latest gameplay patch is now clear:
+  - it kept trying to force the downstream `cmd=02` object lane
+  - but the real placed-bomb create path still sits upstream in the compact
+    promotion chain that feeds `0x8C073F36`
+- `0x8C079298` is useful because it rules out another near-miss:
+  - not every hidden sibling in the `0x0792xx/0x0793xx` hub is bomb-specific
+  - this newly recovered sibling is still selector-`0x4` only
+- the next trustworthy implementation target is therefore unchanged in kind but
+  narrower in scope:
+  - stop treating `cmd=02` synthetic object injection as the primary bomb fix
+  - recover or emulate the missing upstream compact/action transition that writes
+    the bomb-specific queued value consumed by `0x8C073F36`

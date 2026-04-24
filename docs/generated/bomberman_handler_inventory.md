@@ -1838,3 +1838,22 @@ Implication:
     transform in the `0x0793xx` family that can write the queued `+0x0c` value
     required for `0x8C073F36` to take its promotion branch
   - this still does not justify an honest `95%+` gameplay hardware test yet
+
+### 2026-04-24 selector-4 sibling `0x8C079298` forced
+
+- `0x8C079298` `confirmed`
+  - fresh forced decompilation now proves this is a real function in the
+    `0x0792xx` hub, not leftover undecoded bytes
+  - one branch ends by calling `0x8C079324`
+  - its alternate branch still:
+    - forces compact byte-`3` high nibble `0x4`
+    - writes `0x0605`, `0x0C04`, and `0x0804`
+    - stores the resulting compact value into queued `+0x0c`
+  - it still does not seed `0x0B01`
+- consequence:
+  - this removes another tempting near-miss from the bomb hypothesis space
+  - `0x8C079298` is still selector-`0x4` family output, so it is not the
+    missing bomb-specific sibling producer
+  - together with the latest `low=0018` hardware falsification, this further
+    confirms the real fix is upstream of the downstream synthetic `cmd=02`
+    object lane
