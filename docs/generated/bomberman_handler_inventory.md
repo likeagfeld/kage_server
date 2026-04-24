@@ -1753,3 +1753,44 @@ Implication:
 - do not return to `0xF`/`0x2` object probing or to `0x0844D4`-family guesses
 - confidence in the model increased, but the evidence still does not justify an
   honest `95%+` hardware-test recommendation yet
+
+### 2026-04-24 fresh bomb-slot zero-init and selector-0x0F create path
+
+- `0x8C07B50C` local packed-field seeder `confirmed`
+  - raw listing now proves it seeds the fresh local bomb object's `+0x02`
+    packed field family with:
+    - `0x0006`
+    - `0x0605`
+    - `0x0B01`
+    - `0x0C04`
+- compact helper key layout `confirmed`
+  - direct helper emulation now fixes:
+    - `0x0006 -> bits 10..15`
+    - `0x0605 -> bits 5..9`
+    - `0x0B01 -> bit 4`
+    - `0x0C04 -> bits 0..3`
+    - `0x0804 -> bits 4..7`
+    - `0x0D02 -> bits 1..2`
+- `0x8C07CAFA` fresh-slot zero-init `confirmed`
+  - battle init/reset calls the memset-like helper with `(slot, 0, 0x74)` over
+    the main bomb/panel object pool
+  - the first fresh bomb slot therefore starts with `object+0x09 == 0`
+- `0x8C075A78` selector-`0x0F` receive create path `confirmed`
+  - raw listing now proves selector `0x0F` is the compact placed-bomb creation
+    branch on receive
+  - it creates the local object and then sets local object state `+0x08 = 0x0A`
+  - it consumes the same packed helper family as the local seed path:
+    - `0x0605`
+    - `0x0B01`
+    - `0x0C04`
+  - plus additional packed fields through:
+    - `0x0804`
+    - `0x0D02`
+
+Implication:
+
+- Kage's current selector-only `0xF000` / `0x2000` style object probes are now
+  more clearly falsified as incomplete
+- the next trustworthy fix must recover the exact low-bit contract for the
+  selector-`0x0F` compact creation record before another bomb-placement
+  hardware test

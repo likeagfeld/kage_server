@@ -3597,3 +3597,63 @@ Data-driven consequence:
   rather than a compact object seeding primitive
 - this materially strengthens the model for a future fix, but it still does not
   justify an honest `95%+` gameplay-test recommendation yet
+
+## 2026-04-24 fresh bomb-slot zero-init and selector-0x0F create-path checkpoint
+
+Fresh raw-listing work closed two more gaps in the placed-bomb path.
+
+Artifacts:
+
+- `D:\kageserver\docs\ghidra_decompile\pass261_07b50c_range`
+- `D:\kageserver\docs\ghidra_decompile\pass262_075a78_full`
+- `D:\kageserver\docs\ghidra_decompile\pass190_gate_consumer\8c07cafa_FUN_8c07cafa.c`
+
+New proven facts:
+
+- `0x8C07B50C` is now raw-listing-confirmed as the local helper that seeds the
+  `+0x02` packed field family on a fresh bomb object before later serializer
+  work:
+  - it sets the slot active bit
+  - it writes through `0x8C09E790` with keys:
+    - `0x0006`
+    - `0x0605`
+    - `0x0B01`
+    - `0x0C04`
+- direct helper emulation now fixes those key layouts exactly:
+  - `0x0006` writes bits `10..15`
+  - `0x0605` writes bits `5..9`
+  - `0x0B01` writes bit `4`
+  - `0x0C04` writes bits `0..3`
+  - `0x0804` writes bits `4..7`
+  - `0x0D02` writes bits `1..2`
+- battle init/reset path `0x8C07CAFA` now proves fresh `0x74` bomb/panel slots
+  start zeroed:
+  - it calls the memset-like helper with `(slot, 0, 0x74)` across the main
+    object pool
+  - therefore the first fresh placed-bomb slot starts with `object+0x09 == 0`
+- `0x8C075A78` raw listing now proves selector `0x0F` is the compact
+  placed-bomb creation path on receive:
+  - selector `0x0F` creates the local object, then sets local object state
+    `+0x08 = 0x0A`
+  - that path uses the same packed helper family as the true local helper:
+    - `0x0605`
+    - `0x0B01`
+    - `0x0C04`
+  - and also consumes additional compact fields through:
+    - `0x0804`
+    - `0x0D02`
+
+Data-driven consequence:
+
+- the current Kage bomb probe/object path is still structurally incomplete:
+  - it writes a guessed first word from live `x/y`
+  - but it sends selector-only second words like `0xF000` / `0x2000`
+  - fresh client evidence now proves the selector-`0x0F` creation path requires
+    meaningful low bits in that second word as well
+- this meaningfully increases confidence in the next fix direction:
+  - do not guess another item-card/object subtype
+  - do not treat selector nibble alone as sufficient
+  - focus on the exact low-bit contract for the selector-`0x0F` compact record
+- however, the remaining low-bit meaning around `0x0804` / `0x0D02` is still
+  not fully proven, so this checkpoint still does not justify an honest
+  `95%+` hardware-test recommendation yet
