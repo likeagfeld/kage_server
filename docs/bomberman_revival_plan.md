@@ -2772,9 +2772,18 @@ Binary evidence:
   - `0x8C0479D2` loads a per-player/per-slot pointer through offsets `0x0768`, `0x0278`, and `0x00AC`, then calls `0x8C0906F4`.
 - Earlier project evidence already falsified `cmd=01` active check-pad self-sync in `22_08-30-56_BM_t/_out`; do not reintroduce sender echo without a new binary distinction that explains why that prior run failed.
 
-Current safe translation:\n\n- Keep synthetic object injection disabled. Do not send `f002`, `f00e`, state-2-only, or staged `0xF -> 0x2` object probes automatically.\n- Keep live `cmd=01/02/03` peer delivery on non-reliable `REQ_CHAT`, because that is the proven movement path.\n- Do not deploy `cmd=01` sender self-dispatch: the prior `22_08-30-56_BM_t/_out` self-sync test is already recorded as falsified.\n- The next server change must come from a new binary/data distinction, likely around the action table ownership refs at `0x8C06F274` / `0x8C06F3F8` or the remote `0x40` flag branch, not from widening echo behavior.
+Current safe translation:
 
-Validation target:\n\n- No hardware test should be run for another sender-echo variant yet.\n- Continue reversing upstream from `0x8C0470F4` and the data-table refs at `0x8C06F274` / `0x8C06F3F8` to identify the exact local/remote action ownership gate that commits a placed bomb.\n- Only create a new server experiment after the binary explains why the prior active `cmd=01` self-sync did not work.
+- Keep synthetic object injection disabled. Do not send `f002`, `f00e`, state-2-only, or staged `0xF -> 0x2` object probes automatically.
+- Keep live `cmd=01/02/03` peer delivery on non-reliable `REQ_CHAT`, because that is the proven movement path.
+- Do not deploy `cmd=01` sender self-dispatch: the prior `22_08-30-56_BM_t/_out` self-sync test is already recorded as falsified.
+- The next server change must come from a new binary/data distinction, likely around the action table ownership refs at `0x8C06F274` / `0x8C06F3F8` or the remote `0x40` flag branch, not from widening echo behavior.
+
+Validation target:
+
+- No hardware test should be run for another sender-echo variant yet.
+- Continue reversing upstream from `0x8C0470F4` and the data-table refs at `0x8C06F274` / `0x8C06F3F8` to identify the exact local/remote action ownership gate that commits a placed bomb.
+- Only create a new server experiment after the binary explains why the prior active `cmd=01` self-sync did not work.
 
 ## 2026-04-22 Bomb Action Table Follow-Up
 
@@ -2803,3 +2812,481 @@ Safe runtime state:
 
 - no Kage gameplay code change is deployed from this pass
 - the server has been rebuilt and restarted at `127.0.0.1:8765` with synthetic object injection disabled and without `cmd=01` sender self-dispatch
+
+## 2026-04-22 Local Bomb Helper And Compact Object Gate
+
+Additional Ghidra passes:
+
+- `D:\kageserver\docs\ghidra_decompile\pass158_bomb_subtype_helpers`
+- `D:\kageserver\docs\ghidra_decompile\pass159_object_state_counter_funcs`
+- `D:\kageserver\docs\ghidra_decompile\pass160_bomb_object_apply_listings`
+- `D:\kageserver\docs\ghidra_decompile\pass161_local_bomb_helper_full`
+- `D:\kageserver\docs\ghidra_decompile\pass162_local_bomb_helper_tail`
+- `D:\kageserver\docs\ghidra_decompile\pass163_action_bomb_refs`
+- `D:\kageserver\docs\ghidra_decompile\pass164_bomb_helper_dependencies`
+- `D:\kageserver\docs\ghidra_decompile\pass165_action_table_refs`
+
+New binary facts:
+
+- `0x8C075A78` is still the compact `cmd=02` object-apply path. Its compact branch for selector `0x0e` jumps into the same materialization lane as selector `5`; that lane uses the compact record bits to materialize/update an object, but it does not directly write the large local object subtype byte.
+- `0x8C09109C`, one of the downstream object-apply helpers reached from `0x8C075A78`, only continues its full visible-object path for large subtype byte `0x0d`, or for subtype `0x0b` with a specific player-state byte equal to `1`. Other subtypes, including `0x0e`, are pushed to state `4` and mark dirty flags instead of becoming the placed-bomb object.
+- This explains the hardware evidence for `f002` and `f00e`: the compact object lane is real enough to render/pick up power-up cards, but the tested compact records were not the placed-bomb path.
+- `0x8C0906F4` is richer than a four-byte object record. It checks board occupancy at offset `+0x0A88`, looks for a free object slot in the `+0x0AC0` object array with stride `0x74`, initializes the object with `+0x08 = 1` and large subtype byte `+0x0A = 0x0E`, then updates the grid/object pointer tables including `+0x0A98` / `+0x0A9C`.
+- The same helper later writes object state `+0x08 = 0x0A`, packs grid coordinates through bitfield helpers keyed by `0x0605`, updates object flags at byte `+0x02`, and stores a source/action pointer at `+0x0C`.
+- The only direct code reference to `0x8C0906F4` is still `0x8C0479D2`; `0x8C0479D2` is reached from the action engine behind the table entries at `0x8C06F274` and `0x8C06F3F8`.
+
+Data-driven interpretation:
+
+- The server should not send another compact object subtype probe yet. That path has been falsified for placed bombs and is now useful mainly as future item/drop tooling.
+- The next useful target is the upstream action ownership/permission path that lets `0x8C0470F4 -> 0x8C0479D2 -> 0x8C0906F4` run for a real A-press, especially the `+0x0163` flag, the `+0x016c` handle/state, and the table entries around `0x8C06F274` / `0x8C06F3F8`.
+- A hardware test is not worth running from this pass because no Kage runtime behavior changed and the new evidence predicts the current server will still show movement but no committed bombs.
+
+## 2026-04-22 Cmd01 Action Table Aggregation Patch
+
+Additional Ghidra passes:
+
+- `D:\kageserver\docs\ghidra_decompile\pass167_action_table_family_followup`
+- `D:\kageserver\docs\ghidra_decompile\pass168_cmd01_sender_followup`
+- `D:\kageserver\docs\ghidra_decompile\pass169_cmd01_action_helpers`
+
+New binary facts:
+
+- `0x8C09AD3C` builds the client-origin `cmd=01` payload with command word `0x02C8`, size `200`.
+- The `cmd=01` payload layout is:
+  - command/word at `+0x00`
+  - eight four-byte live player records at `+0x04`
+  - a four-byte action priority/counter at `+0x24`
+  - twenty-four six-byte action records at `+0x28`
+  - a sixteen-byte mask block at `+0xB8`
+- `0x8C079A92` tests whether an internal action table entry is active: it reads `*(object+0x50 + index*0x10)` and optionally matches the entry owner/id at `+0x04`.
+- `0x8C079ACE` returns the action table entry value at `*(object+0x50 + index*0x10 + 0x0C)`.
+- `0x8C09AD3C` scans all twenty-four action entries, keeps a maximum/priority value, then encodes the active entries into the `cmd=01` action-record table before calling encoder `0x8C0DDAE8`.
+- `0x8C0DDA44` decodes `cmd=01` into the same structure, and `0x8C09A994` applies it by copying the twenty-four six-byte action records into the receiver-side object/action table at the object pointer's `+0x5C`.
+
+Data-driven interpretation:
+
+- `cmd=01` is a global live/action-table update, not only eight movement records.
+- Kage's prior aggregate live relay only merged the eight player records. It left the twenty-four action records as whichever single client sent the current packet.
+- The earlier direct sender self-sync remains falsified. The new patch is different: it aggregates known active action records into the shared `cmd=01` action table while keeping peer delivery on the already validated non-reliable `REQ_CHAT` path.
+- This does not re-enable compact synthetic object injection and does not send another guessed object subtype.
+
+Implemented translation:
+
+- `BMRoom::noteActionLane` now records the active `cmd=01` six-byte action record and its original table index per real player.
+- `BMRoom::buildAggregatedLivePayload` now takes an `actionMask` output and, for `cmd=01` only, merges stored active action records back into the twenty-four-record table at offset `0x28`.
+- Live aggregate logs now include both `slots=...` and `actions=...`, so the next hardware run can prove whether both player action records are leaving Kage in one outbound `cmd=01` table.
+- `BombermanSyntheticObjectInjectionEnabled` remains `false`.
+
+Validation target:
+
+- This build is worth a hardware test now.
+- Expected log lines during gameplay should include `live aggregate relay cmd=01 ... slots=03 actions=03 size=200` after both players have produced active `cmd=01` action records.
+- Desired result is still conservative: movement must remain working, and A-press should either place a real bomb or produce new packet evidence that the aggregated action table is still not enough.
+- If bombs still do not appear, the next data target is not compact object subtype probing; inspect whether outbound `cmd=01` action tables contain both players' records and whether clients then emit non-default committed `cmd=02` object tables.
+
+## 2026-04-23 Live Source Preservation And Raw Relay Correction
+
+Fresh dump evidence from `D:\kageserver\data\23_13-20-19_BM_t.dmp` and
+`D:\kageserver\data\23_13-20-19_BM_t_out.dmp` narrowed the next server change:
+
+- inbound live `cmd=01/02/03` from real hardware already carried mostly full slot masks:
+  - `cmd=01 source=00001002 mask=03: 641`
+  - `cmd=01 source=00001001 mask=03: 332`
+  - same pattern held for `cmd=02` and `cmd=03`
+- outbound live `REQ_CHAT cmd=01/02/03` packets used flags `0x2000`, so they were not marked `FLAG_RELAY`
+- `Player::send` rewrote header offset `+4` on every non-relay packet, which meant the live outbound stream was being relabeled with the recipient-local player id
+- the outbound dump matched that exactly:
+  - only `source=00001002` packets reached `192.168.50.245`
+  - only `source=00001001` packets reached `192.168.50.246`
+
+## 2026-04-23 Compact Object Selector Decode And Later Event Family
+
+Additional binary work:
+
+- `D:\kageserver\docs\ghidra_decompile\pass134_bomb_object_helpers\8c09e790_FUN_8c09e790.c`
+- `D:\kageserver\docs\ghidra_decompile\pass134_bomb_object_helpers\8c09e7e4_FUN_8c09e7e4.c`
+- `D:\kageserver\docs\ghidra_decompile\pass160_bomb_object_apply_listings\8c075bcc_8c076260.lst`
+- `D:\kageserver\docs\ghidra_decompile\pass159_object_state_counter_funcs\8c09109c_FUN_8c09109c.c`
+- `D:\kageserver\docs\ghidra_decompile\pass122_bomb_end_control_funcs\8c09758c_FUN_8c09758c.c`
+- latest dump pair:
+  - `D:\kageserver\data\23_13-20-19_BM_t.dmp`
+  - `D:\kageserver\data\23_13-20-19_BM_t_out.dmp`
+
+New binary facts:
+
+- The compact object helper family is now decoded enough to map the packed
+  fields directly:
+  - `0x8C09E7E4` is the compact 16-bit extractor.
+  - `0x8C09E790` is the matching compact 16-bit writer.
+  - key `0x0004` extracts bits `12..15` from the second compact word, which is
+    the high nibble of compact object byte `3`.
+  - therefore the selector used by `0x8C075A78` is the high nibble of compact
+    object byte `3`.
+- The other recovered compact field keys used by `0x8C075A78` map as:
+  - `0x0605` -> bits `5..9`
+  - `0x0D02` -> bits `1..2`
+  - `0x0B01` -> bit `4`
+  - `0x0C04` -> bits `0..3`
+  - `0x0804` -> bits `4..7`
+- This confirms the current `0x8C075A78` compact-object families are selector
+  families on compact byte `3` high nibble:
+  - selector `0x4` routes through `0x8C09109C`
+  - selector `0x5` and `0xE` route through the `0x50` family path
+  - selector `0xF` routes through the materialization path that copies compact
+    position/packed bits into a large local object
+- `0x8C09109C` still rejects the local bomb helper subtype for full visible
+  object continuation:
+  - it only continues the deeper visible-object path when large subtype byte
+    `+0x0A == 0x0D`
+  - or when subtype `0x0B` is paired with player-state byte `+0x0134 == 1`
+  - other subtypes, including the local bomb helper subtype `0x0E`, are forced
+    to state `4` and dirty-flagged instead
+- `0x8C09758C` is now confirmed as a later battle event dispatcher driven by an
+  internal state field at object/game offset `+0x48`. It emits explicit network
+  events when that state reaches:
+  - `0x0D` -> server command `0x1A`
+  - `0x0E` -> server command `0x1C`
+  - `0x0F` -> server command `0x1E`
+  - `0x10` -> server command `0x20`
+  - `0x16` -> server command `0x26`
+- The latest failed bomb-attempt dump did not yet reach those later post-bomb
+  event states:
+  - inbound and outbound dumps showed the usual live `cmd=01/02/03`, liveness
+    `0x1C`, map/setup `0x1A/0x1B`, and no fresh gameplay `0x1E`, `0x20`, or
+    `0x26`
+  - so those later event commands are part of the downstream gameplay roadmap,
+    but they are not yet the first blocker for bomb placement in the current run
+
+Data-driven conclusion:
+
+- The compact object record is no longer a black box:
+  - selector family = compact byte `3` high nibble
+  - the tested `0xF` and `0x5`/`0xE` families are real, but they are not yet
+    sufficient to produce the fully visible placed-bomb object path
+- The newly recovered `0x1E` / `0x20` / `0x26` gameplay event family is real,
+  but should not be used as the immediate fix target yet because the latest
+  hardware dump never reached those states.
+- The first blocker still sits upstream of those later gameplay events:
+  - either the local commit path into the placed-bomb-visible subtype/state
+  - or the still-missing authority/source condition that allows the A-press to
+    mature beyond the temporary yellow marker into a committed object lifecycle
+- the same outbound build also merged both players' active `cmd=01` action records into one destination-local packet, while `cmd=02` object tables still remained `0/961` non-default
+- conclusion: the next fix should correct source identity and stop collapsing the raw per-player live stream before touching any more object logic
+
+Implemented runtime change:
+
+- `Player::send` now preserves an explicitly prefilled source id for non-relay packets when the caller already set offset `+4`
+- Bomberman live `cmd=01/02/03` now relays the raw sender payload instead of rebuilding an aggregated live payload
+- live `REQ_CHAT cmd=01/02/03` explicitly prefill the source id with the real sender player id
+- active `cmd=01` now self-echoes the raw sender payload instead of the merged aggregate payload
+- synthetic object injection remains disabled
+
+Next validation:
+
+- outbound dumps should show both source ids (`00001001` and `00001002`) arriving at both Dreamcast endpoints for live `cmd=01/02/03`
+- logs should show `live raw relay cmd=... source=... slots=...` and `cmd=01 raw self-echo ...`
+- if bombs still do not appear after that, the remaining target stays the client-local action ownership / `0x40` gate and not live packet relabeling
+
+## 2026-04-23 Sender Cmd02/Cmd03 Receive Gap
+
+Fresh evidence since the last hardware run tightened the first remaining
+gameplay blocker further.
+
+Artifacts:
+
+- latest runtime dumps:
+  - `D:\kageserver\data\23_13-20-19_BM_t.dmp`
+  - `D:\kageserver\data\23_13-20-19_BM_t_out.dmp`
+- live receive dispatcher:
+  - `D:\kageserver\docs\ghidra_decompile\pass108_battle_live_helpers\8c093fdc_FUN_8c093fdc.c`
+  - `D:\kageserver\docs\ghidra_decompile\pass116_battle_input_listings\8c093f80_8c094170.lst`
+- recovered action/object family tables:
+  - `D:\kageserver\docs\ghidra_decompile\pass152_action_vtables\8c06f240_8c06f2a0.lst`
+  - `D:\kageserver\docs\ghidra_decompile\pass154_action_table_functions\8c064f04_FUN_8c064f04.c`
+  - `D:\kageserver\docs\ghidra_decompile\pass154_action_table_functions\8c065588_FUN_8c065588.c`
+  - `D:\kageserver\docs\ghidra_decompile\pass156_object_state_helpers\8c018554_FUN_8c018554.c`
+  - `D:\kageserver\docs\ghidra_decompile\pass203_callers\8c0470f4_FUN_8c0470f4.c`
+
+New proven facts:
+
+- the historical outbound dump, split by destination endpoint and source id,
+  shows the acting console still did not receive its own live `cmd=02` /
+  `cmd=03` stream:
+  - `192.168.50.245 source=00001002` received `cmd=02: 335`, `cmd=03: 335`
+  - `192.168.50.246 source=00001001` received `cmd=02: 626`, `cmd=03: 626`
+  - those counts followed the opposite console's send cadence, not the
+    recipient's own cadence
+- at the same time, that dump already had a sender-facing `cmd=01` lane:
+  - outbound dump showed `cmd=01` to both endpoints at near-full cadence
+- `0x8C093FDC` is the live receive-only dispatcher:
+  - received server command `0x01` calls `0x8C0DDA44`
+  - received server command `0x02` calls `0x8C0DDBE4`
+  - received server command `0x03` calls `0x8C0DDD64`
+- `0x8C09758C` proves the active battle loop consumes those three receive
+  families separately:
+  - non-zero active-object flag `+0x94` calls `0x8C09A994` then clears `+0x94`
+  - non-zero active-object flag `+0x98` calls `0x8C09AAD8` then clears `+0x98`
+  - non-zero active-object flag `+0x9C` calls `0x8C09AC08` then clears `+0x9C`
+- those three apply functions write distinct stage markers back into the same
+  active battle object:
+  - `0x8C09A994` -> `+0x44 = 1`
+  - `0x8C09AAD8` -> `+0x44 = 2`
+  - `0x8C09AC08` -> `+0x44 = 3`
+- the same client-side family still converges on the bomb gate:
+  - vtable/data table `0x8C06F240` contains `0x8C064F04`, `0x8C065588`, and
+    `0x8C0470F4`
+  - `0x8C065588` calls `0x8C018554`, which writes the handle at `+0x016c`
+  - `0x8C0470F4` is the upstream action-engine gate that chooses the true
+    placed-bomb path `0x8C0479D2 -> 0x8C0906F4`
+
+Data-driven conclusion:
+
+- the missing sender `cmd=02/03` receive lane is now the strongest remaining
+  server-side candidate for why the A-press still stalls at the yellow marker:
+  - it is a real, measured asymmetry still present in the historical live run
+  - the client main loop proves those receive lanes are explicit stage gates,
+    not just passive mirrors
+  - it feeds the same recovered client state family as the `+0x0163` /
+    `+0x016c` / `+0x0170` placed-bomb gate
+
+Runtime correction:
+
+- the current checked-out source and current `kageserver.exe` are the raw-live
+  source-id-preserving variant
+- the older `merged aggregate self-dispatch` log trail is historical and should
+  not drive new rebuild decisions
+
+Next trusted server change:
+
+1. Keep the current raw-live baseline.
+2. Add sender self-dispatch for live `cmd=02` and `cmd=03` in the same
+   `REQ_CHAT` server-command family already used for live peers.
+3. Only then run the next hardware test, because this is the first remaining
+   change with a direct dump-to-binary causal chain into the placed-bomb gate.
+
+## 2026-04-23 Sender Cmd02/Cmd03 Self-Echo Falsified
+
+Fresh validation on the next run falsified that exact change.
+
+Artifacts:
+
+- `D:\kageserver\data\23_18-36-42_BM_t.dmp`
+- `D:\kageserver\data\23_18-36-42_BM_t_out.dmp`
+- `D:\kageserver\logs\kageserver.log`
+
+New proven facts:
+
+- `cmd=02` / `cmd=03` sender self-echo dramatically increased outbound live
+  traffic without changing the bomb result:
+  - previous run `23_13-20-19_BM_t_out`: `REQ_CHAT cmd=02: 961`,
+    `REQ_CHAT cmd=03: 961`
+  - falsifying run `23_18-36-42_BM_t_out`: `REQ_CHAT cmd=02: 3052`,
+    `REQ_CHAT cmd=03: 3050`
+- both endpoints now received both source streams for those lanes:
+  - `192.168.50.245` received `source=00001001` and `source=00001002` for
+    `cmd=02` and `cmd=03`
+  - `192.168.50.246` received `source=00001001` and `source=00001002` for
+    `cmd=02` and `cmd=03`
+- the committed object lane still did not move at all:
+  - `cmd=02 non-default object tables: 0/3052`
+- live logs directly reflected the added duplication:
+  - repeated `cmd=02 raw self-echo size=164 slots=03`
+  - repeated `cmd=03 raw self-echo size=36 slots=03`
+- the user-visible result matched the dump shape:
+  - no bomb placement
+  - remote sprite jitter / bounce regression
+
+Data-driven conclusion:
+
+- the `cmd=02` / `cmd=03` sender self-echo hypothesis is falsified
+- the change injects duplicate full-slot authoritative streams but still does
+  not produce any non-default object commit
+- this also explains the new jitter regression better than any upstream bomb
+  interpretation, because the falsifying run doubled both-source delivery on the
+  exact live lanes that drive movement/object refresh
+
+Next trusted step:
+
+1. Revert `cmd=02` / `cmd=03` sender self-echo to restore the prior movement
+   stability baseline.
+2. Keep the raw source-id-preserving live relay and existing `cmd=01`
+   self-echo.
+3. Return to the upstream client-local ownership / placed-bomb gate path
+   (`0x8C0470F4`, `0x8C0479D2`, `0x8C0906F4`, `+0x0163`, `+0x016c`) before the
+   next bomb-placement hardware test.
+
+## 2026-04-23 Slot-Table Ownership States And Decoder Boundary
+
+More static recovery tightened the remaining pre-fix boundary:
+
+- `0x8C099524` is the exact server `cmd=0x0a` slot-table state builder:
+  - local primary seat -> state `1`
+  - local guest seats -> state `2`
+  - non-local real-player seats -> state `3`
+  - it clears an 8-entry `0x14`-byte slot table, rebuilds it from the roster payload, then emits the visible slot/name presentation updates
+- that confirms Kage's existing post-map `cmd=0x0a` refresh is still the correct ownership-family command. The open bomb issue is not "wrong slot-table command family".
+- `0x8C0DDA44`, `0x8C0DDBE4`, and `0x8C0DDD64` are now sharply bounded as decode/staging helpers:
+  - `0x8C0DDA44` unpacks eight live player records, the 24-entry `cmd=01` action table, and a 16-byte trailer
+  - `0x8C0DDBE4` unpacks eight live player records, the 28 compact `cmd=02` object records, and a 16-byte trailer
+  - `0x8C0DDD64` unpacks the compact eight-slot `cmd=03` state block
+  - they feed later apply/state code, but they are not the direct writers for the `+0x0163` / `+0x016c` ownership bytes
+- raw listing resolution around `0x8C0470F4` / `0x8C0479D2` now pins the action-gate offsets:
+  - `+0x0163` = ownership/permission flag byte
+  - `+0x016C` = handle/state area
+  - `+0x0170` = companion comparison table used by the later action-script comparisons
+  - `0x8C0479D2` still reaches `0x8C0906F4` only when the acting player's `+0x0163` bit `0x40` is clear
+- the newly recovered lower half of `0x8C065588` shows the selector family around the `0x0e` branch is still upstream of that same gate:
+  - selector index `0x0e` triggers `0x8C018554(...,5)`
+  - selector index `0x0d` triggers `0x8C011034(...,4)`
+  - the other active indices in that loop trigger `0x8C018554(...,1)`
+
+Implication:
+
+- no new gameplay patch is justified from this pass
+- the next trustworthy change must come from identifying what flips `+0x0163 bit 0x40` and what server-visible event advances the queued `0x0e` branch into the committed bomb lifecycle
+
+## 2026-04-23 Bomb Commit Helper Follow-Up
+
+Additional Ghidra pass:
+
+- `D:\kageserver\docs\ghidra_decompile\pass209_bomb_commit_helpers`
+
+New binary facts:
+
+- `0x8C079A5C` and `0x8C079A80` are now directly decompiled:
+  - `0x8C079A5C` marks an action-table entry active at
+    `object+0x50 + index*0x10` and stores the entry value at `+0x04`
+  - `0x8C079A80` clears that same entry by zeroing the active flag and stored
+    value
+  - this proves the recovered action-table family is staged bookkeeping only,
+    not the committed large bomb-object table
+- `0x8C082910` and `0x8C0840C0`, both called from the true local bomb helper
+  `0x8C0906F4`, are board/tile validation helpers:
+  - `0x8C082910` classifies the target cell from occupancy/object layers and
+    returns a compact tile code
+  - `0x8C0840C0` performs the deeper placeability walk and rejects blocked or
+    already-occupied cells before commit continues
+- `0x8C061E2C`, reached from the later `0x8C0906F4` tail, computes display or
+  panel coordinates from the object's packed flags and board position; it does
+  not flip ownership/permission state
+- `0x8C0935B0`, also reached from the helper tail, is a queue or ring-buffer
+  advance helper that rotates a linked buffer and updates indices at `+0x48`,
+  `+0x4c`, and `+0x50`
+
+Data-driven interpretation:
+
+- the action-table family is now proven bookkeeping only
+- the newly recovered board-validation family is downstream of the true local
+  bomb helper, not the upstream yellow-marker gate
+- these helpers do not explain why the acting player still reaches the queued
+  path instead of `0x8C0479D2 -> 0x8C0906F4`
+- the remaining blocker is still the writer or consumer chain for the acting
+  player's `+0x0163 bit 0x40`, plus the exact server-visible event that clears
+  it before the local helper runs
+- no honest `95%+` gameplay fix is justified yet from the current evidence set
+
+## 2026-04-23 Downstream Placed-Bomb Object Chain And Runtime Reconciliation
+
+Additional caller tracing and live-runtime verification tightened two important
+boundaries.
+
+Artifacts:
+
+- `D:\kageserver\docs\ghidra_decompile\pass211_object_state_callers`
+- `D:\kageserver\docs\ghidra_decompile\pass212_object_state_caller_listing`
+- `D:\kageserver\data\23_13-20-19_BM_t.dmp`
+- `D:\kageserver\data\23_18-36-42_BM_t.dmp`
+- `D:\kageserver\logs\kageserver.log`
+- `D:\kageserver\kageserver.exe`
+
+New proven facts:
+
+- `0x8C0906F4` is firmly inside the true local placed-bomb object path:
+  - it allocates a free `0x74`-byte panel/object slot
+  - seeds local bomb state into that slot
+  - stores the spawned object back into the panel occupancy table
+- `0x8C075A78` is a downstream object/panel dispatcher reached from that same
+  lifecycle:
+  - in the recovered state-`4` branch it computes a directional bitmask
+    `1/2/4/8`
+  - it then calls `0x8C09109C`
+- `0x8C09109C` mutates the local object state further and sets
+  `object+0x28 |= 0x40`
+- the downstream placed-bomb object lifecycle is therefore now mapped as:
+  - `0x8C0479D2 -> 0x8C0906F4 -> 0x8C075A78 -> 0x8C09109C`
+- this proves the visible yellow-marker failure is still happening before the
+  client is allowed to enter the real local placed-bomb object chain
+
+Runtime reconciliation:
+
+- the regressed `cmd=02` / `cmd=03` sender-self-echo run ended at
+  `2026-04-23 18:41:07` in `kageserver.log`
+- the current clean rebuild wrote `D:\kageserver\kageserver.exe` at
+  `2026-04-23 18:44:06`
+- the currently running server process restarted at `2026-04-23 18:44:30`
+- no newer hardware dump pair exists after that clean restart
+
+Data-driven conclusion:
+
+- the duplicate `cmd=02` / `cmd=03` self-echo path is both falsified and no
+  longer the live runtime baseline
+- the current trustworthy live baseline is the restored raw-live build without
+  `cmd=02` / `cmd=03` sender self-echo
+- the remaining honest target is still the upstream writer/consumer chain for
+  the acting player's `+0x0163 bit 0x40`, because the downstream placed-bomb
+  object lifecycle is now proven to exist once that gate is cleared
+
+## 2026-04-24 Networked Bomb Gate Split Clarified
+
+Fresh action-root inspection narrowed the meaning of the remaining gate.
+
+Artifacts:
+
+- `D:\kageserver\docs\ghidra_decompile\pass178_action_root\8c0470f4_FUN_8c0470f4.c`
+- `D:\kageserver\docs\ghidra_decompile\pass148_action_interpreter_entry\8c047940_FUN_8c047940.c`
+- `D:\kageserver\docs\ghidra_decompile\pass148_action_interpreter_entry\8c0479d2_FUN_8c0479d2.c`
+- `D:\kageserver\docs\ghidra_decompile\pass168_cmd01_sender_followup\8c09ad3c_8c09afe4.lst`
+
+New proven facts:
+
+- `0x8C0470F4` / `0x8C047940` do not use `+0x0163 bit 0x40` as a simple
+  "broken bomb" flag.
+- When the acting player's `+0x0163 bit 0x40` is clear and the matched action
+  script resolves to opcode `1`, the code takes the true local placed-bomb
+  path via `0x8C0479D2 -> 0x8C0906F4`.
+- When that same bit is set, the code does not drop the action. Instead it
+  appends `+0x0e` into the per-player pending action table at
+  `player + DAT_8c0473fc / DAT_8c0473fe / DAT_8c047400`.
+- `0x8C09AD3C`, the live `cmd=01` sender, then scans the same action-table
+  family through:
+  - `0x8C079A92` to test whether an entry is active
+  - `0x8C079ACE` to fetch the entry value used when packing the six-byte
+    action records
+
+Data-driven interpretation:
+
+- in online/network-authoritative play, A-press is likely supposed to enter the
+  queued selector-`0x0e` path rather than always calling the direct local bomb
+  helper immediately
+- that means the remaining blocker is probably not "clear the bit so bombs work
+  offline-style"
+- the next trustworthy target is to prove how the queued `0x0e` branch is
+  represented in the outgoing `cmd=01` action-table stream and what
+  authoritative response causes the client to promote that queued path into the
+  real placed-bomb object lifecycle
+- fresh dump parsing keeps that target narrow:
+  - latest A-press action records remain stable six-byte forms such as
+    `354040120000` and `044040020000`
+  - parsed words stay at:
+    - source `1002`: `w1=0x3540/0x3160`, `w2=0x4012`, `w3=0x0000`
+    - source `1001`: `w1=0x0440/0x0820/0x0420`, `w2=0x4002`, `w3=0x0000`
+  - there is still no obvious literal network-field value `0x0e` in those
+    observed records, so the queued selector is likely represented indirectly
+    rather than as a plain one-byte action opcode on the wire
+
+Practical consequence:
+
+- no honest gameplay patch should try to force-clear `+0x0163 bit 0x40`
+  without stronger binary evidence
+- the safer next line of work is action-record decoding and queued-`0x0e`
+  round-trip correlation rather than more blind `cmd=02` object synthesis

@@ -1,0 +1,9 @@
+target=8c0479fa
+symbol=DAT_8c0479fa
+ref[0] from=8c0478ae type=READ opIndex=0 function=FUN_8c047940 entry=8c047940
+ref[1] from=8c0478d0 type=READ opIndex=0 function=FUN_8c047940 entry=8c047940
+ref[2] from=8c047922 type=READ opIndex=0 function=FUN_8c047940 entry=8c047940
+ref[3] from=8c047944 type=READ opIndex=0 function=FUN_8c047940 entry=8c047940
+ref[4] from=8c047996 type=READ opIndex=0 function=FUN_8c04795e entry=8c04795e
+ref[5] from=8c0479b8 type=READ opIndex=0 function=FUN_8c04795e entry=8c04795e
+count=6

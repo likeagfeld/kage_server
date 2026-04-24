@@ -1,0 +1,31 @@
+; range: 8c09e790 - 8c09e7c8
+
+8c09e790  36 2f        mov.l r3,@-r15
+8c09e792  18 63        swap.b r1,r3
+8c09e794  16 2f        mov.l r1,@-r15
+8c09e796  1c 61        extu.b r1,r1
+8c09e798  46 2f        mov.l r4,@-r15
+8c09e79a  3c 63        extu.b r3,r3
+8c09e79c  56 2f        mov.l r5,@-r15
+8c09e79e  20 e5        mov #0x20,r5
+8c09e7a0  21 64        mov.w @r2,r4
+8c09e7a2  18 35        sub r1,r5
+8c09e7a4  43 61        mov r4,r1
+8c09e7a6  5d 40        shld r5,r0
+8c09e7a8  10 73        add #0x10,r3
+8c09e7aa  3d 41        shld r3,r1
+8c09e7ac  0a 21        xor r0,r1
+8c09e7ae  5b 65        neg r5,r5
+8c09e7b0  5d 41        shld r5,r1
+8c09e7b2  5d 40        shld r5,r0
+8c09e7b4  5b 65        neg r5,r5
+8c09e7b6  38 35        sub r3,r5
+8c09e7b8  5d 41        shld r5,r1
+8c09e7ba  f6 65        mov.l @r15+,r5
+8c09e7bc  4a 21        xor r4,r1
+8c09e7be  f6 64        mov.l @r15+,r4
+8c09e7c0  11 22        mov.w r1,@r2
+8c09e7c2  f6 61        mov.l @r15+,r1
+8c09e7c4  0b 00        rts
+8c09e7c6  f6 63        _mov.l @r15+,r3
+8c09e7c8  16 2f        mov.l r1,@-r15

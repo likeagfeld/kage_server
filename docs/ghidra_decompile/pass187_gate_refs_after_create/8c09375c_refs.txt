@@ -1,0 +1,30 @@
+target=8c09375c
+symbol=FUN_8c09375c
+ref[0] from=8c0e6fe6 type=COMPUTED_CALL opIndex=0 function=FUN_8c0e6fb4 entry=8c0e6fb4
+ref[1] from=8c0de0f8 type=COMPUTED_CALL opIndex=0 function=FUN_8c0de0c6 entry=8c0de0c6
+ref[2] from=8c0e11de type=COMPUTED_CALL opIndex=0 function=FUN_8c0e11ac entry=8c0e11ac
+ref[3] from=8c0e3aac type=COMPUTED_CALL opIndex=0 function=FUN_8c0e3a7a entry=8c0e3a7a
+ref[4] from=8c0dfac6 type=COMPUTED_CALL opIndex=0 function=FUN_8c0dfa94 entry=8c0dfa94
+ref[5] from=8c0e9bde type=COMPUTED_CALL opIndex=0 function=FUN_8c0e9bac entry=8c0e9bac
+ref[6] from=8c0de124 type=DATA opIndex=0 function=<none> entry=<none>
+ref[7] from=8c0e120c type=DATA opIndex=0 function=<none> entry=<none>
+ref[8] from=8c0e3b40 type=DATA opIndex=0 function=<none> entry=<none>
+ref[9] from=8c0e7080 type=DATA opIndex=0 function=<none> entry=<none>
+ref[10] from=8c0e9cdc type=DATA opIndex=0 function=<none> entry=<none>
+ref[11] from=8c01f854 type=DATA opIndex=0 function=<none> entry=<none>
+ref[12] from=8c07948a type=COMPUTED_CALL opIndex=0 function=FUN_8c079458 entry=8c079458
+ref[13] from=8c07951c type=DATA opIndex=0 function=<none> entry=<none>
+ref[14] from=8c01f806 type=COMPUTED_CALL opIndex=0 function=FUN_8c01f7d4 entry=8c01f7d4
+ref[15] from=8c072da4 type=DATA opIndex=0 function=<none> entry=<none>
+ref[16] from=8c076560 type=DATA opIndex=0 function=<none> entry=<none>
+ref[17] from=8c072c6a type=COMPUTED_CALL opIndex=0 function=<none> entry=<none>
+ref[18] from=8c077e78 type=DATA opIndex=0 function=<none> entry=<none>
+ref[19] from=8c0781f0 type=DATA opIndex=0 function=<none> entry=<none>
+ref[20] from=8c078344 type=DATA opIndex=0 function=<none> entry=<none>
+ref[21] from=8c0783f0 type=DATA opIndex=0 function=<none> entry=<none>
+ref[22] from=8c078650 type=DATA opIndex=0 function=<none> entry=<none>
+ref[23] from=8c079db8 type=DATA opIndex=0 function=<none> entry=<none>
+ref[24] from=8c094b4c type=DATA opIndex=0 function=<none> entry=<none>
+ref[25] from=8c0dfb40 type=DATA opIndex=0 function=<none> entry=<none>
+ref[26] from=8c076430 type=COMPUTED_CALL opIndex=0 function=FUN_8c076364 entry=8c076364
+count=27

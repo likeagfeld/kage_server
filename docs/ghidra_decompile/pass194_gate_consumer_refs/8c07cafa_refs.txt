@@ -1,0 +1,6 @@
+target=8c07cafa
+symbol=FUN_8c07cafa
+ref[0] from=8c07c958 type=UNCONDITIONAL_CALL opIndex=0 function=FUN_8c07c5c0 entry=8c07c5c0
+ref[1] from=8c06a9c4 type=DATA opIndex=0 function=<none> entry=<none>
+ref[2] from=8c06a91e type=COMPUTED_CALL opIndex=0 function=<none> entry=<none>
+count=3

@@ -1,0 +1,6 @@
+target=8c04786e
+symbol=DAT_8c04786e
+ref[0] from=8c047714 type=READ opIndex=0 function=FUN_8c047940 entry=8c047940
+ref[1] from=8c047788 type=READ opIndex=0 function=FUN_8c047940 entry=8c047940
+ref[2] from=8c0477fc type=READ opIndex=0 function=FUN_8c047940 entry=8c047940
+count=3

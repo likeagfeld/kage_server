@@ -1,0 +1,47 @@
+; range: 8c011060 - 8c0110c0
+
+8c011060  64 88 1d 8c  addr 8c1d8864
+8c011064  ec 86 1d 8c  addr 8c1d86ec
+8c011068  a0 d1 27 8c  undefined4 8C27D1A0h
+8c01106c  4c c4 19 8c  addr 8c19c44c
+8c011070  48 98 2d 8c  undefined4 8C2D9848h
+8c011074  c4 7e 1d 8c  addr 8c1d7ec4
+8c011078  8c 98 2d 8c  undefined4 8C2D988Ch
+8c01107c  00 00 80 47  undefined4 47800000h
+8c011080  00 00 b4 43  undefined4 43B40000h
+8c011084  3c 82 1d 8c  addr 8c1d823c
+8c011088  6c 83 1d 8c  addr 8c1d836c
+8c01108c  1c 86 1d 8c  addr 8c1d861c
+8c011090  e4 81 05 8c  addr 8c0581e4
+8c011094  8a 81 05 8c  addr 8c05818a
+8c011098  4e           ?? 4Eh    N
+8c011099  84           ?? 84h
+8c01109a  05           ?? 05h
+8c01109b  8c           ?? 8Ch
+8c01109c  42           ?? 42h    B
+8c01109d  60           ?? 60h    `
+8c01109e  01           ?? 01h
+8c01109f  c8           ?? C8h
+8c0110a0  02           ?? 02h
+8c0110a1  8d           ?? 8Dh
+8c0110a2  00           ?? 00h
+8c0110a3  e6           ?? E6h
+8c0110a4  41           ?? 41h    A
+8c0110a5  52           ?? 52h    R
+8c0110a6  22           ?? 22h    "
+8c0110a7  56           ?? 56h    V
+8c0110a8  0b           ?? 0Bh
+8c0110a9  00           ?? 00h
+8c0110aa  63           ?? 63h    c
+8c0110ab  60           ?? 60h    `
+8c0110ac  42 60        mov.l @r4,r0
+8c0110ae  01 c8        tst #0x1,r0
+8c0110b0  02 8d        bt/s 0x8c0110b8
+8c0110b2  00 e6        _mov #0x0,r6
+8c0110b4  41 52        mov.l @(0x4,r4),r2
+8c0110b6  25 56        mov.l @(0x14,r2),r6
+8c0110b8  0b 00        rts
+8c0110ba  63 60        _mov r6,r0
+8c0110bc  42 60        mov.l @r4,r0
+8c0110be  01 c8        tst #0x1,r0
+8c0110c0  09 8d        bt/s 0x8c0110d6

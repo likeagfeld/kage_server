@@ -1,0 +1,38 @@
+; range: 8c07cc60 - 8c07cca8
+
+8c07cc60  1c 90        mov.w 0x8c07cc9c,r0
+8c07cc62  15 42        cmp/pl r2
+8c07cc64  ae 05        mov.l @(r0,r10),r5
+8c07cc66  36 8f        bf/s 0x8c07ccd6
+8c07cc68  00 e6        _mov #0x0,r6
+8c07cc6a  25 a0        bra 0x8c07ccb8
+8c07cc6c  09 00        _nop
+8c07cc6e  28 0a        undefined2 0A28h
+8c07cc70  2c 0a        undefined2 0A2Ch
+8c07cc72  38 01        undefined2 0138h
+8c07cc74  60 01        undefined2 0160h
+8c07cc76  40 0a        undefined2 0A40h
+8c07cc78  3c 0a        undefined2 0A3Ch
+8c07cc7a  44 0a        undefined2 0A44h
+8c07cc7c  48 0a        undefined2 0A48h
+8c07cc7e  4c 0a        undefined2 0A4Ch
+8c07cc80  88 0a        undefined2 0A88h
+8c07cc82  ec 00        undefined2 00ECh
+8c07cc84  8c 0a        undefined2 0A8Ch
+8c07cc86  94 0a        undefined2 0A94h
+8c07cc88  90 0a        undefined2 0A90h
+8c07cc8a  98 0a        undefined2 0A98h
+8c07cc8c  9c 0a        undefined2 0A9Ch
+8c07cc8e  a0 0a        undefined2 0AA0h
+8c07cc90  a4 0a        undefined2 0AA4h
+8c07cc92  a8 0a        undefined2 0AA8h
+8c07cc94  ac 0a        undefined2 0AACh
+8c07cc96  b0 0a        undefined2 0AB0h
+8c07cc98  f4 15        undefined2 15F4h
+8c07cc9a  94 15        undefined2 1594h
+8c07cc9c  b4 0a        undefined2 0AB4h
+8c07cc9e  00           ?? 00h
+8c07cc9f  00           ?? 00h
+8c07cca0  fc ed 09 8c  addr 8c09edfc
+8c07cca4  ff ff 7f 00  undefined4 007FFFFFh
+8c07cca8  38 fc 09 8c  addr 8c09fc38

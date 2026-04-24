@@ -1,0 +1,6 @@
+target=8c065588
+symbol=FUN_8c065588
+ref[0] from=8c06cb38 type=DATA opIndex=0 function=<none> entry=<none>
+ref[1] from=8c06f260 type=DATA opIndex=0 function=<none> entry=<none>
+ref[2] from=8c07322c type=DATA opIndex=0 function=<none> entry=<none>
+count=3

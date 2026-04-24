@@ -1,0 +1,30 @@
+; range: 8c01858c - 8c0185c0
+
+8c01858c  c8 01        undefined2 01C8h
+8c01858e  18           ?? 18h
+8c01858f  02           ?? 02h
+8c018590  c4           ?? C4h
+8c018591  01           ?? 01h
+8c018592  18 01        undefined2 0118h
+8c018594  10 01        undefined2 0110h
+8c018596  68 07        undefined2 0768h
+8c018598  00 00 00 80  undefined4 80000000h
+8c01859c  ff ff ff 7f  undefined4 7FFFFFFFh
+8c0185a0  ff ff ff df  undefined4 DFFFFFFFh
+8c0185a4  00 00 00 20  undefined4 20000000h
+8c0185a8  94 56 02 8c  addr 8c025694
+8c0185ac  6a 61 04 8c  addr 8c04616a
+8c0185b0  1e 47 06 8c  addr 8c06471e
+8c0185b4  86           ?? 86h
+8c0185b5  2f           ?? 2Fh    /
+8c0185b6  96           ?? 96h
+8c0185b7  2f           ?? 2Fh    /
+8c0185b8  a6           ?? A6h
+8c0185b9  2f           ?? 2Fh    /
+8c0185ba  b6           ?? B6h
+8c0185bb  2f           ?? 2Fh    /
+8c0185bc  c6           ?? C6h
+8c0185bd  2f           ?? 2Fh    /
+8c0185be  d6           ?? D6h
+8c0185bf  2f           ?? 2Fh    /
+8c0185c0  e6           ?? E6h

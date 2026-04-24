@@ -1,0 +1,32 @@
+; range: 8c09eeb4 - 8c09eef0
+
+8c09eeb4  08 d4        mov.l 0x8c09eed8,r4
+8c09eeb6  09 d3        mov.l 0x8c09eedc,r3
+8c09eeb8  12 4f        sts.l MACL,@-r15
+8c09eeba  42 62        mov.l @r4,r2
+8c09eebc  09 91        mov.w 0x8c09eed2,r1
+8c09eebe  37 02        mul.l r3,r2
+8c09eec0  08 92        mov.w 0x8c09eed4,r2
+8c09eec2  1a 03        sts MACL,r3
+8c09eec4  1c 33        add r1,r3
+8c09eec6  33 60        mov r3,r0
+8c09eec8  29 40        shlr16 r0
+8c09eeca  29 20        and r2,r0
+8c09eecc  32 24        mov.l r3,@r4
+8c09eece  0b 00        rts
+8c09eed0  16 4f        _lds.l @r15+,MACL
+8c09eed2  39 30        undefined2 3039h
+8c09eed4  ff 7f        undefined2 7FFFh
+8c09eed6  00           ?? 00h
+8c09eed7  00           ?? 00h
+8c09eed8  bc f8 1b 8c  addr 8c1bf8bc
+8c09eedc  6d 4e c6 41  undefined4 41C64E6Dh
+8c09eee0  22 4f        sts.l PR,@-r15
+8c09eee2  fc 7f        add #-0x4,r15
+8c09eee4  f3 60        mov r15,r0
+8c09eee6  08 70        add #0x8,r0
+8c09eee8  42 2f        mov.l r4,@r15
+8c09eeea  03 e4        mov #0x3,r4
+8c09eeec  04 70        add #0x4,r0
+8c09eeee  08 24        tst r0,r4
+8c09eef0  03 89        bt 0x8c09eefa

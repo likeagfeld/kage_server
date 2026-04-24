@@ -1,0 +1,4 @@
+target=8c090b50
+symbol=PTR_FUN_8c090b50
+ref[0] from=8c090a66 type=READ opIndex=0 function=FUN_8c0906f4 entry=8c0906f4
+count=1

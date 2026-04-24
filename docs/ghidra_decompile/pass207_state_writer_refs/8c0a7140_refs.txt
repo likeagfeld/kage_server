@@ -1,0 +1,8 @@
+target=8c0a7140
+symbol=FUN_8c0a7140
+ref[0] from=8c0a63d6 type=UNCONDITIONAL_CALL opIndex=0 function=FUN_8c0a634e entry=8c0a634e
+ref[1] from=8c0a64e6 type=UNCONDITIONAL_CALL opIndex=0 function=FUN_8c0a634e entry=8c0a634e
+ref[2] from=8c0a6594 type=UNCONDITIONAL_CALL opIndex=0 function=FUN_8c0a634e entry=8c0a634e
+ref[3] from=8c0a6734 type=UNCONDITIONAL_CALL opIndex=0 function=FUN_8c0a634e entry=8c0a634e
+ref[4] from=8c0a7812 type=UNCONDITIONAL_CALL opIndex=0 function=<none> entry=<none>
+count=5

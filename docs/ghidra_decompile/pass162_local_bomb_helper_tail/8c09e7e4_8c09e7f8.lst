@@ -1,0 +1,13 @@
+; range: 8c09e7e4 - 8c09e7f8
+
+8c09e7e4  16 2f        mov.l r1,@-r15
+8c09e7e6  18 60        swap.b r1,r0
+8c09e7e8  36 2f        mov.l r3,@-r15
+8c09e7ea  0c 63        extu.b r0,r3
+8c09e7ec  21 60        mov.w @r2,r0
+8c09e7ee  1c 61        extu.b r1,r1
+8c09e7f0  e0 71        add #-0x20,r1
+8c09e7f2  10 73        add #0x10,r3
+8c09e7f4  3d 40        shld r3,r0
+8c09e7f6  1d 40        shld r1,r0
+8c09e7f8  f6 63        mov.l @r15+,r3

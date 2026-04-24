@@ -1,0 +1,28 @@
+target=8c0a7ff4
+symbol=FUN_8c0a7ff4
+ref[0] from=8c09dbb0 type=DATA opIndex=0 function=<none> entry=<none>
+ref[1] from=8c0aa524 type=DATA opIndex=0 function=<none> entry=<none>
+ref[2] from=8c0eec18 type=DATA opIndex=0 function=<none> entry=<none>
+ref[3] from=8c0f027c type=DATA opIndex=0 function=<none> entry=<none>
+ref[4] from=8c0f2600 type=DATA opIndex=0 function=<none> entry=<none>
+ref[5] from=8c0f2ca8 type=DATA opIndex=0 function=<none> entry=<none>
+ref[6] from=8c0f3224 type=DATA opIndex=0 function=<none> entry=<none>
+ref[7] from=8c0f37c4 type=DATA opIndex=0 function=<none> entry=<none>
+ref[8] from=8c0f3b5c type=DATA opIndex=0 function=<none> entry=<none>
+ref[9] from=8c0f41d4 type=DATA opIndex=0 function=<none> entry=<none>
+ref[10] from=8c128c54 type=DATA opIndex=0 function=<none> entry=<none>
+ref[11] from=8c1291b4 type=DATA opIndex=0 function=<none> entry=<none>
+ref[12] from=8c129890 type=DATA opIndex=0 function=<none> entry=<none>
+ref[13] from=8c12a29c type=DATA opIndex=0 function=<none> entry=<none>
+ref[14] from=8c12a99c type=DATA opIndex=0 function=<none> entry=<none>
+ref[15] from=8c12b1c0 type=DATA opIndex=0 function=<none> entry=<none>
+ref[16] from=8c12bc4c type=DATA opIndex=0 function=<none> entry=<none>
+ref[17] from=8c12ccbc type=DATA opIndex=0 function=<none> entry=<none>
+ref[18] from=8c12d368 type=DATA opIndex=0 function=<none> entry=<none>
+ref[19] from=8c12dc34 type=DATA opIndex=0 function=<none> entry=<none>
+ref[20] from=8c12e5f8 type=DATA opIndex=0 function=<none> entry=<none>
+ref[21] from=8c14a658 type=DATA opIndex=0 function=<none> entry=<none>
+ref[22] from=8c0aa448 type=COMPUTED_CALL opIndex=0 function=FUN_8c0aa398 entry=8c0aa398
+ref[23] from=8c0ef90e type=COMPUTED_CALL opIndex=0 function=<none> entry=<none>
+ref[24] from=8c0efa38 type=DATA opIndex=0 function=<none> entry=<none>
+count=25
