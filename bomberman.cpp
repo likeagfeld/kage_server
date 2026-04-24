@@ -994,8 +994,9 @@ void BMRoom::noteActionLane(Player *player, bool active, size_t recordIndex, con
 		return;
 
 	state.active = true;
+	const uint8_t currentSelector = (uint8_t)((current[2] >> 4) & 0x0f);
 	state.pendingBombPromotion = ((current[3] & 0x0f) == BombermanObjectSubtypeBombUpItem)
-		&& (((current[2] >> 4) & 0x0f) == 0);
+		&& currentSelector != BombermanCmd01BombPromotionSelector;
 	state.recordIndex = recordIndex;
 	state.record = current;
 	armSyntheticBombObject(player, recordIndex, record);
