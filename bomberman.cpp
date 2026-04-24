@@ -1027,8 +1027,15 @@ bool BMRoom::consumePendingBombPromotion(Player *player, size_t recordIndex, con
 
 	std::array<uint8_t, 6> current {};
 	memcpy(current.data(), record, current.size());
+	const uint8_t currentSelector = (uint8_t)((current[2] >> 4) & 0x0f);
 	const std::array<uint8_t, 6> promotionKey = makeBombermanCmd01PromotionKey(record);
 	if (state.record != current)
+		return false;
+	// Fresh logs show the first real bomb-arm edge arrives as selector 4 -> 5,
+	// while later lingering selector-0 forms of the same action can be
+	// re-observed for seconds afterward. Keep the initial edge and stop
+	// re-promoting the stale selector-0 form.
+	if (currentSelector != 4)
 		return false;
 	if (state.hasLastPromotedRecord && state.lastPromotedRecord == promotionKey)
 		return false;
