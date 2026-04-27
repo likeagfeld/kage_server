@@ -4566,3 +4566,64 @@ capture to reference OR more binary work tracing the attribute
 consumer. Item pickup is therefore deferred until we have one of
 those.
 
+
+## 2026-04-27 (extended option-2) Item type bytes mapped, mode discriminator still hidden
+
+Continued binary tracing of FUN_8c08d534 (state-7 panel/item handler):
+
+- Items use the panel mechanic in this binary. They are not separate
+  "items" but PANELS with item-type bytes encoded in a cell-type
+  array at offset 0xA88 of the active battle context.
+- Item-type byte values that fire specific effects: 0x5f, 0x60
+  (95-96 — possibly bomb-up / fire-up), 99/100/0x65/0x66 (99-102 —
+  another item set), 0x67 (103 — special). Values 0-27 (< 0x1c) and
+  28-75 (0x1c-0x4b) are different categories (likely panel-flip
+  scoring vs item-pickup tiers).
+- The state-7 handler reads bVar1 = cell-type byte and dispatches
+  to different effect float values (DAT_8c08d8f8, DAT_8c08d8f4,
+  PTR_FUN_8c08d900, etc.) which seem to be visual flash colors / chain
+  multipliers rather than direct stat increments.
+- "Off Panel %d Passed" string fires from FUN_8c07f510 at addresses
+  0x8c080534 / 0x8c0805fc / 0x8c0806a4 - the cell EXIT handler when
+  a player leaves a panel cell.
+- "PanelHasReached %d Complete" string fires from address 0x8c089b6e -
+  this is the chain-completion success path. Decompiling that area
+  is the next step to understand what makes the chain complete vs
+  timeout.
+
+What is still unknown after this round of tracing:
+
+- The specific rule blob byte or room attribute bit that switches
+  between Normal Battle (where items grant on simple walkover) and
+  Panel/Hyper modes (where chains are required to complete pickup)
+- All captured matches show identical mode behaviour so the
+  discriminator is either not in the data we've captured, OR all
+  the user's rule selections happen to put the room in panel-flavoured
+  mode.
+
+Possible interpretations of the user's reports (data-grounded, ranked
+by likelihood):
+
+1. The user's room is in Hyper mode (which uses panel chains for
+   item collection in Bomberman Online). "Judge!!" is normal panel
+   chain timeout UI in this mode. To get classic item-pickup, user
+   would need to pick "Normal Battle" mode in the room rules screen
+   and the rule blob byte that selects this is one we haven't yet
+   identified empirically.
+2. The kageserver's defaulted-to-zero room attributes prevent the
+   binary from selecting Normal Battle mode at all, regardless of
+   what the user picks.
+3. The original Hudson server sent a room-broadcast packet during
+   match setup that we are missing, which would have configured the
+   room into Normal Battle mode.
+
+Concrete next-step options to close item pickup:
+
+a. Decompile FUN_8c089b6e area to find the chain-completion success
+   path. That tells us what input/state advances "Judge!!" timeout
+   into actual pickup. (~30 min more binary work.)
+b. Have the user attempt picking "Normal Battle" specifically in the
+   room rules screen and capture the rule blob bytes to compare
+   against current 00 00 0X 0X 00 00 00 0f 0f. Any byte that changes
+   identifies the mode discriminator. (One small targeted test.)
+
