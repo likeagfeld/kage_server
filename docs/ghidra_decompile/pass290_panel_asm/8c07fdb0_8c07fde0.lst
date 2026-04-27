@@ -1,0 +1,18 @@
+; range: 8c07fdb0 - 8c07fde0
+
+8c07fdb0  98 0a        undefined2 0A98h
+8c07fdb2  84 00        undefined2 0084h
+8c07fdb4  f0 00        undefined2 00F0h
+8c07fdb6  f4 00        undefined2 00F4h
+8c07fdb8  c8 e7 09 8c  addr 8c09e7c8
+8c07fdbc  1e 9b 08 8c  addr 8c089b1e
+8c07fdc0  00 00 c0 3f  undefined4 3FC00000h
+8c07fdc4  60 c8 1b 8c  addr 8c1bc860
+8c07fdc8  38 57 18 8c  addr 8c185738
+8c07fdcc  b0 35 09 8c  addr 8c0935b0
+8c07fdd0  70 51 08 8c  addr 8c085170
+8c07fdd4  e4 e7 09 8c  addr 8c09e7e4
+8c07fdd8  74 57 18 8c  addr 8c185774
+8c07fddc  2e d3        mov.l 0x8c07fe98,r3
+8c07fdde  53 90        mov.w 0x8c07fe88,r0
+8c07fde0  22 2f        mov.l r2,@r15

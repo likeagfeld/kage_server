@@ -4913,3 +4913,81 @@ The cmd=0x17 + cmd=0x13 fixes for recap progression remain the
 strongest grounded improvements from this entire session and should
 be tested independently of item pickup status.
 
+
+
+## 2026-04-27 (post-context-compact resumption) Pickup gate IS cell+9 high nibble — not the +0x2c global
+
+Resumed tracing item pickup via passes 289-293 after the prior trace
+got distracted by a `puVar19+iVar9+0x3c` reference that turned out to be
+a STACK-FRAME SCRATCH SLOT inside `FUN_8c07f510`, not a player-record
+field. (Earlier "player+0x3c" hypothesis was wrong.)
+
+**Resolved the literal-pool pointer slots in `FUN_8c07f510`:**
+- `PTR_FUN_8c07fdb8` → `__bfxbu` (bit-field-extract-unsigned at 0x8c09e7c8)
+- `PTR_FUN_8c07fdbc` → **PanelHasReached itself** (`FUN_8c089b1e`)
+- `PTR_FUN_8c08004c` → **The pickup grant** (`FUN_8c085170`)
+- `PTR_FUN_8c07fdcc` → `printf`-equivalent (`FUN_8c0935b0`) used to log
+  `"Panel %d FLAG_GO_PLAYER Timeout"`
+
+So the indirect-call hops through PTR slots that I had previously been
+unable to resolve are all just lining up the standard call:
+`PanelHasReached(playerStruct[idx], cell)` → if true → `FUN_8c085170(...)`.
+
+**The pickup gate (FUN_8c089b1e) reads (from SH-4 asm at 0x8c089b1e):**
+```
+mov.b @(0x8,r6),r0   ; r0 = cell[8] (state byte)
+cmp/eq #0x9,r0       ; must be state 9
+bf return0
+add #0x9,r2          ; r2 = cell+9
+jsr __bfxbu          ; bfxbu(cell+9, width=4) → top 4 bits of cell[9]
+mov.w @(0x4,r13),r0  ; r0 = playerStruct[4] (player_id)
+cmp/eq r2,r6         ; bfxbu_result == player_id?
+bf return0
+... ; check playerStruct[0x1040 + cellId*0x14] == 0 (history slot empty)
+```
+
+**So pickup requires ALL THREE:**
+1. `cell[8] == 0x09` (item materialized, awaiting walkover)
+2. `cell[9] >> 4 == playerStruct.player_id` ← THE KEY GATE
+3. `playerStruct[0x1040 + cellId*0x14] == 0` (per-player pickup history empty)
+
+When the gate FAILS (typically because gate #2 fails), the cell sits at
+state-9 and the float timer at `cell+0x18` accumulates. When it crosses
+threshold `DAT_8c07fdc0`, the timeout path at `0x8c07fc70` fires:
+```
+fcmp/gt fr8,fr9   ; fr8 = cell timer, fr9 = threshold
+bf continue       ; if not yet timed out
+... ; print "Panel %d FLAG_GO_PLAYER Timeout"
+```
+**This is the "Judge!!" overlay the user sees** — the cell sits state-9,
+the timer expires, the timeout path runs and shows the diagnostic.
+
+**The board init function (`FUN_8c07cafa`) clears `cell[9]` high nibble
+to 0 at startup** (lines 145, 188 use `& 0x0f` masks). So initially
+ONLY player_id 0 can satisfy the gate. The high nibble must be SET by
+some upstream walkover-detection step that primes "player N is now on
+this cell" before the state-9 handler runs.
+
+**Remaining unknown:** WHICH function writes the high nibble of `cell[9]`
+during a normal walkover. The byte has 100 writers across the binary
+(`pass292_cell9_writers/cell_plus_9_writers.txt`), most are init paths.
+Many candidate runtime writers in `FUN_8c07cafa`, `FUN_8c07d38c`,
+`FUN_8c07e2fc`, `FUN_8c08*` family — would need a focused scan for
+writers that AND/OR with `& 0x0f` then OR-in `playerId << 4`.
+
+**Single concrete server-side experiment for next hardware test:**
+
+The cmd=01 PROMOTION logic at `bomberman.cpp:2823+` mutates the live
+cmd=01 record before relaying. If that mutation is corrupting the byte
+that the client uses to compute "which player walked onto cell X",
+the cell+9 high nibble never gets primed and pickup silently dead-
+ends in FLAG_GO_PLAYER Timeout (= "Judge!!").
+
+Hypothesis to test: temporarily DISABLE the cmd=01 promotion path
+(`consumePendingBombPromotion` short-circuits to `false`) and see if
+item pickup starts working. If yes → the promotion is the corruption
+source and we have a focused server fix. If no → the cell+9 byte is
+populated by a different cmd entirely (cmd=02 object table is the
+next suspect; cmd=03 is the third).
+
+This is one hardware test, one toggle, with a clear yes/no signal.
