@@ -2667,6 +2667,34 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 				break;
 			}
 
+		case 0x13:	// Client post-match "I'm ready to advance" signal
+			{
+				// Captured at every "stuck post-match" moment in 2026-04-27 hardware
+				// tests: client sends cmd=0x13 size=0 with word = 0x0080 (pos 0) or
+				// 0x0008 (pos 1) AFTER cmd=0x15 final state. We previously dropped
+				// these as "unhandled udp 11 cmd=13" and the client timed out 30-50
+				// sec later with line-disconnect. The server-to-client form of
+				// cmd=0x13 is the room-to-board start transition — pairing them up
+				// completes a hand-shake that lets the client advance past the
+				// recap UI.
+				const uint16_t word = len >= 0x14 ? read16(data, 0x12) : 0;
+				INFO_LOG(Game::Bomberman,
+					"%s: post-match advance signal cmd=13 word=%04x", player->getName().c_str(), word);
+				replyPacket.init(Packet::REQ_NOP);
+				player->ackPacket(replyPacket, data);
+				if (room != nullptr && room->isBattleEndSent())
+				{
+					// Reflect the original server's hand-shake: send cmd=0x13
+					// start-transition back to all clients so they can advance.
+					// Reuses the existing broadcastStartTransition path.
+					INFO_LOG(Game::Bomberman,
+						"%s: broadcasting cmd=13 start transition in response to post-match advance",
+						player->getName().c_str());
+					room->broadcastStartTransition("post_match_advance", word);
+				}
+				break;
+			}
+
 		case 0x1:	// In-game live state block observed after sprites spawn
 		case 0x2:	// In-game live state block observed after sprites spawn
 		case 0x3:	// In-game live state block observed after sprites spawn

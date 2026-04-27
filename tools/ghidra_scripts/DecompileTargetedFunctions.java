@@ -101,6 +101,14 @@ public class DecompileTargetedFunctions extends GhidraScript {
         "0x8C093EF0",
         // CRingMatchSimulator references from binary - find its constructor
         "0x8C1872B4", // string "CRingMatchSimulator"
+        // ** FLAG_JUDGE TIMEOUT printer - this is the walkover -> Judge UI path **
+        "0x8C07FBD4", // function that prints "Panel %d Chain FLAG_JUDGE Timeout"
+        "0x8C07FB00", // earlier nearby - likely the function start
+        "0x8C07F800", // earlier still
+        "0x8C07F400", // earlier still
+        // Item pickup MIGHT be near 0x8C075A78 area - already in our anchors but let's also try wider
+        "0x8C076000", "0x8C076500", "0x8C076A00",
+        "0x8C077000", "0x8C077500",
     };
 
     @Override
