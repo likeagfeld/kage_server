@@ -32,6 +32,69 @@ union UdpCommand
 	};
 };
 
+// Decoded packet field structs adopted from flyinghead/master commit 8d9757f
+// (https://github.com/flyinghead/kage_server). Used by our server-side pickup
+// arbitration to interpret the cmd=1/2/3 payload bytes that the client sends.
+// Wire format is little-endian; the bitfield order below corresponds to
+// reading the 16-bit value as host-native after ntohs() (which inverts the
+// wire byte order on x86, giving us a host-side LE u16 with bits as shown).
+union BMPosition
+{
+	uint16_t full;
+	struct {
+		uint16_t frac:4;
+		uint16_t vaxis:1;
+		uint16_t y:5;
+		uint16_t x:6;
+	};
+
+	BMPosition(uint16_t full_ = 0) { full = full_; }
+	BMPosition(const uint8_t *data) { readFrom(data); }
+
+	void readFrom(const uint8_t *data) {
+		// pos is BIG-endian on wire; ntohs converts to host
+		this->full = (uint16_t)((data[0] << 8) | data[1]);
+	}
+	void writeTo(uint8_t *data) const {
+		data[0] = (uint8_t)(full >> 8);
+		data[1] = (uint8_t)full;
+	}
+};
+
+struct BMCompactUser
+{
+	BMPosition pos;
+	uint8_t unk = 0;	// 4 = dead state observed in our death-detection trace
+	uint8_t dir = 0;	// 1=left, 2=right, 4=up, 8=down (0=stationary)
+
+	void readFrom(const uint8_t *data)
+	{
+		pos.readFrom(data);
+		unk = data[2];
+		dir = data[3];
+	}
+};
+
+struct BMPowerUp
+{
+	BMPosition pos;
+	uint16_t param = 0;	// 0=picked up, 0x1000=hidden under brick, 0x2000=visible
+
+	BMPowerUp() = default;
+	BMPowerUp(const uint8_t *data) { readFrom(data); }
+
+	void readFrom(const uint8_t *data) {
+		pos.readFrom(data);
+		// param is also big-endian on wire
+		param = (uint16_t)((data[2] << 8) | data[3]);
+	}
+	void writeTo(uint8_t *data) const {
+		pos.writeTo(data);
+		data[2] = (uint8_t)(param >> 8);
+		data[3] = (uint8_t)param;
+	}
+};
+
 class BMRoom : public Room
 {
 public:
@@ -119,6 +182,10 @@ public:
 	bool isBombProbeActive() const;
 	uint32_t getBombProbeTicksRemaining() const;
 	void resetMatchSync();
+	// Server-side pickup arbitration. Public so BombermanServer::handlePacket
+	// can call these from the cmd=1/2 dispatch path.
+	bool resolvePickupsFromCmd2(Player *sender, uint8_t *payload, size_t payloadSize);
+	void absorbPlayerPositionsFromCmd1(Player *sender, const uint8_t *payload, size_t payloadSize);
 
 private:
 	enum class SyncState
@@ -289,6 +356,25 @@ private:
 	// (battle set complete -> back to rules screen). NOT cleared on a
 	// per-round recycle because the wins persist across rounds.
 	std::array<uint32_t, 8> winCounts {};
+
+	// Server-authoritative powerup state. Indexed by row-major ordering as
+	// they appear in the wire payload (cmd=2 offset 0x24 onwards, 28 × 4
+	// bytes). Once a powerup is server-marked picked up (param=0), no
+	// incoming cmd=2 from any client can revive it. This is the fix for
+	// the long-standing item-pickup-never-fires bug both branches were
+	// stuck on.
+	std::array<BMPowerUp, 28> serverPowerUps {};
+	// Server's view of each slot's current cell coordinates, fed by cmd=1
+	// and cmd=2 player-position records. Used by the pickup check to
+	// detect "player N is on cell X". Indexed 0..7 by slot position.
+	std::array<BMPosition, 8> serverPlayerCells {};
+	// True once any client has reported a non-zero cmd=2 powerup table,
+	// which is our cue that the round is actually live and pickups are
+	// possible. Reset on round end / next round.
+	bool powerUpTrackingActive = false;
+	// Diagnostic counter — number of pickups awarded this match. Logged on
+	// every pickup so we can correlate against client visual updates.
+	uint32_t serverPickupCount = 0;
 };
 
 class BombermanServer : public LobbyServer

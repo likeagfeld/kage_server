@@ -909,6 +909,160 @@ void BMRoom::resetMatchSync()
 	battleEndDecidedByDeath = false;
 	liveTickCounter = 0;
 	winCounts = {};
+	serverPowerUps = {};
+	serverPlayerCells = {};
+	powerUpTrackingActive = false;
+	serverPickupCount = 0;
+}
+
+// cmd=1/2/3 layout (per friend's notes + flyinghead/master commit 8d9757f):
+//   payload[0x00..0x03] = cmd word + client_id
+//   payload[0x04..0x23] = 8 × CompactUser  (4 bytes each)
+//   payload[0x24..0x93] = 28 × PowerUp      (4 bytes each, cmd=2 only)
+//   payload[0x94..0xa3] = 16-byte brick map (cmd=2 only)
+//   cmd=1 has bombs[24] + brickmap at the equivalent positions
+constexpr size_t BMPlayerSlotsOffset = 0x04;
+constexpr size_t BMPowerupTableOffsetCmd2 = 0x24;
+constexpr size_t BMPowerupCount = 28;
+constexpr size_t BMPowerupRecordSize = 4;
+constexpr size_t BMPlayerSlotCount = 8;
+constexpr size_t BMPlayerSlotRecordSize = 4;
+
+bool BMRoom::resolvePickupsFromCmd2(Player *sender, uint8_t *payload, size_t payloadSize)
+{
+	if (payload == nullptr)
+		return false;
+	const size_t requiredSize = BMPowerupTableOffsetCmd2 + BMPowerupCount * BMPowerupRecordSize;
+	if (payloadSize < requiredSize)
+		return false;
+
+	// 1. Absorb player positions from this packet. Each slot has its own
+	//    record; only update slots that this sender owns (others' positions
+	//    arrive in their own cmd=1/2/3).
+	const int senderPos = sender != nullptr ? getPlayerPosition(sender) : -1;
+	const int senderSlots = sender != nullptr ? getSlotCount(sender) : 0;
+	for (int i = 0; i < senderSlots; i++)
+	{
+		const int slot = senderPos + i;
+		if (slot < 0 || slot >= (int)BMPlayerSlotCount)
+			continue;
+		const uint8_t *userBytes = payload + BMPlayerSlotsOffset + slot * BMPlayerSlotRecordSize;
+		serverPlayerCells[slot].readFrom(userBytes);
+	}
+
+	// 2. Absorb powerup state from this packet, but never let a 0 (picked up)
+	//    server-side entry be revived by an incoming non-zero. Treat 0x1000
+	//    (hidden) records as "no info" — keep our existing state if it's
+	//    already visible or already picked up.
+	bool sawNonzero = false;
+	for (size_t i = 0; i < BMPowerupCount; i++)
+	{
+		const uint8_t *recBytes = payload + BMPowerupTableOffsetCmd2 + i * BMPowerupRecordSize;
+		BMPowerUp incoming(recBytes);
+		BMPowerUp& current = serverPowerUps[i];
+		if (incoming.param != 0)
+			sawNonzero = true;
+		// Once server marks picked up (param=0 with a non-zero pos), nothing
+		// reviives it. The pos==0 && param==0 check distinguishes "empty slot"
+		// (still gathering map info) from "picked up here".
+		const bool serverHasPickup = current.param == 0 && current.pos.full != 0;
+		if (serverHasPickup)
+			continue;
+		// Otherwise prefer client info if it's visible (0x2000) or hidden
+		// transitioning to picked up (0). Skip pure 0x1000 unless we have
+		// nothing yet.
+		if (incoming.param == 0x1000 && current.param != 0)
+			continue;
+		current = incoming;
+	}
+	if (sawNonzero)
+		powerUpTrackingActive = true;
+
+	// 3. Run the pickup check. For each visible powerup, if any tracked
+	//    player's cell coordinates match the powerup's cell, mark picked up.
+	for (size_t i = 0; i < BMPowerupCount; i++)
+	{
+		BMPowerUp& pu = serverPowerUps[i];
+		if (pu.param != 0x2000)
+			continue;
+		for (size_t slot = 0; slot < BMPlayerSlotCount; slot++)
+		{
+			const BMPosition& playerCell = serverPlayerCells[slot];
+			if (playerCell.full == 0)
+				continue;
+			if (playerCell.x == pu.pos.x && playerCell.y == pu.pos.y)
+			{
+				INFO_LOG(Game::Bomberman,
+					"%s: PICKUP_AWARD slot=%zu cell=(%u,%u) powerup_idx=%zu (count=%u)",
+					name.c_str(), slot, (unsigned)pu.pos.x, (unsigned)pu.pos.y, i,
+					serverPickupCount + 1);
+				serverPickupCount++;
+				pu.param = 0;
+				break;
+			}
+		}
+	}
+
+	// 4. Rewrite the outbound payload's powerup table to reflect server-
+	//    authoritative state. Brick map and player records are left as-is
+	//    (we trust those are aggregated correctly via existing relay logic).
+	bool modified = false;
+	for (size_t i = 0; i < BMPowerupCount; i++)
+	{
+		uint8_t *recBytes = payload + BMPowerupTableOffsetCmd2 + i * BMPowerupRecordSize;
+		const BMPowerUp& pu = serverPowerUps[i];
+		uint8_t buf[BMPowerupRecordSize];
+		pu.writeTo(buf);
+		if (memcmp(recBytes, buf, BMPowerupRecordSize) != 0)
+		{
+			memcpy(recBytes, buf, BMPowerupRecordSize);
+			modified = true;
+		}
+	}
+	return modified;
+}
+
+void BMRoom::absorbPlayerPositionsFromCmd1(Player *sender, const uint8_t *payload, size_t payloadSize)
+{
+	if (payload == nullptr || payloadSize < BMPlayerSlotsOffset + BMPlayerSlotCount * BMPlayerSlotRecordSize)
+		return;
+	const int senderPos = sender != nullptr ? getPlayerPosition(sender) : -1;
+	const int senderSlots = sender != nullptr ? getSlotCount(sender) : 0;
+	for (int i = 0; i < senderSlots; i++)
+	{
+		const int slot = senderPos + i;
+		if (slot < 0 || slot >= (int)BMPlayerSlotCount)
+			continue;
+		const uint8_t *userBytes = payload + BMPlayerSlotsOffset + slot * BMPlayerSlotRecordSize;
+		serverPlayerCells[slot].readFrom(userBytes);
+	}
+	// Also opportunistically check pickups: if a player is now on a visible
+	// powerup cell and the next cmd=2 hasn't arrived yet, claim it now so
+	// the pickup isn't delayed by ~200ms.
+	if (!powerUpTrackingActive)
+		return;
+	for (size_t i = 0; i < BMPowerupCount; i++)
+	{
+		BMPowerUp& pu = serverPowerUps[i];
+		if (pu.param != 0x2000)
+			continue;
+		for (size_t slot = 0; slot < BMPlayerSlotCount; slot++)
+		{
+			const BMPosition& playerCell = serverPlayerCells[slot];
+			if (playerCell.full == 0)
+				continue;
+			if (playerCell.x == pu.pos.x && playerCell.y == pu.pos.y)
+			{
+				INFO_LOG(Game::Bomberman,
+					"%s: PICKUP_AWARD (cmd1-fast-path) slot=%zu cell=(%u,%u) powerup_idx=%zu (count=%u)",
+					name.c_str(), slot, (unsigned)pu.pos.x, (unsigned)pu.pos.y, i,
+					serverPickupCount + 1);
+				serverPickupCount++;
+				pu.param = 0;
+				break;
+			}
+		}
+	}
 }
 
 bool BMRoom::allHumanPlayersJoined() const
@@ -2885,6 +3039,32 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 								relayPayload = objectMergedPayload.data();
 								relayPayloadSize = objectMergedPayload.size();
 							}
+						}
+						// Server-side pickup arbitration. For cmd=2, we ALWAYS clone
+						// the payload into a mutable buffer so we can mark picked-up
+						// powerups before relaying. The function reads incoming
+						// powerup state, runs the player-on-cell check, and rewrites
+						// the powerup table to reflect server-authoritative pickups.
+						if (cmd.command == 0x2)
+						{
+							if (objectMergedPayload.empty())
+								objectMergedPayload.assign(&data[0x10], &data[0x10] + payloadSize);
+							const bool pickupChanged = room->resolvePickupsFromCmd2(player,
+								objectMergedPayload.data(), objectMergedPayload.size());
+							if (pickupChanged || objectMergedPayload.size() != payloadSize
+								|| memcmp(objectMergedPayload.data(), &data[0x10], payloadSize) != 0)
+							{
+								relayPayload = objectMergedPayload.data();
+								relayPayloadSize = objectMergedPayload.size();
+							}
+						}
+						// For cmd=1, just absorb player positions so cmd=1 walkovers
+						// register pickup as soon as positions update (don't wait for
+						// the next cmd=2). cmd=1 payload is not modified.
+						if (cmd.command == 0x1)
+						{
+							room->absorbPlayerPositionsFromCmd1(player,
+								&data[0x10], payloadSize);
 						}
 						if (liveCmd)
 						{
