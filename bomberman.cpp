@@ -2039,10 +2039,20 @@ void BMRoom::advanceBattleEndSequence(Player *player, SyncPlayerState& state, co
 		break;
 
 	case BattleEndPhase::CompletedDeadBits:
-		INFO_LOG(Game::Bomberman, "%s: battle end completion (%s) from %s [%x] cmd=19 -> cmd=15",
+		INFO_LOG(Game::Bomberman, "%s: battle end completion (%s) from %s [%x] cmd=19 -> cmd=15+17",
 			name.c_str(), reason != nullptr ? reason : "acked", player->getName().c_str(), player->getId());
 		state.battleEndPhase = BattleEndPhase::FinalState;
 		sendBattleStateCommandTo(player, 0x15, 0, "final_state");
+		// 2026-04-27: cmd=0x17 is paired with cmd=0x15 in the post-end recap
+		// path. The client receiver `FUN_8c093a64 -> FUN_8c098656` constructs a
+		// 4-byte client-to-server packet (cmd 0x10 or 0x0f depending on
+		// context) when it receives 0x17, so this is the "advance the recap
+		// state machine" nudge that the original Hudson server presumably
+		// sent. Without it, the client's recap UI ("1 point match" / "3 point
+		// match" overlay) appears to stall indefinitely between rounds in a
+		// multi-round battle and at the end of a match. cmd=0x17 carries one
+		// 32-bit value; the receiver passes it through as-is.
+		sendBattleStateCommandTo(player, 0x17, deadManBitmap, "recap_advance");
 		break;
 
 	case BattleEndPhase::FinalState:

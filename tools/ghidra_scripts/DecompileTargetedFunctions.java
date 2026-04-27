@@ -85,6 +85,22 @@ public class DecompileTargetedFunctions extends GhidraScript {
         "0x8C0C22B2",
         "0x8C0C2160", // adjacent vtable entry
         "0x8C0C22AE", // adjacent vtable entry
+        // FULL dispatcher cmds 0x06 - 0x0c (the ones I missed)
+        "0x8C093EAA", // cmd=0x06
+        "0x8C093E9C", // cmd=0x07 - set rules
+        "0x8C093E8E", // cmd=0x08
+        "0x8C093E78", // cmd=0x09
+        "0x8C093E22", // cmd=0x0a - slot table refresh
+        "0x8C093DC6", // cmd=0x0b - rule blob
+        "0x8C093DB8", // cmd=0x0c - compact pre-match rule sync
+        // The cmd=15 receiver's helper FUN_8c093e60 / FUN_8c093e64 / FUN_8c093e68
+        "0x8C093E60", "0x8C093E64", "0x8C093E68",
+        // The dispatch entry FUN_8c093842 itself
+        "0x8C093842",
+        // FUN_8c093ef0 (called by cmd=0x0f when field is 0)
+        "0x8C093EF0",
+        // CRingMatchSimulator references from binary - find its constructor
+        "0x8C1872B4", // string "CRingMatchSimulator"
     };
 
     @Override
