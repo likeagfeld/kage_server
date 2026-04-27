@@ -21,6 +21,7 @@
 #include <array>
 #include <filesystem>
 #include <map>
+#include <vector>
 
 union UdpCommand
 {
@@ -91,6 +92,15 @@ public:
 	uint32_t getStartAckCount() const;
 	uint32_t getJoinedPlayerCount() const;
 	const char *getSyncStateName() const;
+	bool isBattleEndSent() const { return battleEndSent; }
+	void resetForPostMatchRoom(const char *reason);
+	uint32_t matchDurationSeconds() const;
+	// rules[2] is the points-to-win count for the battle set. After a
+	// player accumulates this many round wins, the battle set is over and
+	// both clients return to the rules screen.
+	uint32_t pointsToWinSet() const;
+	void noteRoundWinByDeath(uint8_t deadBitmap);
+	bool isBattleSetComplete() const;
 	void noteLiveGameData(Player *player, uint8_t command, const uint8_t *payload, size_t payloadSize);
 	void handleBattleEndClientSignal(Player *player, uint16_t word, uint32_t tail);
 	void noteActionLane(Player *player, bool active, size_t recordIndex, const uint8_t *record);
@@ -146,6 +156,10 @@ private:
 		uint8_t lowNibble = 0;
 		std::array<uint8_t, 4> playerRecord {};
 		std::array<uint8_t, 164> cmd02Payload {};
+		// Tick counter at last record observation; used to flag stale (likely
+		// dead) players when other players continue updating.
+		uint64_t lastUpdateTick = 0;
+		bool deadByStaleness = false;
 	};
 
 	struct BombProbeState
@@ -239,6 +253,11 @@ private:
 	std::array<uint8_t, 9> rules {};
 	std::map<uint32_t, SyncPlayerState> syncPlayers;
 	std::map<uint32_t, LivePlayerState> livePlayerStates;
+	// Last seen 28-record cmd=02 object table per source player. Used by the
+	// hardware-test diff probe so item appear / disappear / bomb explode events
+	// show up as logged record transitions instead of having to re-decode the
+	// full table from raw dumps.
+	std::map<uint32_t, std::vector<uint8_t>> lastObjectTablePerPlayer;
 	std::map<uint32_t, ActionLaneState> actionLaneStates;
 	std::array<SyntheticBombObject, 28> syntheticBombObjects {};
 	BombProbeState bombProbe;
@@ -247,6 +266,25 @@ private:
 	bool battleEndSent = false;
 	bool liveSlotRefreshSent = false;
 	bool awaitingPostEndMapMarker = false;
+	// Bitmap of dead players by position 0..7. Built from observed live
+	// game-data records: a player whose live record stops updating while
+	// other players continue updating is treated as dead. Sent as the
+	// payload of cmd=0x16 on battle end so the client can pick a winner
+	// instead of treating it as no-winner draw.
+	uint8_t deadManBitmap = 0;
+	// Monotonic counter of live-game-data observations across the room.
+	// Compared against per-player lastUpdateTick to detect staleness.
+	uint64_t liveTickCounter = 0;
+	// Reason that caused the most recent broadcastBattleEndSequence call.
+	// Used by prepareNextRoundFromPostEndFlow to suppress recycling when
+	// the round was decided by deaths (so the client's results screen can
+	// run rather than the server flipping back to "next round" state).
+	bool battleEndDecidedByDeath = false;
+	// Per-slot round wins accumulated within the current battle set.
+	// Cleared on resetMatchSync (room exit) and on resetForPostMatchRoom
+	// (battle set complete -> back to rules screen). NOT cleared on a
+	// per-round recycle because the wins persist across rounds.
+	std::array<uint32_t, 8> winCounts {};
 };
 
 class BombermanServer : public LobbyServer

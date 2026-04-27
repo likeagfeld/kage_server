@@ -873,9 +873,14 @@ void BMRoom::resetMatchSync()
 	liveSlotRefreshSent = false;
 	awaitingPostEndMapMarker = false;
 	livePlayerStates.clear();
+	lastObjectTablePerPlayer.clear();
 	actionLaneStates.clear();
 	syntheticBombObjects = {};
 	bombProbe = {};
+	deadManBitmap = 0;
+	battleEndDecidedByDeath = false;
+	liveTickCounter = 0;
+	winCounts = {};
 }
 
 bool BMRoom::allHumanPlayersJoined() const
@@ -959,6 +964,8 @@ void BMRoom::noteLiveGameData(Player *player, uint8_t command, const uint8_t *pa
 		return;
 
 	LivePlayerState& state = livePlayerStates[player->getId()];
+	const bool wasValid = state.valid;
+	const std::array<uint8_t, 4> previousRecord = state.playerRecord;
 	state.valid = true;
 	memcpy(state.playerRecord.data(), payload + playerRecordOffset, state.playerRecord.size());
 
@@ -972,6 +979,164 @@ void BMRoom::noteLiveGameData(Player *player, uint8_t command, const uint8_t *pa
 		state.word = payloadSize >= 4 ? read16(payload, 2) : 0;
 		memcpy(state.cmd02Payload.data(), payload, state.cmd02Payload.size());
 		state.hasCmd02Payload = true;
+	}
+
+	// Tick + record-shape probe. Bumping liveTickCounter every observation lets us
+	// flag players whose record stops updating while others continue. The probe
+	// captures byte-2 / byte-3 evolution of the 4-byte compact record so the
+	// next gameplay capture reveals the alive/dead byte empirically.
+	liveTickCounter++;
+	const bool recordChanged = !wasValid || previousRecord != state.playerRecord;
+	if (recordChanged)
+	{
+		state.lastUpdateTick = liveTickCounter;
+		if (state.deadByStaleness)
+		{
+			state.deadByStaleness = false;
+			deadManBitmap &= (uint8_t)~(1u << playerPosition);
+		}
+		// Log first 24 record observations per player so we see the in-game
+		// baseline shape; then log every transition where byte-2 or byte-3
+		// changes (these are the candidate alive/dead encoding bytes the
+		// existing wire docs do not cover). Player position byte-0 / byte-1
+		// movement is already proven, so we don't duplicate that.
+		static std::map<uint32_t, uint32_t> loggedRecordShape;
+		uint32_t& shapeLogCount = loggedRecordShape[player->getId()];
+		const bool highByteChanged = wasValid
+			&& (previousRecord[2] != state.playerRecord[2]
+				|| previousRecord[3] != state.playerRecord[3]);
+		if (shapeLogCount < 24 || highByteChanged)
+		{
+			INFO_LOG(Game::Bomberman,
+				"%s: live record probe pos=%d cmd=%02x rec=%02x%02x%02x%02x prev=%02x%02x%02x%02x x=%u y=%u low=%x word=%04x",
+				name.c_str(), playerPosition, command,
+				state.playerRecord[0], state.playerRecord[1], state.playerRecord[2], state.playerRecord[3],
+				wasValid ? previousRecord[0] : 0, wasValid ? previousRecord[1] : 0,
+				wasValid ? previousRecord[2] : 0, wasValid ? previousRecord[3] : 0,
+				state.x, state.y, state.lowNibble, state.word);
+			shapeLogCount++;
+		}
+	}
+
+	// cmd=02 object-table diff probe. Bomb-up items render as compact records
+	// with the f00X family; powerup pickup events should show as a non-default
+	// record reverting to default at the same tick the player walks across the
+	// cell. Bombs explode similarly. Logging every per-slot transition gives
+	// us the kill-event AND the pickup-event signal in one capture.
+	if (command == 2)
+	{
+		constexpr size_t objectTableOffset = 36; // cmd+word + 8 compact players
+		constexpr size_t objectRecordSize = 4;
+		constexpr size_t objectRecordCount = 28;
+		auto& prevTable = lastObjectTablePerPlayer[player->getId()];
+		const bool tableInitialized = prevTable.size() == objectRecordCount * objectRecordSize;
+		if (payloadSize >= objectTableOffset + objectRecordCount * objectRecordSize)
+		{
+			std::vector<uint8_t> currentTable(payload + objectTableOffset,
+				payload + objectTableOffset + objectRecordCount * objectRecordSize);
+			if (tableInitialized)
+			{
+				for (size_t i = 0; i < objectRecordCount; i++)
+				{
+					const size_t base = i * objectRecordSize;
+					if (memcmp(currentTable.data() + base, prevTable.data() + base, objectRecordSize) != 0)
+					{
+						const uint16_t prevWord0 = (uint16_t)(prevTable[base] | (prevTable[base + 1] << 8));
+						const uint16_t prevWord1 = (uint16_t)(prevTable[base + 2] | (prevTable[base + 3] << 8));
+						const uint16_t curWord0 = (uint16_t)(currentTable[base] | (currentTable[base + 1] << 8));
+						const uint16_t curWord1 = (uint16_t)(currentTable[base + 2] | (currentTable[base + 3] << 8));
+						INFO_LOG(Game::Bomberman,
+							"%s: cmd02 obj diff src=%s [%x] slot=%zu prev=%04x:%04x cur=%04x:%04x",
+							name.c_str(), player->getName().c_str(), player->getId(),
+							i, prevWord0, prevWord1, curWord0, curWord1);
+					}
+				}
+			}
+			prevTable = std::move(currentTable);
+		}
+	}
+
+	// Aggressive payload trace: log the FULL cmd=01/02/03 payload the first 4
+	// times we see each (player, cmd) AND any time the bytes outside the
+	// player+object tables change (those trailing bytes are where items may
+	// live since cmd=02 obj diff captures none). The "outside" region for
+	// cmd=02 is bytes 148..163 (16 bytes after the 28-record object table);
+	// for cmd=01 it is bytes 36..199 (the action lane); cmd=03 has no object
+	// table so the whole post-player region matters.
+	static std::map<uint64_t, uint32_t> loggedFullPayload;
+	static std::map<uint64_t, std::vector<uint8_t>> lastTailPerKey;
+	const uint64_t fullKey = ((uint64_t)player->getId() << 8) | command;
+	uint32_t& fullCount = loggedFullPayload[fullKey];
+	const size_t tailStart = (command == 2) ? 148 : 36;
+	const bool haveTail = payloadSize > tailStart;
+	auto& prevTail = lastTailPerKey[fullKey];
+	std::vector<uint8_t> currentTail;
+	if (haveTail)
+		currentTail.assign(payload + tailStart, payload + payloadSize);
+	const bool tailChanged = haveTail && currentTail != prevTail;
+	if (fullCount < 4 || tailChanged)
+	{
+		const size_t cap = std::min<size_t>(payloadSize, 256);
+		char hex[3 * 256 + 1] {};
+		for (size_t i = 0; i < cap; i++)
+			snprintf(hex + i * 3, 4, "%02x ", payload[i]);
+		INFO_LOG(Game::Bomberman,
+			"%s: full cmd=%02x src=%s [%x] size=%zu reason=%s bytes=%s",
+			name.c_str(), command, player->getName().c_str(), player->getId(), payloadSize,
+			tailChanged ? "tail_changed" : "initial", hex);
+		if (fullCount < 4) fullCount++;
+		prevTail = std::move(currentTail);
+	}
+
+	// Death detection by player-record byte 2.
+	//
+	// Empirically proven on 2026-04-27 across two captures: during all active
+	// play the dying player's compact record byte 2 is 0x00; at the exact
+	// moment a bomb kills them the record transitions to byte 2 = 0x04 (e.g.
+	// 35780000 -> 35780400) and they immediately stop emitting live records.
+	// Position bytes 0..1 keep their dying-cell value. Byte 3 carries the
+	// per-frame movement/animation nibble during play (cycles 00,01,02,04,06,
+	// 08) so byte 3 alone cannot encode death. Byte 2 != 0 is therefore the
+	// alive/dead signal.
+	//
+	// We mark the SENDING player dead based on their own record (each client
+	// only authors records for its own slot at offset 4 + position*4) so we
+	// never falsely flag a peer due to network silence.
+	if (syncState == SyncState::InGame && !battleEndSent && players.size() > 1)
+	{
+		const bool nowDead = state.playerRecord[2] != 0;
+		const bool wasDead = (deadManBitmap & (uint8_t)(1u << playerPosition)) != 0;
+		if (nowDead && !wasDead)
+		{
+			deadManBitmap |= (uint8_t)(1u << playerPosition);
+			INFO_LOG(Game::Bomberman,
+				"%s: player %s [%x] pos=%d entered dead state (rec byte2=%02x); deadMap=%02x",
+				name.c_str(), player->getName().c_str(), player->getId(), playerPosition,
+				state.playerRecord[2], deadManBitmap);
+
+			// Compute alive count: all room players minus those whose bit is
+			// set in deadManBitmap. Players who never sent a live record yet
+			// are treated as alive so a slow joiner cannot end the match.
+			uint8_t aliveBitmap = 0;
+			for (Player *peer : players)
+			{
+				const int peerPos = getPlayerPosition(peer);
+				if (peerPos < 0 || peerPos >= 8)
+					continue;
+				if ((deadManBitmap & (uint8_t)(1u << peerPos)) == 0)
+					aliveBitmap |= (uint8_t)(1u << peerPos);
+			}
+			const int aliveCount = __builtin_popcount(aliveBitmap);
+			if (aliveCount <= 1)
+			{
+				INFO_LOG(Game::Bomberman,
+					"%s: alive count %d after death (alive=%02x dead=%02x); ending battle",
+					name.c_str(), aliveCount, aliveBitmap, deadManBitmap);
+				battleEndDecidedByDeath = true;
+				noteRoundWinByDeath(deadManBitmap);
+				broadcastBattleEndSequence("last_player_standing");
+			}
+		}
 	}
 
 	if (syncState == SyncState::InGame && !liveSlotRefreshSent && allHumanPlayersHaveLiveState())
@@ -1456,8 +1621,17 @@ void BMRoom::rudpAcked(Player *player)
 		}
 	}
 
+	// 2026-04-27 (evening): hardware test 09:51:53 showed FARKUS2 ACKed
+	// cmd=16 -> server sent cmd=19, but FARKUS2 never emitted the cmd=10
+	// client signal. The prior version only advanced from
+	// SettledDeadBits, so cmd=15 was never sent to FARKUS2 -> 60 sec
+	// later both clients timed out (the user-visible "line disconnected").
+	// Advance from CompletedDeadBits on the cmd=19 ACK as well so the
+	// protocol does not depend on the cmd=10 client-signal arriving
+	// reliably from every client.
 	if (syncState == SyncState::InGame && battleEndSent
-		&& state.battleEndPhase == BattleEndPhase::SettledDeadBits)
+		&& (state.battleEndPhase == BattleEndPhase::SettledDeadBits
+			|| state.battleEndPhase == BattleEndPhase::CompletedDeadBits))
 	{
 		advanceBattleEndSequence(player, state, "acked");
 		return;
@@ -1508,8 +1682,14 @@ void BMRoom::notePostMapMarker(Player *player, const char *reason)
 		sendRosterUpdate("post_map_slot_refresh");
 		// Live dumps showed that sending 0x14 immediately after 0x13 stops the
 		// map-block phase. Gate it behind both clients' post-map 0x0e markers.
-		broadcastGameTimeInfo("post_map_exchange", 0, 60 * 180, 0);
-		startMatchEndTimer(60 * 180);
+		// Use the duration derived from the 9-byte rule blob so the client's
+		// local timer and the server's match-end timer fire together.
+		const uint32_t matchSeconds = matchDurationSeconds();
+		const uint32_t endFrame = matchSeconds * BombermanGameFramesPerSecond;
+		INFO_LOG(Game::Bomberman, "%s: match duration derived from rules[0]=%02x -> %u sec (%u frames)",
+			name.c_str(), rules[0], matchSeconds, endFrame);
+		broadcastGameTimeInfo("post_map_exchange", 0, endFrame, 0);
+		startMatchEndTimer(endFrame);
 	}
 }
 
@@ -1519,6 +1699,22 @@ void BMRoom::prepareNextRoundFromPostEndFlow(Player *player, uint8_t command)
 		return;
 	if (command != 0x4 && command != 0x5 && command != 0x1a && command != 0x1b)
 		return;
+
+	// Multi-round battle handling. If the just-ended round was death-decided
+	// AND the winner has reached pointsToWinSet() round wins, the BATTLE SET
+	// is over — we expect the winner's cmd=0xc rule-sync to drop both
+	// clients back to the rules screen via resetForPostMatchRoom. If the
+	// round was death-decided but we're still mid-battle-set (the winner
+	// has not hit the target win count), let the regular next-round recycle
+	// run; both clients will go through their per-round results screen and
+	// then load the next map.
+	if (battleEndDecidedByDeath && isBattleSetComplete())
+	{
+		INFO_LOG(Game::Bomberman,
+			"%s: ignoring next-round prep cmd=%02x from %s [%x]; battle set complete, awaiting post-match rule sync",
+			name.c_str(), command, player->getName().c_str(), player->getId());
+		return;
+	}
 
 	refreshSyncPlayers();
 	for (auto& [id, state] : syncPlayers)
@@ -1533,13 +1729,19 @@ void BMRoom::prepareNextRoundFromPostEndFlow(Player *player, uint8_t command)
 	liveSlotRefreshSent = false;
 	awaitingPostEndMapMarker = true;
 	livePlayerStates.clear();
+	lastObjectTablePerPlayer.clear();
 	actionLaneStates.clear();
 	syntheticBombObjects = {};
 	bombProbe = {};
+	deadManBitmap = 0;
+	battleEndDecidedByDeath = false;
 
 	INFO_LOG(Game::Bomberman,
-		"%s: post-end round reset from %s [%x] cmd=%02x; waiting for next map-complete marker",
-		name.c_str(), player->getName().c_str(), player->getId(), command);
+		"%s: post-end round reset from %s [%x] cmd=%02x; waiting for next map-complete marker; wins=[%u %u %u %u %u %u %u %u]/%u",
+		name.c_str(), player->getName().c_str(), player->getId(), command,
+		winCounts[0], winCounts[1], winCounts[2], winCounts[3],
+		winCounts[4], winCounts[5], winCounts[6], winCounts[7],
+		pointsToWinSet());
 }
 
 bool BMRoom::isAwaitingPostEndMapMarker() const
@@ -1823,11 +2025,16 @@ void BMRoom::advanceBattleEndSequence(Player *player, SyncPlayerState& state, co
 	switch (state.battleEndPhase)
 	{
 	case BattleEndPhase::SettledDeadBits:
-		INFO_LOG(Game::Bomberman, "%s: battle end ack (%s) from %s [%x] cmd=16 -> cmd=19",
-			name.c_str(), reason != nullptr ? reason : "acked", player->getName().c_str(), player->getId());
+		INFO_LOG(Game::Bomberman, "%s: battle end ack (%s) from %s [%x] cmd=16 -> cmd=19 deadMap=%02x",
+			name.c_str(), reason != nullptr ? reason : "acked", player->getName().c_str(),
+			player->getId(), deadManBitmap);
 		state.battleEndPhase = BattleEndPhase::CompletedDeadBits;
 		player->notifyRoomOnAck();
-		sendBattleStateCommandTo(player, 0x19, 0, "completed_dead_bits");
+		// 2026-04-27: revert to value=0 alongside cmd=16 revert; deadManBitmap is
+		// always 0 with detection disabled, so this line currently produces the
+		// same wire result as the prior literal-0 form, but keeps the symbolic
+		// link in place for the eventual proven-byte fix.
+		sendBattleStateCommandTo(player, 0x19, deadManBitmap, "completed_dead_bits");
 		break;
 
 	case BattleEndPhase::CompletedDeadBits:
@@ -1873,10 +2080,140 @@ void BMRoom::sendBattleEndSequenceTo(Player *player, const char *reason)
 	state.battleEndPhase = BattleEndPhase::SettledDeadBits;
 	// The binary dispatches 0x16, 0x19, and 0x15 as separate result-state
 	// handlers. Keep each one reliable and standalone so every step gets an ACK.
-	INFO_LOG(Game::Bomberman, "%s: battle end transition (%s) -> %s [%x] cmd=16",
-		name.c_str(), reason != nullptr ? reason : "end", player->getName().c_str(), player->getId());
+	// 2026-04-27: deadManBitmap is currently always 0 because the staleness-based
+	// detection was reverted (false-positive on idle clients and animation
+	// pauses). Restore value=0 to match the prior stable shape until the real
+	// dead-state byte is proven. The deadManBitmap field stays in place so the
+	// next iteration can wire the proven byte without further plumbing.
+	INFO_LOG(Game::Bomberman, "%s: battle end transition (%s) -> %s [%x] cmd=16 deadMap=%02x",
+		name.c_str(), reason != nullptr ? reason : "end", player->getName().c_str(), player->getId(),
+		deadManBitmap);
 	player->notifyRoomOnAck();
-	sendBattleStateCommandTo(player, 0x16, 0, "settled_dead_bits");
+	sendBattleStateCommandTo(player, 0x16, deadManBitmap, "settled_dead_bits");
+}
+
+uint32_t BMRoom::pointsToWinSet() const
+{
+	// rules[2] is the "points to win the battle set" value (user-confirmed
+	// 2026-04-27: rules[2]=0x01 -> 1-point match). Treat 0 as "no rule
+	// configured" and fall back to 1 so a sensible default still applies.
+	const uint32_t value = rules[2];
+	return value == 0 ? 1u : value;
+}
+
+bool BMRoom::isBattleSetComplete() const
+{
+	const uint32_t target = pointsToWinSet();
+	for (uint32_t wins : winCounts)
+	{
+		if (wins >= target)
+			return true;
+	}
+	return false;
+}
+
+void BMRoom::noteRoundWinByDeath(uint8_t deadBitmap)
+{
+	// Identify the surviving slot(s). With 2-player matches there is
+	// exactly one survivor; with 4-player Battle Royale style matches the
+	// last-standing slot is the winner of the round.
+	int winnerPos = -1;
+	for (Player *peer : players)
+	{
+		const int peerPos = getPlayerPosition(peer);
+		if (peerPos < 0 || peerPos >= 8)
+			continue;
+		if ((deadBitmap & (uint8_t)(1u << peerPos)) == 0)
+		{
+			if (winnerPos == -1)
+				winnerPos = peerPos;
+			else
+			{
+				// More than one survivor — likely a draw, do not award a
+				// round win. (Fall through and just log.)
+				INFO_LOG(Game::Bomberman,
+					"%s: round end with multiple survivors (deadMap=%02x); no win awarded",
+					name.c_str(), deadBitmap);
+				return;
+			}
+		}
+	}
+	if (winnerPos < 0)
+		return;
+	winCounts[winnerPos]++;
+	INFO_LOG(Game::Bomberman,
+		"%s: round won by pos=%d wins=%u/%u deadMap=%02x",
+		name.c_str(), winnerPos, winCounts[winnerPos], pointsToWinSet(), deadBitmap);
+	if (isBattleSetComplete())
+	{
+		INFO_LOG(Game::Bomberman,
+			"%s: battle set complete (pos=%d hit %u points); awaiting cmd=0xc rule sync from clients",
+			name.c_str(), winnerPos, pointsToWinSet());
+	}
+}
+
+uint32_t BMRoom::matchDurationSeconds() const
+{
+	// Empirical mapping derived from the 2026-04-27 hardware test. The user
+	// reported a ~60 sec gap between the client showing 0:00 and the server
+	// firing the match-end timer while the server was hardcoded to 180 sec
+	// (3 min). The captured rule blob byte 0 was 0x00. Conventional
+	// Bomberman Online time options are 2 / 3 / 5 minutes; the natural
+	// mapping (0 -> 2 min, 1 -> 3 min, 2 -> 5 min) reconciles the 60 sec
+	// discrepancy precisely. UNVERIFIED for rules[0] values other than 0;
+	// will be confirmed on the next test by comparing client 0:00 timing to
+	// server `match_timer_expired` log entry.
+	switch (rules[0]) {
+	case 0: return 2u * 60u;
+	case 1: return 3u * 60u;
+	case 2: return 5u * 60u;
+	default: return 3u * 60u;
+	}
+}
+
+void BMRoom::resetForPostMatchRoom(const char *reason)
+{
+	// Triggered when the match ended by a kill and one of the clients is
+	// already back at the rules screen (cmd=0xc rule sync arrived while
+	// battleEndSent). Bring both clients onto the same rules-screen path so
+	// they don't desync into "loading new map" vs "waiting in room".
+	INFO_LOG(Game::Bomberman,
+		"%s: post-match room reset (%s); battleEndSent=%d battleEndDecidedByDeath=%d deadMap=%02x",
+		name.c_str(), reason != nullptr ? reason : "post_match", battleEndSent ? 1 : 0,
+		battleEndDecidedByDeath ? 1 : 0, deadManBitmap);
+
+	stopInGameLiveness();
+	stopMatchEndTimer();
+	refreshSyncPlayers();
+	for (auto& [id, state] : syncPlayers)
+	{
+		state.startAcked = false;
+		state.postMapMarkerSeen = false;
+		state.battleEndPhase = BattleEndPhase::None;
+		// Keep rulesAccepted as the players were just in-game with rules set;
+		// the upcoming rule blob broadcast will let them re-confirm.
+	}
+	syncState = SyncState::ReadyToStart;
+	gameTimeInfoSent = false;
+	battleEndSent = false;
+	liveSlotRefreshSent = false;
+	awaitingPostEndMapMarker = false;
+	livePlayerStates.clear();
+	lastObjectTablePerPlayer.clear();
+	actionLaneStates.clear();
+	syntheticBombObjects = {};
+	bombProbe = {};
+	deadManBitmap = 0;
+	battleEndDecidedByDeath = false;
+	liveTickCounter = 0;
+	winCounts = {};
+
+	// Re-broadcast room/rule state so the loser (who may have been moving
+	// down the next-round path with cmd=04/0f) sees the room is back to
+	// the rules screen instead.
+	broadcastOccupiedSlotMask("post_match_room");
+	broadcastRuleBlob("post_match_room", 0x8000);
+	broadcastOwnerKeyholderSync("post_match_room");
 }
 
 void BMRoom::broadcastBattleEndSequence(const char *reason)
@@ -2229,6 +2566,16 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 					player->ackPacket(replyPacket, data);
 					INFO_LOG(Game::Bomberman, "%s: rule sync state -> %s (%u/%zu accepted)", room->getName().c_str(),
 						room->getSyncStateName(), room->getAcceptedRuleCount(), room->getPlayers().size());
+					// Surviving player sends cmd=0xc rule sync after a death-
+					// decided round end. In a 1-point match this means the
+					// battle set is over and we should reset to the rules
+					// screen. In a multi-round battle (e.g. 3-of-5) the
+					// cmd=0xc on non-final rounds is just a recap-screen
+					// handshake — the round still needs to recycle. Only
+					// reset to rules screen when the battle set is actually
+					// complete (some slot has reached pointsToWinSet).
+					if (room->isBattleEndSent() && room->isBattleSetComplete())
+						room->resetForPostMatchRoom("post_battle_rule_sync");
 				}
 				break;
 			}
@@ -2277,6 +2624,37 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 		case 0x1b:	// SendGameMapBlock / map info
 			{
 				const size_t payloadSize = len > 0x10 ? len - 0x10 : 0;
+				// Map-block + tick probe: items appear visually but never show
+				// up in cmd=02 obj diffs. The map block (cmd=1a/1b/0xd/0xe/5)
+				// is the most likely carrier for soft-block / item updates.
+				// Log full payload on first observation per (player, cmd) and
+				// on any mid-game payload change so we capture the byte-level
+				// difference at the moment a brick is destroyed and an item
+				// appears.
+				if (cmd.command == 0x05 || cmd.command == 0x0d || cmd.command == 0x0e
+					|| cmd.command == 0x1a || cmd.command == 0x1b)
+				{
+					static std::map<uint64_t, uint32_t> mapProbeCount;
+					static std::map<uint64_t, std::vector<uint8_t>> lastMapPayload;
+					const uint64_t mapKey = ((uint64_t)player->getId() << 8) | cmd.command;
+					uint32_t& cnt = mapProbeCount[mapKey];
+					auto& prev = lastMapPayload[mapKey];
+					std::vector<uint8_t> cur(data + 0x10, data + 0x10 + payloadSize);
+					const bool changed = prev != cur;
+					if (cnt < 6 || changed)
+					{
+						const size_t cap = std::min<size_t>(payloadSize, 256);
+						char hex[3 * 256 + 1] {};
+						for (size_t i = 0; i < cap; i++)
+							snprintf(hex + i * 3, 4, "%02x ", data[0x10 + i]);
+						INFO_LOG(Game::Bomberman,
+							"%s: map probe cmd=%02x src=%s [%x] size=%zu reason=%s bytes=%s",
+							player->getName().c_str(), cmd.command, player->getName().c_str(),
+							player->getId(), payloadSize, changed ? "changed" : "initial", hex);
+						if (cnt < 6) cnt++;
+						prev = std::move(cur);
+					}
+				}
 				const uint16_t word = len >= 0x14 ? read16(data, 0x12) : 0;
 				const uint32_t payload0 = len >= 0x18 ? read32(data, 0x14) : 0;
 				size_t activeCmd01RecordIndex = 0;
@@ -2540,9 +2918,18 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 			}
 
 		default:
+		{
+			const size_t cap = std::min<size_t>(len, 64);
+			char hex[3 * 64 + 1] {};
+			for (size_t i = 0; i < cap; i++)
+				snprintf(hex + i * 3, 4, "%02x ", data[i]);
+			INFO_LOG(Game::Bomberman,
+				"unhandled udp 11 cmd=%02x full=%04x len=%zu first64=%s",
+				cmd.command, cmd.full, len, hex);
 			ERROR_LOG(game, "Unhandled udp 11 command: %x (%04x)", cmd.command, cmd.full);
 			dumpData(data, len);
 			return false;
+		}
 		}
 		return true;
 	}
@@ -2608,9 +2995,18 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 		}
 
 	default:
+	{
+		const size_t cap = std::min<size_t>(len, 64);
+		char hex[3 * 64 + 1] {};
+		for (size_t i = 0; i < cap; i++)
+			snprintf(hex + i * 3, 4, "%02x ", data[i]);
+		INFO_LOG(Game::Bomberman,
+			"unhandled udp F cmd=%02x full=%04x len=%zu first64=%s",
+			cmd.command, cmd.full, len, hex);
 		ERROR_LOG(game, "Unhandled udp F command: %x (%04x)", cmd.command, cmd.full);
 		dumpData(data, len);
 		return false;
+	}
 	}
 
 	return true;

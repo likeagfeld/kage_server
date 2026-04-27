@@ -32,7 +32,7 @@ BUILD_LOG = LOG_DIR / "build-ucrt64.log"
 BOMBERMAN_ADMIN_PATH = STATE_DIR / "bomberman_bots.ini"
 BOMBERMAN_RUNTIME_PATH = STATE_DIR / "bomberman_runtime.ini"
 HOST = "127.0.0.1"
-PORT = 8765
+PORT = 8766
 
 PORTS = {
     "udp": ["9090", "9091", "9092", "9093"],
@@ -593,7 +593,7 @@ def main() -> None:
         STATE.write_state()
 
     if already_running():
-        raise SystemExit("The Kage dashboard is already running at http://127.0.0.1:8765/")
+        raise SystemExit(f"The Kage dashboard is already running at http://127.0.0.1:{PORT}/")
 
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"Kage dashboard running at http://{HOST}:{PORT}/")

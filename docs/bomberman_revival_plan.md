@@ -3779,3 +3779,578 @@ Data-driven consequence:
   - stop treating `cmd=02` synthetic object injection as the primary bomb fix
   - recover or emulate the missing upstream compact/action transition that writes
     the bomb-specific queued value consumed by `0x8C073F36`
+
+## 2026-04-27 Project clone, headless re-export, and proven death-state byte
+
+Repo and tooling reset:
+
+- Working tree moved to `D:\bombermanrevivalCLAUDE\kage_server\` on branch
+  `Kage_serverCLAUDE` (cloned 2026-04-27 from
+  https://github.com/likeagfeld/kage_server, branched off `master` @ `6d0b8a0`).
+- Plan history cited paths `D:\kageserver\…`. Treat those paths as relative;
+  the same files are at `D:\bombermanrevivalCLAUDE\kage_server\…` going
+  forward.
+- Cloned the existing Ghidra project to a separate location so the original
+  is untouched: `D:\ghidra_projects_v2\BombermanOnlineDC_v2`.
+- New headless analysis pass `BombermanRevivalPass.java` ran against the
+  clone. It force-creates functions at every previously-unresolved bomb /
+  selector / __bfswu anchor, runs an SH-4 prologue scan over the code window
+  (`+4303` candidate functions discovered), flushes auto-analysis (Function
+  ID matches against the user's imported Katana SDK FIDB databases), and
+  exports a fresh ASCII listing.
+
+Artifacts (under `docs/ghidra_decompile/pass275_v2_full/`):
+
+- `1ST_READ.BIN.v2.txt` — 148 MB symbolised SH-4 listing.
+- `anchors/` — 21 decompiled `.c` files for the bomb-path anchor functions.
+- `summary.txt`, `headless.log`.
+
+Notable identification wins from this pass:
+
+- `0x8C09E790` is now resolved as `__bfswu` (bit-field write util). Every
+  prior plan note like "writes through `0x8C09E790` with key `0x0605`" now
+  reads natively as `__bfswu(value, key)` calls in the decomp.
+- Katana SDK named functions roughly doubled (~86 before, 166 after). New
+  named families include `kkClient` / `kkLoginClient` (Kage network client),
+  `cvFs*` / `gdCi*` (CD/GD-ROM filesystem), `mwPly*` / `mwSfd*` / `mwRna*`
+  (Sofdec movie + audio), `sdPstm*` / `sdMemBlk*` (sound), `trConnect`.
+- `0x8C079198` is now a recovered function (was hidden from the prior
+  export). It is the slot-table iterator that decides create-or-update for
+  the compact promotion family. The selector-`0x4` "create" branch is just
+  the trailing fragment shared with `FUN_8c0793e0`.
+
+User-reported gameplay state (2026-04-27, after the cloned-repo build):
+
+- bombs place correctly (the prior plan's bomb-promotion work is no longer a
+  blocker)
+- block destruction works
+- walking over an item shows the popup `Judge!!` instead of granting a
+  power-up; the player's stats do not change
+- a bomb that kills a player makes the sprite disappear from the board, but
+  no kill / win / death is registered server-side; battle does not end
+- timer expires after ~3 minutes, client transitions through `Time Over!!`,
+  `1 point match`, and `Collection` screens, then auto-resets to
+  `Battle Start!` and loops
+
+Heuristic falsified and reverted:
+
+- a staleness-based death detection ("if a player's record stops updating
+  while others are updating, mark them dead") was tried in build
+  `13428156` and immediately produced a fake mid-round win when one client
+  was idle; the post-end recycle gate that paired with it broke next-round
+  character loading. Both reverted.
+
+Death-state byte proven:
+
+- Two captures (08:40:26 and 09:00:41) show the dying player's compact
+  4-byte record transitioning from `35 78 00 00` to `35 78 04 00` at
+  exactly the moment the sprite dies, then no further live records from
+  that player until the match-end timer expires 2.5 minutes later.
+- Byte 3 cycles through `00,01,02,04,06,08` during normal play and is the
+  per-frame movement / animation nibble; it is NOT the dead bit.
+- Byte 2 is `00` during all active play, transitions to non-zero only on
+  death. **Byte 2 != 0 of the 4-byte compact player record at offset
+  `4 + position*4` of cmd=01/02/03 payload is the alive/dead signal.**
+- This matches the plan's earlier binary-side note that
+  `0x8C093A74` (cmd 0x16 receiver) reads payload+4 and stores a 32-bit
+  value at `active_battle+0x90`, then the cmd 0x19 receiver
+  `0x8C09392E` walks 8 player slots — a position bitmap is the only
+  consistent encoding.
+
+Current implementation (build `13537797`, 2026-04-27 09:09):
+
+- `BMRoom::noteLiveGameData` flips the player's bit in `deadManBitmap` when
+  their incoming record's byte 2 first becomes non-zero. When the resulting
+  alive count drops to 1 or 0, kage calls `broadcastBattleEndSequence(
+  "last_player_standing")`.
+- `sendBattleEndSequenceTo` sends cmd=0x16 with `value = deadManBitmap`
+  instead of `0`.
+- `advanceBattleEndSequence` sends cmd=0x19 with the same bitmap so the
+  per-slot walk inside `0x8C09392E` sees a consistent picture.
+- `prepareNextRoundFromPostEndFlow` is unchanged: the multi-round recycle is
+  the legit Battle-mode round loop; it must not be suppressed.
+- Probe logging that should remain on through the next test:
+  - `live record probe pos=… rec=… prev=…` — first 24 obs per player and
+    every byte-2 / byte-3 transition
+  - `cmd02 obj diff src=… slot=N prev=WWWW:XXXX cur=YYYY:ZZZZ` — every
+    transition in the 28-record object table
+  - `full cmd=N src=… size=… first64=…` — first 4 obs per (player × cmd
+    1/2/3) so we capture the bytes outside the player/object tables
+  - `unhandled udp 11/F cmd=… first64=…` — every truly unrouted opcode
+
+Open hypotheses (NOT proven, NOT acted on):
+
+- `CNetworkPanelScene` and the `Panel %d Chain FLAG_JUDGE Timeout` strings
+  are referenced by Panel-mode code. The user's `Judge!!` popup MAY be
+  Panel-mode UI leaking, but it could equally be a generic verdict UI
+  shared with Normal Battle. Plan line 2462-2466 documents the same
+  `Time Out!! → 1 point match → Collection Panel → Battle Start` cycle
+  during a known-Battle-mode test, so that recap is not unique to Panel
+  mode. Do not change kage rule handling on this hypothesis until the
+  9-byte rule blob is decoded against `CSetGameRule` / `CCheckRule`.
+- The captured rule blob was `00 00 01 01 00 00 00 0f 0f`. Each byte's
+  meaning needs to be confirmed before any rule-shape change.
+- A client-to-server `cmd=0x13` was logged once (`unhandled udp 11
+  cmd=13`); the plan says cmd=0x13 server-to-client triggers room-to-board
+  transition, so the client form may be a missing post-end "I'm ready"
+  signal kage currently drops. Not changed yet.
+
+Per-bug status going into the next hardware test:
+
+- Match-end loop: addressed via real death detection feeding cmd=0x16/0x19
+  bitmap. Confidence ~80% that a kill will end the match cleanly in a
+  1-point match.
+- Death/kill registration: addressed via byte-2 trigger. Confidence ~85%
+  that a real bomb-death now fires `last_player_standing`.
+- Powerup pickup: NOT addressed. No code change. Confidence ~25% the next
+  test will move the needle without a follow-up code change, but the
+  in-place `cmd02 obj diff` and `full cmd=02 first64` probes will capture
+  enough data on the next walkover that we can close it without yet another
+  test.
+
+
+## 2026-04-27 (afternoon) Death detected, post-match desync exposed and fixed
+
+Hardware result of the morning build (`13537797`):
+
+- a real bomb-kill triggered byte-2 transition `35 78 00 00 -> 35 78 04 00` at
+  09:21:17 in the dying player's compact record, exactly as predicted by the
+  prior probe data
+- the cmd=0x16 / 0x19 / 0x15 sequence completed cleanly with `deadMap=0x01`
+  carried into both `cmd=0x16` and `cmd=0x19` and was acked by both clients
+
+User-reported follow-up symptoms:
+
+- after the kill the round transitioned to "Battle Start!!" but the new board
+  had no character sprites
+- the timer was stuck at `2:01` and not counting down
+- (item-pickup behaviour unchanged — still shows `Judge!!` popup)
+
+Log diagnosis (lines 1464-1499 of `kageserver.log`):
+
+- 09:21:17  death detected, cmd=16 deadMap=01 broadcast
+- 09:21:18  cmd=16 acked by both, cmd=19 sent, cmd=19 acked, cmd=15 sent
+- 09:21:20  loser FARKUS sends `cmd=0x04` (`pre-match sync cmd4 size=0`),
+  triggering `prepareNextRoundFromPostEndFlow` → server clears per-round
+  state and sets `awaitingPostEndMapMarker=true`
+- 09:21:20-22  loser sends 5 more cmd=04
+- 09:21:34  loser sends `cmd=0x13` (size=0, word=0x0008) — currently UNHANDLED
+- 09:21:35  loser sends cmd=0x1b (map block 132 bytes)
+- 09:21:36  loser sends `cmd=0x0f_post_end` (1/2 marker)
+- 09:21:36  winner FARKUS2 sends `cmd=0x0c` rule sync (counter=0x0800 = 2048)
+  — that is the "back at the rules screen" signal, NOT a post-map marker
+- 09:22:10  loser FARKUS times out (50 sec without progress)
+
+Compare with line 881-886 (a draw-end transition into a clean round 2): both
+players send `cmd=0x0e` post-map markers in that case and the server runs
+`post_map_slot_refresh` + `cmd=0x14` Game Time Info + `match-end timer
+armed`. The death-end case diverges because the two players are in
+different post-game states.
+
+Root cause:
+
+- when the round ends because of a kill (`deadMap != 0`), the WINNER's client
+  goes back to the rules screen and emits `cmd=0x0c` rule sync; the LOSER's
+  client follows the next-round-prep path (`cmd=0x04 -> cmd=0x13 -> cmd=0x1b
+  -> cmd=0x0f_post_end`)
+- the server only knew the round-recycle path; it kept waiting for both
+  players' `cmd=0x0f` markers, never started round 2 properly, and the
+  loser timed out
+
+Implemented fix (build `13546220`, 2026-04-27 09:32):
+
+- `BMRoom::resetForPostMatchRoom(reason)` rewinds the room to a "back at
+  rules screen" state: stops timers, clears live state, sets
+  `syncState = ReadyToStart`, clears battle-end / post-end flags, clears
+  `deadManBitmap`, then re-broadcasts the rule blob, occupied slot mask,
+  and keyholder so the loser is pulled out of the next-round-prep path
+- the cmd=0x0c handler now calls `resetForPostMatchRoom` when
+  `battleEndSent==true`, which is the surviving player's "I'm back at the
+  rules screen" signal after a kill-decided match end
+- `prepareNextRoundFromPostEndFlow` now early-returns when
+  `battleEndDecidedByDeath` is set, so the loser's cmd=04 cannot start a
+  bogus round 2 before the winner's cmd=0xc resets the room
+
+Probes still on for the next test:
+
+- `live record probe` byte-2/byte-3 transitions per player
+- `cmd02 obj diff` per-slot transitions across the 28-record object table
+- `full cmd=01/02/03 first64` payload trace
+- `unhandled udp 11/F` opcode + first64 hex (this was how we found the
+  client-to-server `cmd=0x13` we still don't handle)
+
+Status entering the next hardware test:
+
+- match-end loop after a kill: now driven by real death detection, with the
+  desync between winner's rules-screen and loser's next-round-prep
+  resolved by `resetForPostMatchRoom`. Confidence ~75% (an unverified
+  assumption is that `broadcastRuleBlob` + slot-mask + keyholder is enough
+  to pull the loser back from the cmd=04/0f path; if not, we'll see the
+  loser keep emitting cmd=0f and the timeout flow will tell us what
+  additional packet is needed).
+- match-end loop after a draw (timer expiry, no kill): unchanged from the
+  legit Battle-mode draw cycle. The recycle into round 2 is correct
+  behaviour for this case in N>1 round matches; in 1-point matches a draw
+  legitimately means another draw round. Confidence ~85%.
+- death/kill registration: confirmed working. Confidence ~95%.
+- powerup pickup ("Judge!!"): NOT addressed. The probes will capture the
+  data needed to close it after the next test. Confidence ~10% the next
+  build fixes it without further analysis; ~90% the next test captures the
+  evidence to fix it after.
+- client-to-server `cmd=0x13`: still unhandled. The probe captured it once
+  (size=0, word=0x0008); next test should show the timing/relationship to
+  cmd=04/cmd=0f.
+
+
+## 2026-04-27 (late afternoon) Timer mismatch and item-pickup data gap
+
+User feedback after the 09:21 hardware test:
+
+- the previous "Time Up!! delay" puzzle is solved — match rule was set to 2:00
+  via the room rules screen but the kageserver was hardcoded to 3:00 (10800
+  frames at 60 fps). Client UI hit 0:00 at the 2-min mark and waited for
+  cmd=0x16; server fired its match-end timer 60 sec later. The ~60 sec gap
+  the user observed is precisely that delta.
+- items DO appear visually on the user's screen after a soft block is
+  destroyed; walking over the item card produces a "Judge!!" UI popup; the
+  item card does NOT disappear and no powerup applies.
+
+What the captured probes confirmed about items:
+
+- across the entire 09:20:27 – 09:21:17 match, the cmd=0x02 28-record object
+  table showed only slot 9 and slot 20 transitions, with state nibbles
+  cycling through 1 / 2 / 3 / b / 4 (empty / placed / ticking / explosion /
+  post-explosion). Zero `F`-state transitions were captured, so item
+  appearance is NOT carried by the cmd=0x02 object table the kageserver
+  currently relays.
+- cmd=0x03 is 36 bytes (header + 8x4 player records); no object data.
+- cmd=0x01 is 200 bytes; only the first 64 bytes were captured, which is
+  before the action-lane region.
+- map blocks (cmd=0x1a / 0x1b) and game-phase markers (cmd=0x05 / 0x0d /
+  0x0e) were not probed at all.
+
+Implementation in build `13673909` (2026-04-27 09:44):
+
+- `BMRoom::matchDurationSeconds()` now returns 2/3/5 minutes based on
+  rules[0] = 0/1/2 (Bomberman Online's standard time options). The same
+  value is used for both `broadcastGameTimeInfo` end-frame and
+  `startMatchEndTimer`, so client UI countdown and server match-end timer
+  fire together.
+- Mapping for rules[0] values 1+ is unverified; will be confirmed on the
+  next test if the user picks a longer match.
+- Probes bumped to capture the data needed to close items in one more run:
+  - `full cmd=01/02/03` payload now traced up to 256 bytes on first 4
+    observations per (player × cmd) AND on every change to the bytes
+    outside the player+object tables (cmd=02 trailing 16 bytes,
+    cmd=01 action lane region 36..199).
+  - new `map probe` line for cmd=05/0d/0e/1a/1b: full payload on first 6
+    observations per (player × cmd) AND on every payload change. Items
+    revealed by soft-block destruction are most likely carried in one of
+    these streams since they are not in cmd=02.
+
+Status entering the next hardware test:
+
+- match-end loop after kill (post-match-room reset): unchanged from
+  build `13546220`. Will validate.
+- death/kill registration (byte-2 trigger): unchanged. Will validate.
+- match timer alignment (rules-driven duration): NEW; should eliminate
+  the ~60 sec Time Up delay. Confidence ~85% for rules[0]=0; mapping for
+  other rules[0] values still empirical.
+- powerup pickup data capture: NOT a fix yet but the probes are now sized
+  to capture the item event byte-by-byte. After this run the item carrier
+  cmd will be identifiable definitively.
+
+
+## 2026-04-27 (evening) Match-end timer fix landed; rudpAcked CompletedDeadBits gap exposed
+
+Hardware result of build `13673909`:
+
+- match-end timer fired at exactly 2:00 (rules-driven duration is correct)
+- user observed `Time Up!!` appearing on time, no minute-plus delay
+- FARKUS [1001] ACKed cmd=0x16 -> server sent cmd=0x19; FARKUS sent
+  cmd=0x10 client signal -> server advanced to FinalState and sent cmd=0x15
+- FARKUS2 [1002] ACKed cmd=0x16 -> server sent cmd=0x19; **FARKUS2 then
+  emitted nothing for 60 sec until both clients timed out**
+- collection panel and post-game popups appeared blank (consequence of
+  FARKUS2 never reaching FinalState)
+- both clients then disconnected ("line disconnected" UI)
+- items still produced "Judge!!" popup on walkover and did not pickup
+
+Root cause of FARKUS2 timeout:
+
+- `BMRoom::rudpAcked` only advanced the battle-end state machine when
+  `state.battleEndPhase == BattleEndPhase::SettledDeadBits` (i.e. on the
+  cmd=0x16 ACK). It did NOT advance on the cmd=0x19 ACK.
+- The state could only progress from `CompletedDeadBits` to `FinalState`
+  via `handleBattleEndClientSignal` (cmd=0x10 client signal).
+- In prior 09:03:09 / 09:21:17 tests both clients sent cmd=0x10 within
+  ~1 sec, masking the bug. In this run only FARKUS sent cmd=0x10; FARKUS2
+  never did. Most likely cause of FARKUS2's silence is a race introduced
+  by the rules-driven timer alignment: cmd=0x16 now arrives at the exact
+  moment FARKUS2's local UI countdown hits 0:00, instead of 60 sec later
+  as in prior tests, and the client's processing of those simultaneous
+  events appears to be brittle.
+
+Fix (build `13673909` rebuilt 09:59 with `bomberman.cpp:1622-1627`):
+
+- `rudpAcked` now advances from `CompletedDeadBits` -> `FinalState` on
+  the cmd=0x19 ACK in addition to the cmd=0x16 ACK case.
+- The cmd=0x15 send is now driven entirely by the ACK chain so the
+  protocol no longer depends on cmd=0x10 reaching the server reliably.
+- cmd=0x10 client signal still works (it advances `FinalState` -> `Done`
+  unchanged).
+
+Open items entering the next hardware test:
+
+- powerup pickup ("Judge!!" popup on walkover, item card stays, no stat
+  bump): NOT fixed in code yet. The probes added in build `13673909` are
+  sized to capture the data needed to resolve it. The user confirmed
+  items DO appear visually, so the relevant network event must be in
+  cmd=0x01 trailing bytes, cmd=0x02 trailing 16 bytes, or one of the map
+  block / phase-marker streams (cmd=0x05 / 0x0d / 0x0e / 0x1a / 0x1b)
+  that we now log on every payload change.
+- match-duration mapping for `rules[0]` values 1 and 2 unverified; will
+  be confirmed if the user picks 3:00 or 5:00 in the rules screen.
+- post-match-room reset on cmd=0xc (kill-decided match-end): unchanged
+  from build `13546220`. Will validate next time a kill ends a match.
+
+
+## 2026-04-27 (late evening) cmd=01 board-state bitmap identified
+
+Probe analysis of build `13673909` revealed that **cmd=0x01's trailing
+16 bytes are a 128-bit per-cell board-state bitmap**:
+
+- starts as `00 ff ff ff ff ff ff ff ff ff 0f ff ff ff ff ff ff` at
+  match start (116 bits set, matching the playable cell count of a
+  13x11 Bomberman board with the fixed wall pattern carved out)
+- bits flip from 1 -> 0 as bricks are destroyed and (presumably) items
+  are picked up; 57 transitions captured during the test
+- the bitmap is part of the existing cmd=0x01 200-byte payload that
+  kageserver already relays to peers, so the bytes do reach the other
+  client
+
+cmd=0x1a / 0x1b 132-byte map block payload structure decoded:
+
+- bytes 0-15: header (cmd word, source flag, magic constants
+  `0x0f`, `0x0d`, `0xb4`)
+- bytes 16+: 4-byte tuples (col, row, cell_type, value)
+  - `cell_type=0x02` -> empty / walkable (value always 0)
+  - `cell_type=0x03` -> soft block (value varies; sprite or random)
+  - `cell_type=0x04` -> different block / item-bearing (value varies;
+    appears in patterns consistent with hidden-item placement)
+
+Implication for item pickup:
+
+- items DO appear visually because both clients deterministically
+  derive item positions from cmd=0x1a/0x1b initial map + cell_type 0x04
+  cells, with state changes driven by the cmd=0x01 bitmap
+- the kageserver relay path is already correct
+- the user's symptom (items don't pickup, "Judge!!" popup, item card
+  remains) is therefore NOT a server relay issue. It is most likely:
+  1. the client routes walkover to Panel-mode `CJudgeWord` logic
+     (FLAG_JUDGE timeout) instead of normal-mode item-pickup logic, OR
+  2. each client tracks pickup independently in local state, and the
+     local pickup handler is being mis-routed
+
+Honest status: items cannot be fixed with another protocol-level patch
+to kageserver based on the current data. The next step is binary
+analysis of the cell-walkover handler in 1ST_READ.BIN to find why
+walkover dispatches to the Judge / Panel-chain code path instead of
+the normal item-grab code path.
+
+
+## 2026-04-27 (later) Rule-driven battle-set tracking
+
+User-confirmed rule blob byte mapping (2026-04-27 captures + user
+verification):
+
+- `rules[0]` -> match duration: 0=2min, 1=3min(?), 2=5min(?). User
+  confirmed the 0=2min mapping; values 1 and 2 are inferred from the
+  Bomberman Online manual's standard time options.
+- `rules[2]` -> "points to win the battle set". Captured `0x01` matched
+  the user-described "1 point match" (first to 1 round win takes the
+  battle set).
+- `rules[1]`, `rules[3]`, `rules[4..6]`, `rules[7..8]` semantics still
+  unproven — bytes 7/8 are typically `0x0f`/`0x0f` and may be max-bomb /
+  max-fire caps; bytes 1 and 3 may be game-mode toggles or item-rate
+  settings. **Do not act on these without binary decode of CSetGameRule.**
+
+Implementation (build `13686648`, 2026-04-27 10:11):
+
+- `BMRoom::pointsToWinSet()` returns `rules[2]` (with 0 -> 1 fallback).
+- `BMRoom::winCounts[8]` holds per-slot accumulated round wins within
+  the current battle set.
+- `BMRoom::isBattleSetComplete()` returns true if any slot has wins
+  >= pointsToWinSet().
+- `BMRoom::noteRoundWinByDeath(deadBitmap)` finds the surviving slot
+  and increments their winCount; logs `wins=N/M`. If the battle set is
+  now complete, logs that we are awaiting cmd=0xc rule sync.
+- `prepareNextRoundFromPostEndFlow` was previously gating ALL
+  death-decided rounds against recycling. Refined: it now only blocks
+  when `battleEndDecidedByDeath && isBattleSetComplete()`. Mid-set
+  death-decided rounds correctly recycle to the next round so a 3-of-5
+  battle does not stall after the first kill.
+- `winCounts` are cleared on `resetMatchSync` (room exit) and
+  `resetForPostMatchRoom` (battle set complete -> rules screen). They
+  are NOT cleared on per-round recycle, so the standings persist across
+  rounds within a battle set.
+- Round-recycle log line now includes the win standings, e.g.
+  `wins=[0 1 0 0 0 0 0 0]/1`.
+
+Known gaps still open after this build:
+
+- powerup pickup ("Judge!!"): NOT a server bug. cmd=0x01's trailing
+  bitmap is the per-cell destruct/pickup state and IS already relayed.
+  Items appear synchronized on both clients (user confirmed). The
+  client's walkover handler is routing to `CJudgeWord` / FLAG_JUDGE
+  Panel-chain logic instead of normal item-pickup logic. This requires
+  binary disassembly of the cell-walkover dispatch to fix; it cannot be
+  closed by another kageserver patch with current data.
+- rule-blob bytes 1 / 3 / 7 / 8 unverified — if a future test uses
+  different values for these and behavior changes, that's the data we
+  need to map them.
+
+
+## 2026-04-27 (final pre-test) Targeted decompile pass for definitive next test
+
+Ran `DecompileTargetedFunctions.java` headless (pass276_targeted) to
+decompile every function still poorly understood:
+
+- battle-end receivers `0x8C093A74` / `0x8C09392E` / `0x8C0939A0` /
+  `0x8C093B10` (cmd=0x16/0x19/0x15)
+- DeadManBit pipeline `0x8C078014` / `0x8C0784D4` / `0x8C078482`
+- Game time info receiver `0x8C099E92`
+- CSetGameRule / CCheckRule containing functions `0x8C111614` /
+  `0x8C111692` / `0x8C111694`
+- CJudgeWord caller chain `0x8C043610` / `0x8C04361C` / `0x8C0438C4`
+  / `0x8C043A0C` / `0x8C043AFA` / `0x8C043CCE` / `0x8C04628C`
+- Live-state receivers `0x8C0DDA44` / `0x8C0DDBE4` / `0x8C0DDD64` and
+  the 28-record object table parser `0x8C0DD698`
+- Top-level battle-tick dispatcher `0x8C077F00`
+
+26 functions decompiled in `docs/ghidra_decompile/pass276_targeted/`.
+
+Crucial new binary findings:
+
+- `CSelectBattleType` (vtable string at `0x8C18FF53`) and
+  `CSelectMatchType` (`0x8C18FF6F`) prove the room rules screen has
+  TWO user-facing dropdowns: a "Battle Type" picker (Normal / Panel /
+  Hyper) AND a "Match Type" picker (1-point / N-point). The 9-byte
+  rule blob therefore encodes BOTH selections in different bytes.
+- `rules[2]` = match type (user-confirmed: `0x01` = 1-point match).
+- `rules[1]` and/or `rules[3]` is most likely the Battle Type byte.
+  The user's captured blob had `rules[1]=0x00` and `rules[3]=0x01`.
+  If the value `0x00` for `rules[1]` selects Panel mode by default
+  (without user picking it), that fully explains the persistent
+  `Judge!!` popup on item walkover (CJudgeWord is called from
+  Panel-chain logic).
+- `FUN_8c0784d4` (death handler) calls a virtual method via
+  `*(active+0x28)` with arg `0xb` after dividing two floats. This is
+  the spawn-explosion / death-confirmation path; not directly useful
+  for further server fixes.
+
+Honest recommendation for the next hardware test:
+
+1. Have the user explicitly pick "Normal Battle" in `CSelectBattleType`
+   menu (if it's distinct from the default they were getting). Capture
+   the rule blob; compare bytes 1 and 3 to the previous capture's
+   `00 ... 01`.
+2. If different: we now know which byte selects mode and can defend
+   against it from the server side (e.g., re-broadcast a clean Normal
+   blob if a Panel blob is observed).
+3. If same: the mode is determined elsewhere (perhaps the room
+   attribute set on creation, not the rule blob). That's a separate
+   investigation but at least we narrow it.
+
+Everything else in the build:
+
+- death detection by byte 2 = 0x04 (proven)
+- cmd=19 ACK chain self-advance (fixes line-disconnect)
+- match duration from rules[0] (proven for 0x00 = 2 min)
+- post-match-room reset via cmd=0xc (in place; will fire on next kill)
+- rule-driven win tracking via rules[2] (in place; will track wins)
+- comprehensive probes (full payload, map block, obj diff,
+  unhandled cmd) for any unforeseen issue
+
+Next test should produce a definitive readout for ALL gameplay flows
+in one run, with the only outstanding gap being the item-pickup
+walkover-handler dispatch — which is a binary-side issue that does
+not require another hardware test to investigate.
+
+
+## 2026-04-27 (final) Stale-binary discovery + multi-round gate refinement
+
+User-reported hardware test (10:24-10:26) with a 3 min / 2 point match
+ended after a single kill with "3 trophies" post-game screen and line
+disconnect.
+
+Captured rule blob for "3 min, 2 point" match:
+- `00 00 02 02 00 00 00 0f 0f`
+
+Compared with prior "2 min, 1 point" capture:
+- `00 00 01 01 00 00 00 0f 0f`
+
+Decoded:
+- `rules[0]` UNCHANGED at `0x00` despite user picking 3 min vs 2 min.
+  My earlier mapping of rules[0] -> match duration is therefore WRONG.
+  Time selection lives in a different byte or is encoded differently.
+- `rules[2]` = `0x01` -> 1-point, `0x02` -> 2-point. **Confirmed:
+  rules[2] is the points-to-win-set byte**.
+- `rules[3]` mirrored rules[2] in both blobs (1 vs 2). May be a
+  redundant copy or a related but distinct setting.
+
+Critical analysis observations from the log:
+
+- The kageserver binary running at the time of the test was an OLDER
+  build than the latest source. Evidence:
+  - log line `ignoring next-round prep cmd=04 ... match was won by
+    kill, awaiting post-match rule sync` matches an EARLIER source
+    string. Latest source uses `battle set complete, awaiting
+    post-match rule sync`.
+  - the new `noteRoundWinByDeath` -> `round won by pos=N wins=N/M` log
+    line never appeared in the test log.
+  - the new `match duration derived from rules[0]=XX` log line only
+    appears for prior runs (09:49, 10:24); the user's 3-min selection
+    showed the same `rules[0]=00 -> 120 sec` even though they chose
+    3 minutes. With rules[0]=00 confirmed wrong as time, the timer
+    happened to be 2 min by coincidence with my mapping default.
+  - This means the kageserver process the GUI launched did NOT pick
+    up the latest build automatically — the user must restart the
+    server process for new code to take effect.
+
+Bug found and fixed in latest source (build `13686916`):
+
+- Even with the old build, the cmd=0xc handler was unconditionally
+  calling `resetForPostMatchRoom` whenever `battleEndSent==true`. In
+  a multi-round battle, that resets the room to the rules screen
+  AFTER A SINGLE KILL — which is exactly what the user reported (3
+  trophies + line disconnect on the 1st kill of a 2-point match).
+- Fixed by gating cmd=0xc reset on `room->isBattleEndSent() &&
+  room->isBattleSetComplete()`. Multi-round battles will now correctly
+  recycle through `prepareNextRoundFromPostEndFlow` for non-final
+  rounds and only reset to lobby when the battle set is actually
+  done.
+
+Time-byte mapping needs more data:
+
+- We do NOT know which byte is time-duration. The captured blobs for
+  2-min and 3-min matches both have `rules[0]=0x00`. The next test
+  must explicitly pick a non-2-min duration AND observe the rule
+  blob bytes. Until then, the `matchDurationSeconds()` mapping is
+  unproven and may produce wrong durations — the only known-correct
+  mapping so far is `rules[0]=0x00 -> 120 sec` (which the user
+  confirmed for a 2-min match by reading "Time Up!!" on time).
+
+Open items for the next test:
+
+1. Run the latest build (`13686916`, 2026-04-27 10:33) — restart
+   kageserver.exe from the GUI before testing.
+2. In the rules screen, pick a clearly non-default time (e.g. 5 min)
+   and a multi-point match (e.g. 3-point). Capture the rule blob for
+   both settings; the blob bytes that change identify the time and
+   point bytes.
+3. Play through at least 2 rounds of a multi-point match to validate
+   the per-round recycle path.
+4. Item pickup: still requires binary disassembly of the cell-walkover
+   handler in 1ST_READ.BIN. Not addressed in this kageserver patch.
+

@@ -21,3 +21,9 @@ ot_dissect
 /*.dll
 /*.dll.a
 *.log
+
+# Large Ghidra ASCII export (148 MB) - regenerate via tools/ghidra_scripts/BombermanRevivalPass.java
+/docs/ghidra_decompile/pass275_v2_full/1ST_READ.BIN.v2.txt
+/docs/ghidra_decompile/pass275_v2_full/headless.log
+/build_tmp/
+/data/
