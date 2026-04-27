@@ -1,0 +1,12 @@
+# string='CJudgeWord' addr=8c182894
+
+## References to 8c182894 via Reference Manager:
+  total: 0
+
+## Instruction operands containing 8c182894:
+  total: 0
+
+## 4-byte words equal to 8c182894:
+  8c1b24ac  word=8c182894 fn=(none) entry=(none)
+  total: 1
+

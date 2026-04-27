@@ -273,22 +273,38 @@ void BMRoom::sendUdpPacketA(Packet& packet)
 	packet.writeData((uint16_t)0);			// flag?
 
 	packet.writeData(getHostCount());
+	std::ostringstream pktDump;
+	pktDump << "host_count=" << getHostCount();
 	for (const Player *pl : players)
 	{
 		packet.writeData(pl->getId());		// player kage id
 		uint32_t slots = (uint32_t)getSlotCount(pl);
 		packet.writeData(slots);				// guest+1 count
 		uint32_t pos = (uint32_t)getPlayerPosition(pl);
+		pktDump << " player[" << pl->getName() << "]={kage_id=" << pl->getId()
+			<< ",slots=" << slots << ",pos=" << pos << ",slot_indices=[";
 		for (unsigned i = 0; i < slots; i++)
+		{
 			// playerId [0-7]
 			packet.writeData(pos + i);		// FIXME different from udp_8 but looks better.
+			if (i > 0) pktDump << ",";
+			pktDump << (pos + i);
+		}
+		pktDump << "]}";
 	}
 	for (size_t i = 0; i < bots.size(); i++)
 	{
 		packet.writeData(bots[i].id);
 		packet.writeData(1u);
 		packet.writeData((uint32_t)getBotPosition(i));
+		pktDump << " bot[" << bots[i].id << "]=pos" << getBotPosition(i);
 	}
+	// PICKUP DIAGNOSTIC: log full cmd=0xA payload structure so we can verify
+	// what slot/player_id values reach the client. Per binary trace, the client's
+	// PanelHasReached pickup gate compares cell+9 high nibble to playerStruct[+4],
+	// which is most likely seeded from this cmd.
+	INFO_LOG(Game::Bomberman, "%s: PICKUP_DIAG cmd=0xA contents %s",
+		name.c_str(), pktDump.str().c_str());
 }
 
 // owner: needs pkt8 only at creation
@@ -305,17 +321,28 @@ void BMRoom::createJoinRoomReply(Packet& reply, Packet& relay, Player *player)
 	reply.writeData(cmd.full);
 	reply.writeData((uint16_t)0);			// flag?
 	reply.writeData(player->getId());		// player kage id
-	reply.writeData((uint32_t)getPlayerIndex(player));		// FIXME p[915] [0-F]? client id?
+	const uint32_t playerIndex = (uint32_t)getPlayerIndex(player);
+	reply.writeData(playerIndex);		// FIXME p[915] [0-F]? client id?
 	uint32_t pos = (uint32_t)getPlayerPosition(player);
 	reply.writeData(pos); 					// player pos
 	uint32_t slots = getSlotCount(player);
 	reply.writeData(slots - 1);				// [911] guest count
 	reply.writeData(owner->getId());		// room owner kage id
-	reply.writeData((uint32_t)getPlayerPosition(owner)); // room owner player pos
+	const uint32_t ownerPos = (uint32_t)getPlayerPosition(owner);
+	reply.writeData(ownerPos); // room owner player pos
 	// for each player: -1 or player pos (1 - 8)
+	uint32_t startPos = pos;
 	reply.writeData(++pos);
 	for (unsigned i = 1; i < slots; i++)
 		reply.writeData(++pos);
+	// PICKUP DIAGNOSTIC: cmd=8 carries the per-player INDEX field which the
+	// FIXME comment flags as "p[915] [0-F]? client id?". This 0-15 value is the
+	// strongest candidate for what the binary stores at playerStruct[+4] (the
+	// PanelHasReached pickup gate). Log it so we can correlate against pickup
+	// behavior post-test.
+	INFO_LOG(Game::Bomberman, "%s: PICKUP_DIAG cmd=0x08 reply -> %s [%x] index=%u pos=%u slots=%u owner_pos=%u start_pos=%u",
+		name.c_str(), player->getName().c_str(), player->getId(),
+		playerIndex, startPos, slots, ownerPos, startPos);
 }
 
 void BMRoom::writeRoomAttr(Packet& packet, const char attr[4]) const

@@ -1,0 +1,7 @@
+# Finding byte sequence 'f4150000' in initialized memory
+8c074c78  bytes=f4150000  fn=(none) entry=(none)  insn=(no insn)
+8c07525e  bytes=f4150000  fn=(none) entry=(none)  insn=(no insn)
+8c077e58  bytes=f4150000  fn=(none) entry=(none)  insn=(no insn)
+8c07db20  bytes=f4150000  fn=(none) entry=(none)  insn=(no insn)
+8c07f68c  bytes=f4150000  fn=(none) entry=(none)  insn=(no insn)
+# total: 5

@@ -4991,3 +4991,84 @@ populated by a different cmd entirely (cmd=02 object table is the
 next suspect; cmd=03 is the third).
 
 This is one hardware test, one toggle, with a clear yes/no signal.
+
+
+## 2026-04-27 (post-pickup-trace) flyinghead/master pushed parallel rewrite
+
+Friend Flyinghead pushed commit `8d9757f` to https://github.com/flyinghead/kage_server master (co-credit to "Larkus / LikeAGFeld" suggesting collaboration). It is a major architectural rewrite (+803/-247 lines in bomberman.cpp, +169/-13 in bomberman.h) that **changes the server design from packet-relay to server-side state aggregation**. Friend's accompanying notes explain the why (28.8 kbps modem cap forces aggregation) and decode the cmd=1/2/3 packet structs.
+
+### Validation results
+
+All 10 of friend's notes were checked against the binary trace and flyinghead's
+implementation. Full per-note analysis in
+`docs/flyinghead_master_validation.md`. Highlights:
+
+- **NEW INFO confirmed:** CompactUser bitfield (`x:6 y:5 vaxis:1 frac:4`),
+  PowerUp param semantics (0x1000 hidden / 0x2000 visible / 0 picked-up),
+  Bomb 6-byte struct with `type` field where 4=intent and 5=active,
+  cmd=1 timestamp at offset 0x34, bombs-per-player from cmd=1A header at
+  offset 0xc, 8-player × 3-bomb (Full Fire) array.
+- **PARTIAL CONFIRM, narrowed:** trailing 16-byte bitmap is the BRICK WALL
+  state specifically, not a generic destruct/pickup bitmap as our prior
+  memory said.
+- **NEW INFO unimplemented in flyinghead's branch:** mapinfo cell list parsing
+  (4 bytes each, types 2=wall/3=brick/4=powerup), powerup ordering
+  (row left-to-right then down), pickup arbitration (his code has explicit
+  FIXME).
+
+### Architecture comparison (full table in flyinghead_master_validation.md)
+
+His branch:
+- cmd=1/2/3 are server-aggregated and replied (not relayed)
+- Server owns powerup state, brick map, bomb state, player positions
+- mapinfo parsing extracts bombs-per-player
+- Per-slot state machine: joining/rulesAccepted/mapInfoSent/cmd1Timestamp
+- TIME_INFO sent when all players have mapInfoSent (hardcoded 60×180 = 3 min)
+- Updated RUdp dedup logic in model.cpp
+
+Our branch:
+- cmd=1/2/3 relayed with at-relay bomb promotion (4→5 selector)
+- Battle-end pipeline: cmd=14/15/16/17/18/19 dispatcher
+- Death detection (record byte 2 == 0x04)
+- Win-count tracking (winCounts[], pointsToWinSet from rules[2])
+- isBattleSetComplete + post-match cmd=0xc reset
+- Match duration from rules[0] (not hardcoded)
+- cmd=0x13 post-match handshake
+- Post-match safety timer (30 s)
+
+### Why the architecture matters for item pickup
+
+The bandwidth math: 522 bytes × 8 bits × 5 Hz = 20,880 bps. At 28.8 kbps a
+2-player relay barely fits, and 3+ players physically cannot. So pure relay
+fundamentally breaks. With server-side aggregation, the server can ALSO be
+authoritative for powerup state — which means the pickup arbitration we've
+been chasing in the binary becomes a server-side decision (player walks onto
+visible powerup → server marks picked up by that player → broadcasts new
+cmd=2). This sidesteps the entire client-side PanelHasReached gate question.
+
+### Recommended path
+
+Three options, full analysis in `docs/flyinghead_master_validation.md`:
+
+1. **Full rebase onto flyinghead/master.** Adopt his architecture, re-apply
+   our battle-end and post-match work as new commits on top. Right long-term,
+   significant merge effort.
+2. **Cherry-pick structs and aggregation only.** Pull BMCmd/CompactUser/
+   PowerUp/Bomb/savers/makers, keep our existing battle-end pipeline. Easier
+   short-term, dual-code-path debt.
+3. **Stay on relay, port aggregation insight only.** Keep our model, reduce
+   relay frequency. Doesn't solve N≥3 bandwidth or item pickup.
+
+**Choice:** Option 1, executed in stages. First: build flyinghead's branch
+and test pickup IN HIS BRANCH ALONE before deciding next move. If pickup
+works on his branch, the merge plan is validated. If pickup still fails
+there too, the FIXME arbitration work is the next concrete deliverable for
+both branches.
+
+### Status of our PICKUP_DIAG test
+
+Built but not yet run. Recommendation: **defer running PICKUP_DIAG against
+our branch.** First test flyinghead's branch as-is to see if his
+architecture alone fixes pickup. If yes, our diagnostic is moot. If no,
+the diagnostic is still useful but should be added to his branch (where
+it can capture the powerup-state arbitration moment).
