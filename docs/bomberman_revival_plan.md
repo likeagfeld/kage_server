@@ -4480,3 +4480,45 @@ issue.
 
 End of binary investigation. Server-side protocol is correct.
 
+
+## 2026-04-27 (extended) cmd=0x13 client-to-server handshake found
+
+User correctly pointed out the game worked with the original Hudson server
+so any remaining bug must be a missing server cmd, not a client patch.
+
+Looking at every "stuck" hardware test in the log, an unhandled
+client-to-server cmd=0x13 packet appears at the EXACT moment the user
+described being stuck:
+
+- 09:21:34: post-kill 1-pt match, FARKUS2 (loser) sent cmd=0x13 word=0x0008
+- 09:52:11: post-timer-expiry, FARKUS sent cmd=0x13 word=0x0080
+- 10:26:34: post-kill 2-pt match, FARKUS sent cmd=0x13 word=0x0080
+- 10:57:09: post-kill 1-pt match, FARKUS sent cmd=0x13 word=0x0080
+
+word value matches the player's position-bit (0x0080 for pos 0, 0x0008 for
+pos 1).
+
+cmd=0x13 server-to-client is the room-to-board start transition (handled by
+broadcastStartTransition since the start of the project). The original server
+clearly performed this hand-shake:
+
+```
+client cmd=0x13 (advance request) -> server cmd=0x13 (start transition reply)
+```
+
+Implemented in build `13699452` (2026-04-27 12:09): cmd=0x13 from client now
+ACKs and, when battleEndSent is true, broadcasts cmd=0x13 start transition
+back. Combined with the cmd=0x17 recap-advance nudge from earlier today,
+the post-match advance hand-shake should now be complete.
+
+Item pickup remains under investigation:
+
+- pass281 decompiled the 4224-byte cell-state-machine FUN_8c07f510 (entry).
+  State byte at +8 takes values 0-12; state 7 has its own pickup-like effect
+  applicator path (PTR_FUN_8c080400 / 0x404 / 0x408 / 0x410). FLAG_JUDGE
+  Timeout fires from state-3 transition when a chain timer expires.
+- Item pickup network signal not yet identified definitively. cmd=0x13 from
+  client does NOT correlate with item walkover — it only appears post-match.
+  Pickup itself produces no observable network packet from the client based
+  on probe data.
+
