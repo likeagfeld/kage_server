@@ -928,6 +928,35 @@ constexpr size_t BMPowerupRecordSize = 4;
 constexpr size_t BMPlayerSlotCount = 8;
 constexpr size_t BMPlayerSlotRecordSize = 4;
 
+// =====================================================================
+// PICKUP DIAGNOSTIC LOGGER (replaces earlier resolvePickupsFromCmd2/etc.
+// arbitration code which was based on unverified struct semantics).
+//
+// What we know from binary trace (passes 277, 314, 315):
+//   * cmd=2 receiver FUN_8c0ddbe4 calls FUN_8c0dd698 for each 4-byte record
+//   * FUN_8c0dd698 copies bytes[0..1] verbatim to local struct (the "pos" u16)
+//     and decomposes bytes[2..3] (BIG-ENDIAN u16) into 6 bitfields via
+//     __bfswu calls, written into a different bit layout in the local struct.
+//   * FUN_8c0dd070 decomposes the pos u16 into x:6 y:5 vaxis:1 frac:4 fields
+//     (matching the player CompactUser layout — confirmed by our existing
+//     live record probe correctly decoding player positions to (x,y)).
+//
+// What we DO NOT know (and what the test will reveal):
+//   * Which bit of the 16-bit param u16 (bytes[2..3]) encodes "hidden vs
+//     visible" state. Friend's note said 0x1000=hidden / 0x2000=visible but
+//     in our captured data param==0x0000 for all records, so the state is
+//     somewhere ELSE — most likely high nibble of the FIRST u16 (pos) where
+//     we observe values 0x10, 0x30, 0x40 cycling.
+//   * Whether the 28 records are indexed by an implicit row-major mapping
+//     (per friend) or each record self-encodes its cell position.
+//
+// This logger captures every transition in cmd=2 powerup-table records and
+// every cmd=1 player-position update during a normal Battle test session,
+// so we can correlate (a) brick-break events to (b) powerup-record changes
+// to (c) player-walkover events to (d) the cell-states the binary expects.
+// One test run gives us the exact bit semantics.
+// =====================================================================
+
 bool BMRoom::resolvePickupsFromCmd2(Player *sender, uint8_t *payload, size_t payloadSize)
 {
 	if (payload == nullptr)
@@ -936,9 +965,7 @@ bool BMRoom::resolvePickupsFromCmd2(Player *sender, uint8_t *payload, size_t pay
 	if (payloadSize < requiredSize)
 		return false;
 
-	// 1. Absorb player positions from this packet. Each slot has its own
-	//    record; only update slots that this sender owns (others' positions
-	//    arrive in their own cmd=1/2/3).
+	// Absorb sender's player positions (only the slots they own).
 	const int senderPos = sender != nullptr ? getPlayerPosition(sender) : -1;
 	const int senderSlots = sender != nullptr ? getSlotCount(sender) : 0;
 	for (int i = 0; i < senderSlots; i++)
@@ -947,79 +974,67 @@ bool BMRoom::resolvePickupsFromCmd2(Player *sender, uint8_t *payload, size_t pay
 		if (slot < 0 || slot >= (int)BMPlayerSlotCount)
 			continue;
 		const uint8_t *userBytes = payload + BMPlayerSlotsOffset + slot * BMPlayerSlotRecordSize;
+		BMPosition before = serverPlayerCells[slot];
 		serverPlayerCells[slot].readFrom(userBytes);
+		BMPosition& after = serverPlayerCells[slot];
+		// Log every position change with raw bytes + decoded fields so we can
+		// confirm our interpretation of the live record format.
+		if (before.full != after.full)
+		{
+			INFO_LOG(Game::Bomberman,
+				"%s: PICKUP_DIAG cmd=02 player slot=%d sender=%s [%x] raw=%02x%02x%02x%02x decoded=(x=%u,y=%u,vaxis=%u,frac=%u) unk=%02x dir=%02x",
+				name.c_str(), slot,
+				sender != nullptr ? sender->getName().c_str() : "?",
+				sender != nullptr ? sender->getId() : 0,
+				userBytes[0], userBytes[1], userBytes[2], userBytes[3],
+				(unsigned)after.x, (unsigned)after.y, (unsigned)after.vaxis,
+				(unsigned)after.frac, userBytes[2], userBytes[3]);
+		}
 	}
 
-	// 2. Absorb powerup state from this packet, but never let a 0 (picked up)
-	//    server-side entry be revived by an incoming non-zero. Treat 0x1000
-	//    (hidden) records as "no info" — keep our existing state if it's
-	//    already visible or already picked up.
-	bool sawNonzero = false;
+	// Capture every powerup-record transition. We DO NOT mutate the payload
+	// — this is purely diagnostic until we know the exact bit semantics.
 	for (size_t i = 0; i < BMPowerupCount; i++)
 	{
 		const uint8_t *recBytes = payload + BMPowerupTableOffsetCmd2 + i * BMPowerupRecordSize;
 		BMPowerUp incoming(recBytes);
 		BMPowerUp& current = serverPowerUps[i];
-		if (incoming.param != 0)
-			sawNonzero = true;
-		// Once server marks picked up (param=0 with a non-zero pos), nothing
-		// reviives it. The pos==0 && param==0 check distinguishes "empty slot"
-		// (still gathering map info) from "picked up here".
-		const bool serverHasPickup = current.param == 0 && current.pos.full != 0;
-		if (serverHasPickup)
+		if (current.pos.full == incoming.pos.full && current.param == incoming.param)
 			continue;
-		// Otherwise prefer client info if it's visible (0x2000) or hidden
-		// transitioning to picked up (0). Skip pure 0x1000 unless we have
-		// nothing yet.
-		if (incoming.param == 0x1000 && current.param != 0)
-			continue;
+		// Decode the TWO competing struct interpretations side-by-side so the
+		// log shows exactly which one (if either) matches what the game does.
+		const uint16_t firstU16BE = ((uint16_t)recBytes[0] << 8) | recBytes[1];
+		const uint16_t secondU16BE = ((uint16_t)recBytes[2] << 8) | recBytes[3];
+		// Interp A (flyinghead's struct): bytes[0..1]=pos, bytes[2..3]=param
+		const unsigned interpA_x = (firstU16BE >> 10) & 0x3f;
+		const unsigned interpA_y = (firstU16BE >> 5) & 0x1f;
+		const unsigned interpA_vaxis = (firstU16BE >> 4) & 1;
+		const unsigned interpA_frac = firstU16BE & 0xf;
+		// Binary's actual decode of bytes[2..3]: 6 bitfields (see comment above)
+		const unsigned binFieldA = (secondU16BE >> 12) & 0xf;  // wire bits 12-15
+		const unsigned binFieldB = (secondU16BE >> 8) & 0xf;   // bits 8-11
+		const unsigned binFieldC = (secondU16BE >> 4) & 0xf;   // bits 4-7
+		const unsigned binFieldD = (secondU16BE >> 3) & 1;     // bit 3
+		const unsigned binFieldE = (secondU16BE >> 1) & 3;     // bits 1-2
+		const unsigned binFieldF = secondU16BE & 1;             // bit 0
+		INFO_LOG(Game::Bomberman,
+			"%s: PICKUP_DIAG cmd=02 powerup idx=%zu sender=%s raw=%02x%02x%02x%02x"
+			" prev=%04x.%04x curr=%04x.%04x"
+			" interpA(pos=%04x->x=%u,y=%u,vax=%u,frac=%u, param=%04x)"
+			" wireBits[2..3]=A=%u B=%u C=%u D=%u E=%u F=%u",
+			name.c_str(), i,
+			sender != nullptr ? sender->getName().c_str() : "?",
+			recBytes[0], recBytes[1], recBytes[2], recBytes[3],
+			current.pos.full, current.param,
+			incoming.pos.full, incoming.param,
+			firstU16BE, interpA_x, interpA_y, interpA_vaxis, interpA_frac, secondU16BE,
+			binFieldA, binFieldB, binFieldC, binFieldD, binFieldE, binFieldF);
 		current = incoming;
 	}
-	if (sawNonzero)
-		powerUpTrackingActive = true;
 
-	// 3. Run the pickup check. For each visible powerup, if any tracked
-	//    player's cell coordinates match the powerup's cell, mark picked up.
-	for (size_t i = 0; i < BMPowerupCount; i++)
-	{
-		BMPowerUp& pu = serverPowerUps[i];
-		if (pu.param != 0x2000)
-			continue;
-		for (size_t slot = 0; slot < BMPlayerSlotCount; slot++)
-		{
-			const BMPosition& playerCell = serverPlayerCells[slot];
-			if (playerCell.full == 0)
-				continue;
-			if (playerCell.x == pu.pos.x && playerCell.y == pu.pos.y)
-			{
-				INFO_LOG(Game::Bomberman,
-					"%s: PICKUP_AWARD slot=%zu cell=(%u,%u) powerup_idx=%zu (count=%u)",
-					name.c_str(), slot, (unsigned)pu.pos.x, (unsigned)pu.pos.y, i,
-					serverPickupCount + 1);
-				serverPickupCount++;
-				pu.param = 0;
-				break;
-			}
-		}
-	}
-
-	// 4. Rewrite the outbound payload's powerup table to reflect server-
-	//    authoritative state. Brick map and player records are left as-is
-	//    (we trust those are aggregated correctly via existing relay logic).
-	bool modified = false;
-	for (size_t i = 0; i < BMPowerupCount; i++)
-	{
-		uint8_t *recBytes = payload + BMPowerupTableOffsetCmd2 + i * BMPowerupRecordSize;
-		const BMPowerUp& pu = serverPowerUps[i];
-		uint8_t buf[BMPowerupRecordSize];
-		pu.writeTo(buf);
-		if (memcmp(recBytes, buf, BMPowerupRecordSize) != 0)
-		{
-			memcpy(recBytes, buf, BMPowerupRecordSize);
-			modified = true;
-		}
-	}
-	return modified;
+	// Diagnostic only — do not modify the payload.
+	(void)payloadSize;
+	return false;
 }
 
 void BMRoom::absorbPlayerPositionsFromCmd1(Player *sender, const uint8_t *payload, size_t payloadSize)
@@ -1034,33 +1049,19 @@ void BMRoom::absorbPlayerPositionsFromCmd1(Player *sender, const uint8_t *payloa
 		if (slot < 0 || slot >= (int)BMPlayerSlotCount)
 			continue;
 		const uint8_t *userBytes = payload + BMPlayerSlotsOffset + slot * BMPlayerSlotRecordSize;
-		serverPlayerCells[slot].readFrom(userBytes);
-	}
-	// Also opportunistically check pickups: if a player is now on a visible
-	// powerup cell and the next cmd=2 hasn't arrived yet, claim it now so
-	// the pickup isn't delayed by ~200ms.
-	if (!powerUpTrackingActive)
-		return;
-	for (size_t i = 0; i < BMPowerupCount; i++)
-	{
-		BMPowerUp& pu = serverPowerUps[i];
-		if (pu.param != 0x2000)
-			continue;
-		for (size_t slot = 0; slot < BMPlayerSlotCount; slot++)
+		BMPosition before = serverPlayerCells[slot];
+		BMPosition after;
+		after.readFrom(userBytes);
+		serverPlayerCells[slot] = after;
+		if (before.full != after.full)
 		{
-			const BMPosition& playerCell = serverPlayerCells[slot];
-			if (playerCell.full == 0)
-				continue;
-			if (playerCell.x == pu.pos.x && playerCell.y == pu.pos.y)
-			{
-				INFO_LOG(Game::Bomberman,
-					"%s: PICKUP_AWARD (cmd1-fast-path) slot=%zu cell=(%u,%u) powerup_idx=%zu (count=%u)",
-					name.c_str(), slot, (unsigned)pu.pos.x, (unsigned)pu.pos.y, i,
-					serverPickupCount + 1);
-				serverPickupCount++;
-				pu.param = 0;
-				break;
-			}
+			INFO_LOG(Game::Bomberman,
+				"%s: PICKUP_DIAG cmd=01 player slot=%d sender=%s raw=%02x%02x%02x%02x decoded=(x=%u,y=%u,vaxis=%u,frac=%u) unk=%02x dir=%02x",
+				name.c_str(), slot,
+				sender != nullptr ? sender->getName().c_str() : "?",
+				userBytes[0], userBytes[1], userBytes[2], userBytes[3],
+				(unsigned)after.x, (unsigned)after.y, (unsigned)after.vaxis,
+				(unsigned)after.frac, userBytes[2], userBytes[3]);
 		}
 	}
 }
@@ -3040,27 +3041,20 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 								relayPayloadSize = objectMergedPayload.size();
 							}
 						}
-						// Server-side pickup arbitration. For cmd=2, we ALWAYS clone
-						// the payload into a mutable buffer so we can mark picked-up
-						// powerups before relaying. The function reads incoming
-						// powerup state, runs the player-on-cell check, and rewrites
-						// the powerup table to reflect server-authoritative pickups.
+						// PICKUP_DIAG: capture cmd=2 record transitions and player
+						// positions for ground-truth analysis. Currently READ-ONLY —
+						// we do NOT mutate the relayed payload. Once the test reveals
+						// which bit field encodes hidden/visible/picked-up state, this
+						// is where the server-authoritative rewrite will hook in.
 						if (cmd.command == 0x2)
 						{
-							if (objectMergedPayload.empty())
-								objectMergedPayload.assign(&data[0x10], &data[0x10] + payloadSize);
-							const bool pickupChanged = room->resolvePickupsFromCmd2(player,
-								objectMergedPayload.data(), objectMergedPayload.size());
-							if (pickupChanged || objectMergedPayload.size() != payloadSize
-								|| memcmp(objectMergedPayload.data(), &data[0x10], payloadSize) != 0)
-							{
-								relayPayload = objectMergedPayload.data();
-								relayPayloadSize = objectMergedPayload.size();
-							}
+							std::vector<uint8_t> diagBuffer(&data[0x10], &data[0x10] + payloadSize);
+							(void)room->resolvePickupsFromCmd2(player,
+								diagBuffer.data(), diagBuffer.size());
+							// diagBuffer is intentionally discarded — relay sends
+							// the original unmodified payload until we have ground
+							// truth to act on.
 						}
-						// For cmd=1, just absorb player positions so cmd=1 walkovers
-						// register pickup as soon as positions update (don't wait for
-						// the next cmd=2). cmd=1 payload is not modified.
 						if (cmd.command == 0x1)
 						{
 							room->absorbPlayerPositionsFromCmd1(player,
