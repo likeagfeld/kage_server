@@ -4627,3 +4627,59 @@ b. Have the user attempt picking "Normal Battle" specifically in the
    against current 00 00 0X 0X 00 00 00 0f 0f. Any byte that changes
    identifies the mode discriminator. (One small targeted test.)
 
+
+## 2026-04-27 (final-final option-2) Chain completion gate fully traced
+
+Pass284 decompiled FUN_8c089b1e (the PanelHasReached completion checker):
+
+```c
+undefined4 FUN_8c089b1e(int param_1, int param_2) {
+  if (((*(char *)(param_2 + 8) == '\t') &&                   // state byte == 9
+      (uVar1 = __bfxbu(...), uVar1 == *(ushort *)(param_1 + 4))) &&  // bit-field match
+     (*(short *)(param_1 + 0x1040 + position * 0x14) == 0))  // gate table = 0
+  {
+    printf("-- PanelHasReached %d Complete. \n", position);
+    return 1;  // chain complete -> item granted
+  }
+  return 0;     // not complete (will eventually time out -> "Judge!!")
+}
+```
+
+Therefore the COMPLETE chain of conditions for an item pickup to succeed:
+
+1. Cell state byte (cell+8) must reach value **9** (panel ready for completion)
+2. A bit-field read at param_1+4 must match a stored ushort
+3. The gate table at active_battle+0x1040 (20-byte stride per slot)
+   must hold **0** at the player's position
+
+If any condition fails, the chain doesn't complete and the cell-tick
+state machine eventually transitions cell to state 3 (FLAG_JUDGE
+Timeout) which fires the "Judge!!" UI.
+
+The PanelHasReached check is called from FUN_8c089b84, which itself is
+called from 0x8c07d548 and 0x8c07da38. These are in the 0x8c07d000
+function range — likely the player-movement/walkover handler.
+
+Caller decompile is the next piece needed to fully trace why the gate
+table at +0x1040 is non-zero in our setup. Likely candidates:
+
+- The original Hudson server populated the +0x1040 table via a server
+  cmd we are not sending (broadcast at room-start?)
+- The +0x1040 table may need a specific reset that an SDK-named helper
+  performs at battle start, which our cmd sequence does not invoke
+- Or one of our cmds (rule blob, slot mask, keyholder) writes to a
+  related field that puts the table in a state preventing pickup
+
+Without a known-good network capture from the original server to
+compare against, the precise missing kageserver action cannot be
+identified empirically. The decomp shows WHAT the gate is (state == 9
++ table at +0x1040 == 0), but not WHAT in the network protocol primes
+the gate to be passable.
+
+Hypothesis worth testing if user can capture: in matches where item
+pickup was historically known to work on this binary, did an extra
+broadcast occur after rule blob sync but before cmd=0x14 game time
+info? Pass297 captured cmd=14 send was: start=0 end=10800 common=0.
+If common=0 prevents +0x1040 from being primed correctly, that would
+be the link. We could experiment by trying non-zero common values.
+
