@@ -4865,3 +4865,51 @@ question. Further work would require either:
 
 Pass286 / pass287 / pass288 (this final trace) artifacts checked in.
 
+
+## 2026-04-27 (truly final option-2) Trace dead-end at +0x2c global slot
+
+Continued tracing the chain-flag-toggle dependency chain:
+
+- The 6 callers of FUN_8c0a7140 (chain flag toggler) all read from
+  0x8C2D921C (= 0x8C2D91F0 + 0x2c).
+- Searching the entire 149MB ASCII export, the +0x2c slot of the
+  0x8C2D91F0 global is written EXACTLY ONCE: by FUN_8c056844
+  (initializer) which sets it to 0 with `r2 = 0; mov.l r2, @(0x2c, r14)`.
+- All other 6 references to that address are READS, not writes.
+- The init function FUN_8c056844 calls mwMngPreInit suggesting
+  0x8C2D91F0 might be Sofdec/audio related, not panel-specific.
+
+Two interpretations of the trace dead-end:
+
+1. The +0x2c slot is a function-pointer table populated by a code path
+   not statically discoverable in this Ghidra export (e.g., dynamic
+   pointer arithmetic that skips literal-address loads).
+2. The +0x2c slot remains 0 and is a NULL-check (chain features
+   disabled when null), which would mean chain pickup is NEVER
+   intended to work in this binary build, and items must be picked
+   up via a DIFFERENT code path entirely - a path we have not located.
+
+Without an original-server packet capture as reference:
+
+- We cannot distinguish (1) vs (2)
+- We cannot identify the alternate item-pickup code path if one exists
+- We cannot tell what server cmd primes the missing piece
+
+The trace is now exhausted. The binary's pickup mechanism IS fully
+mapped (state 7 -> state 9 -> PanelHasReached -> pickup), but the
+TRIGGER for the chain (+0x3c flag register, +0x2c global table) is
+hidden behind code paths that the disassembler did not expose, and
+cross-referencing what little we have leads to a literal NULL slot.
+
+Item pickup fix realistically requires:
+- A packet capture from the original Hudson server (best path), OR
+- Multi-day deeper binary work (interactive Ghidra GUI, dynamic
+  trace, possibly running the binary in an emulator with watchpoints
+  on +0x3c and +0x2c to see what writes them at runtime), OR
+- Patching the binary to bypass the chain check entirely (out of
+  scope for a server)
+
+The cmd=0x17 + cmd=0x13 fixes for recap progression remain the
+strongest grounded improvements from this entire session and should
+be tested independently of item pickup status.
+
