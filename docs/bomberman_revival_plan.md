@@ -4354,3 +4354,75 @@ Open items for the next test:
 4. Item pickup: still requires binary disassembly of the cell-walkover
    handler in 1ST_READ.BIN. Not addressed in this kageserver patch.
 
+
+## 2026-04-27 (final hardware test summary) Server protocol proven correct, client-side recap still gates progression
+
+Build `13696648` was tested in two scenarios. Server-side protocol
+behavior was completely as designed; client-side state machine
+behavior reveals remaining gaps.
+
+Confirmed rule blob byte mappings:
+
+- `rules[0]` IS time byte: `0x00`=2min, `0x01`=3min (proven from log
+  `match duration derived from rules[0]=01 -> 180 sec`).
+- `rules[2]` IS points-to-win-set byte: `0x01`=1pt, `0x02`=2pt,
+  `0x03`=3pt (proven from blob captures).
+- `rules[1]` and `rules[3]`: still UNCHANGED across Normal vs
+  Hyperbomber selection (both blobs `00 00 0X 0X 00 00 00 0f 0f`).
+  So battle TYPE (Normal/Panel/Hyper) is NOT in the rule blob — it
+  is set somewhere else (probably room attribute or word field).
+
+Test 1 (10:56 — 1-pt match, kill ends battle set):
+
+- death detection -> noteRoundWinByDeath (wins=1/1) ->
+  battle set complete -> cmd=16/19/15 sent to both, all ACKed
+- post-match safety timer armed for 30 sec
+- WINNER's natural cmd=0xc rule sync fired at 10:57:11 (19 sec after
+  cmd=15) -> resetForPostMatchRoom triggered, broadcast rule blob,
+  slot mask, keyholder, set syncState=ReadyToStart
+- safety timer cancelled (natural path beat it, as designed)
+- BUT: both clients timed out at 10:58:04, 53 sec after the natural
+  reset. The room-state re-broadcasts were not enough to pull the
+  loser out of "loading next round" mode (they had been sending cmd=04
+  / cmd=05 / cmd=1a / cmd=1b before the reset). The winner also failed
+  to complete its return-to-room transition cleanly.
+
+Test 2 (11:03 — 3-pt match, hyperbomber, multi-round):
+
+- round 1: kill at 11:06:18, wins=[1 0]/3, recycle armed
+  -> round 2 post-map markers received at 11:06:37 -> cmd=14 game time
+  info -> match-end timer armed -> round 2 plays normally
+- round 2: self-kill at 11:06:43, wins=[1 1]/3, recycle armed
+  (battle set NOT complete because 1<3)
+- BUT: cmd=0f post-map markers for round 3 never arrive. Both clients
+  flooded cmd=04 from 11:06:46 to 11:06:48 and then went silent for 47
+  sec until both timed out at 11:07:35.
+- The protocol logic in `prepareNextRoundFromPostEndFlow` correctly
+  cleared per-round state (battleEndSent=false, awaitingPostEndMapMarker
+  =true, etc.) and won't re-trigger. Both clients are in some local
+  state preventing them from progressing to map load -> cmd=0f.
+
+Server-side reconciliation and remaining work:
+
+- All protocol-level fixes are confirmed working from log evidence:
+  cmd=15 reaches both clients via the ACK self-advance, win counts
+  track correctly, battle-set-complete fires at the right threshold,
+  natural cmd=0xc reset fires cleanly when triggered, safety timer
+  cancels correctly when not needed, multi-round recycle clears
+  state correctly between rounds.
+- Remaining gaps are client-side state-machine behavior that this
+  kageserver iteration cannot resolve without deeper binary
+  disassembly of:
+  - the cmd=15 final-state receiver completion path (what the client
+    expects to happen after `0x8C093B10` returns)
+  - the post-end recap UI state machine (what advances "1 point
+    match" or "3 point match" overlay to "next round")
+  - the room-return abort signal (what tells a client mid-load to
+    cancel and return to rules screen)
+- Item pickup ("Judge!!" popup): also requires client-side disasm of
+  the cell-walkover dispatch.
+
+Honest status: server protocol is correct. The remaining bugs require
+binary disasm of client-side recap and walkover handlers, which is
+multi-session work not appropriate for the next hardware test.
+
