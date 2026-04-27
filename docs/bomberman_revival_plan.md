@@ -4522,3 +4522,47 @@ Item pickup remains under investigation:
   Pickup itself produces no observable network packet from the client based
   on probe data.
 
+
+## 2026-04-27 (final option-2) State 7 = Panel mechanic, not item pickup
+
+Decompiled the state-7 effect applicator chain via pass282:
+
+- FUN_8c08d534 (PTR_FUN_8c080400) is the state-7 main effect. It contains
+  strings: "On Panel ASSERT()", "Panel %d was not Used!", "On Panel
+  Warning! Allready On Panel...", "Now X=%d Y=%d allready put on Panel",
+  "Requester Panel %d can not offpanel".
+- FUN_8c0874b8 (PTR_FUN_8c080410) is the state-7 query function (large
+  FP-heavy chain detection).
+- FUN_8c08bbec (PTR_FUN_8c080408) is state-7 follow-up.
+- FUN_8c0856f0 (PTR_FUN_8c08040c) is state-7 alt path.
+
+Conclusion: state 7 of the cell-state machine FUN_8c07f510 is the PANEL
+ON/OFF mechanic, NOT item pickup. The "Judge!!" UI fires when state
+transitions to 3 (FLAG_JUDGE_Timeout) inside the panel-chain logic.
+
+This means: the user's gameplay is going through the PANEL mechanic
+even when they expect Battle-mode item pickup. Either:
+1. Hyperbomber rule mode IS panel-based (legit binary behavior)
+2. The user has been picking Panel mode in the rules screen without
+   realizing the difference vs Normal Battle
+3. The binary's Battle-mode falls through to panel handling without
+   a specific room attribute set
+
+Captured room creation attributes from log: ALL room creates use
+`attr=00000000`. The kageserver doesn't FORCE panel mode but also
+doesn't signal Battle mode. The default attr=0 may default to panel
+behaviour in this binary build.
+
+Path forward to fix item pickup:
+- Need to find which bit of room attributes (or which rule blob byte)
+  selects Battle (item pickup) vs Panel (chain judge) mode
+- Compare with a known-Battle-mode capture from the original Hudson
+  server, OR
+- Decompile the room attribute consumer in 1ST_READ.BIN to see how
+  it gates item-pickup vs panel-chain logic
+
+This is a real fix path but requires either an original-server packet
+capture to reference OR more binary work tracing the attribute
+consumer. Item pickup is therefore deferred until we have one of
+those.
+
