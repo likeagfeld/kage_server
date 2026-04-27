@@ -929,60 +929,31 @@ constexpr size_t BMPlayerSlotCount = 8;
 constexpr size_t BMPlayerSlotRecordSize = 4;
 
 // =====================================================================
-// SERVER-SIDE POWERUP PICKUP ARBITRATION
+// SERVER-SIDE POWERUP PICKUP — DIAGNOSTIC ONLY (no payload mutation)
 //
-// Validated against captured PICKUP_DIAG output (test on 2026-04-27 19:19+):
-//   * cmd=2 record layout: bytes[0..1] = pos (BE u16, x:6 y:5 vaxis:1 frac:4
-//     — pos is unused for powerup records, always 0x0000 in captured data),
-//     bytes[2..3] = param (BE u16) carrying the state machine.
-//   * State machine seen in real gameplay (idx=9 transitions captured):
-//        0x0000 (uninit)
-//          → 0x1000 (HIDDEN, under brick)
-//          → 0x2000 (APPEARING, brick destroyed)
-//          → 0x3000 (VISIBLE, ready to pick up)
-//          → 0xb000 (PICKED UP — bit 0x8000 OR'd into 0x3000)
-//   * High nibble of byte[2] encodes phase (0x1..0x3..0xb..). Bit 0x8000
-//     (= top bit of byte[2]) is the PICKED-UP flag.
-//   * Conflict observed: when one client reports 0xb000 and the other still
-//     reports 0x3000, the server's relay flips back and forth. Without
-//     server arbitration, neither client converges — hence pickup never
-//     "sticks" and the item card never disappears.
+// Validated state machine from PICKUP_DIAG capture (2026-04-27 19:44+):
+//   * 0x1000 HIDDEN -> 0x2000 APPEARING -> 0x3000 VISIBLE -> 0xb000 PICKED
+//   * BUT the state machine continues past 0xb000: cmd02 obj diff slot 20
+//     showed 0xb1 -> 0x31 -> 0x41, where 0x41 is the FINAL consumed state.
+//   * Earlier arbitration treated 0xb000 as terminal and rewrote the relay
+//     payload to lock it at 0xb000. This BLOCKED the natural transition to
+//     0x41, causing FARKUS's client to repeatedly try-pickup -> revert
+//     visible -> try-pickup -> revert in a loop. The result: items never
+//     visually consumed even though the server saw the pickup.
 //
-// Arbitration rule:
-//   * Track per-record SERVER state (`serverPowerUps[i].param`).
-//   * Update only if new param is later in the state machine (higher
-//     numeric value, OR has bit 0x8000 set). Once we see picked-up
-//     (any 0x8XXX), it's terminal until round reset.
-//   * On every relayed cmd=2, REWRITE bytes[2..3] of each record with
-//     the server's authoritative param. Pos bytes are passed through.
-//   * On round reset (resetMatchSync), clear serverPowerUps[].
+// Lesson: server-side pickup arbitration was wrong assumption. The clients
+// actually CONVERGE naturally if we just relay each one's view unmodified
+// (slot 20 reached 0x41 on both sides at 19:44:47 with no server help).
 //
-// Logging is intentionally sparse — only on STATE-PHASE transitions
-// (high nibble change), to avoid the log volume that delayed cmd=15+17
-// past client RUDP timeout in the prior test.
+// Current behavior: capture transitions for diagnostic, do NOT mutate the
+// relay payload. Let clients handle pickup convergence themselves as they
+// did pre-2afd0b6 — our previous tests with relay-only also worked for
+// pickup.
 // =====================================================================
 
 namespace {
-// Returns the "phase" character for log readability (e.g., '1' for hidden,
-// '3' for visible, 'b' for picked up). Used in the sparse transition log.
 inline unsigned bmPickupPhase(uint16_t param) {
 	return (unsigned)((param >> 12) & 0xf);
-}
-
-// Picked-up records have bit 0x8000 set. Once observed, the record stays
-// picked up until round reset (resetMatchSync clears serverPowerUps).
-inline bool bmPickupIsPickedUp(uint16_t param) {
-	return (param & 0x8000) != 0;
-}
-
-// Returns true if `incoming` represents a later/higher-priority state than
-// `current` and should override the server's tracked value.
-inline bool bmPickupIncomingWins(uint16_t current, uint16_t incoming) {
-	if (bmPickupIsPickedUp(current))
-		return false;  // terminal — nothing reverts a picked-up record
-	if (bmPickupIsPickedUp(incoming))
-		return true;   // any picked-up report wins over non-picked-up state
-	return incoming > current;  // monotonic phase progression
 }
 }  // namespace
 
@@ -994,12 +965,7 @@ bool BMRoom::resolvePickupsFromCmd2(Player *sender, uint8_t *payload, size_t pay
 	if (payloadSize < requiredSize)
 		return false;
 
-	// Absorb sender's player positions for any slot they own. This feeds the
-	// server's view of player cells — used only for diagnostic correlation;
-	// the actual pickup arbitration is param-state based, not cell-match
-	// based, since the binary's state machine handles "player walked onto
-	// visible item" itself and just needs the server to NOT undo the
-	// resulting picked-up state.
+	// Absorb sender's player positions (diagnostic only).
 	const int senderPos = sender != nullptr ? getPlayerPosition(sender) : -1;
 	const int senderSlots = sender != nullptr ? getSlotCount(sender) : 0;
 	for (int i = 0; i < senderSlots; i++)
@@ -1011,59 +977,28 @@ bool BMRoom::resolvePickupsFromCmd2(Player *sender, uint8_t *payload, size_t pay
 		serverPlayerCells[slot].readFrom(userBytes);
 	}
 
-	// Walk the 28 powerup records. For each one, decide whether to advance
-	// the server's tracked state and rewrite the outgoing payload.
-	bool modified = false;
+	// Log only the FIRST-OBSERVED phase transition per (slot, phase) — i.e.
+	// each unique high-nibble appearance on each record. This keeps the log
+	// volume tiny (max 16 lines per record per round) yet captures the
+	// state machine progression. No payload mutation.
 	for (size_t i = 0; i < BMPowerupCount; i++)
 	{
-		uint8_t *recBytes = payload + BMPowerupTableOffsetCmd2 + i * BMPowerupRecordSize;
+		const uint8_t *recBytes = payload + BMPowerupTableOffsetCmd2 + i * BMPowerupRecordSize;
 		BMPowerUp incoming(recBytes);
 		BMPowerUp& current = serverPowerUps[i];
-		if (current.param == 0 && incoming.param != 0)
-		{
-			// First time we see this record — adopt it as-is and begin tracking.
-			current = incoming;
-			powerUpTrackingActive = true;
-			continue;
-		}
-		const bool winsForward = bmPickupIncomingWins(current.param, incoming.param);
 		const unsigned prevPhase = bmPickupPhase(current.param);
 		const unsigned incomingPhase = bmPickupPhase(incoming.param);
-		const uint16_t prevParam = current.param;
-		if (winsForward)
+		if (incomingPhase != prevPhase)
 		{
-			// Adopt incoming as new authoritative state.
-			current.param = incoming.param;
-			// pos bytes can come from either side; prefer incoming's if non-zero.
-			if (incoming.pos.full != 0)
-				current.pos = incoming.pos;
-			// Sparse logging: only on phase changes. Bidirectional ping-pong
-			// (3000<->b000 from conflicting clients) does NOT trigger this
-			// log because once we adopt 0xb000, bmPickupIncomingWins returns
-			// false for any non-picked-up incoming.
-			if (prevPhase != incomingPhase)
-			{
-				INFO_LOG(Game::Bomberman,
-					"%s: PICKUP idx=%zu phase %x -> %x (param %04x -> %04x) sender=%s%s",
-					name.c_str(), i, prevPhase, incomingPhase,
-					prevParam, incoming.param,
-					sender != nullptr ? sender->getName().c_str() : "?",
-					bmPickupIsPickedUp(incoming.param) ? " [PICKED UP]" : "");
-				if (bmPickupIsPickedUp(incoming.param))
-					serverPickupCount++;
-			}
+			INFO_LOG(Game::Bomberman,
+				"%s: PICKUP idx=%zu phase %x -> %x (param %04x -> %04x) sender=%s",
+				name.c_str(), i, prevPhase, incomingPhase,
+				current.param, incoming.param,
+				sender != nullptr ? sender->getName().c_str() : "?");
 		}
-		// Rewrite the outgoing payload bytes with server-authoritative state.
-		// pos bytes 0..1 stay as written; param bytes 2..3 use server's value.
-		uint8_t writeBuf[BMPowerupRecordSize];
-		current.writeTo(writeBuf);
-		if (memcmp(recBytes, writeBuf, BMPowerupRecordSize) != 0)
-		{
-			memcpy(recBytes, writeBuf, BMPowerupRecordSize);
-			modified = true;
-		}
+		current = incoming;  // tracker only; payload is NOT modified
 	}
-	return modified;
+	return false;  // never report payload modified — relay sends unchanged
 }
 
 void BMRoom::absorbPlayerPositionsFromCmd1(Player *sender, const uint8_t *payload, size_t payloadSize)
@@ -2240,20 +2175,20 @@ void BMRoom::advanceBattleEndSequence(Player *player, SyncPlayerState& state, co
 		break;
 
 	case BattleEndPhase::CompletedDeadBits:
-		INFO_LOG(Game::Bomberman, "%s: battle end completion (%s) from %s [%x] cmd=19 -> cmd=15+17",
+		INFO_LOG(Game::Bomberman, "%s: battle end completion (%s) from %s [%x] cmd=19 -> cmd=15",
 			name.c_str(), reason != nullptr ? reason : "acked", player->getName().c_str(), player->getId());
 		state.battleEndPhase = BattleEndPhase::FinalState;
 		sendBattleStateCommandTo(player, 0x15, 0, "final_state");
-		// 2026-04-27: cmd=0x17 is paired with cmd=0x15 in the post-end recap
-		// path. The client receiver `FUN_8c093a64 -> FUN_8c098656` constructs a
-		// 4-byte client-to-server packet (cmd 0x10 or 0x0f depending on
-		// context) when it receives 0x17, so this is the "advance the recap
-		// state machine" nudge that the original Hudson server presumably
-		// sent. Without it, the client's recap UI ("1 point match" / "3 point
-		// match" overlay) appears to stall indefinitely between rounds in a
-		// multi-round battle and at the end of a match. cmd=0x17 carries one
-		// 32-bit value; the receiver passes it through as-is.
-		sendBattleStateCommandTo(player, 0x17, deadManBitmap, "recap_advance");
+		// 2026-04-27 22:00: REMOVED cmd=0x17 send. Empirical evidence from the
+		// 19:44 hardware test shows each of cmd=16, cmd=19, cmd=15, cmd=17
+		// carries deadManBitmap (or implies a winner) and the CLIENT increments
+		// its trophy counter on each. With cmd=17 included, a single round win
+		// shows 3-4 trophies on the end screen instead of 1. The original
+		// successful 11:06 test only had cmd=16/19/15 and showed correct trophy
+		// count. cmd=10 client signal already drives the recap UI advance so
+		// the cmd=17 "nudge" was redundant when cmd=10 fires. If a future test
+		// shows the recap UI stalls without cmd=17, re-add it conditionally
+		// (only after cmd=10 timeout, not always).
 		break;
 
 	case BattleEndPhase::FinalState:
