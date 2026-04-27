@@ -101,6 +101,9 @@ public:
 	uint32_t pointsToWinSet() const;
 	void noteRoundWinByDeath(uint8_t deadBitmap);
 	bool isBattleSetComplete() const;
+	void armPostMatchSafetyTimer(uint32_t seconds, const char *reason);
+	void cancelPostMatchSafetyTimer();
+	void handlePostMatchSafetyTimer(const std::error_code& ec);
 	void noteLiveGameData(Player *player, uint8_t command, const uint8_t *payload, size_t payloadSize);
 	void handleBattleEndClientSignal(Player *player, uint16_t word, uint32_t tail);
 	void noteActionLane(Player *player, bool active, size_t recordIndex, const uint8_t *record);
@@ -250,6 +253,7 @@ private:
 	std::vector<BotPlayer> bots;
 	asio::steady_timer timer;
 	asio::steady_timer matchTimer;
+	asio::steady_timer postMatchSafetyTimer;
 	std::array<uint8_t, 9> rules {};
 	std::map<uint32_t, SyncPlayerState> syncPlayers;
 	std::map<uint32_t, LivePlayerState> livePlayerStates;

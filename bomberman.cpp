@@ -228,7 +228,7 @@ uint8_t getBombermanLiveSlotMask(const uint8_t *payload, size_t payloadSize)
 }
 
 BMRoom::BMRoom(Lobby& lobby, uint32_t id, const std::string& name, uint32_t attributes, Player *owner, asio::io_context& io_context)
-	: Room(lobby, id, name, attributes, owner, io_context), timer(io_context), matchTimer(io_context)
+	: Room(lobby, id, name, attributes, owner, io_context), timer(io_context), matchTimer(io_context), postMatchSafetyTimer(io_context)
 {
 	// needed after the owner is added in the parent constructor
 	updateSlots();
@@ -859,6 +859,7 @@ void BMRoom::resetMatchSync()
 {
 	stopInGameLiveness();
 	stopMatchEndTimer();
+	cancelPostMatchSafetyTimer();
 	refreshSyncPlayers();
 	for (auto& [id, state] : syncPlayers)
 	{
@@ -2182,6 +2183,7 @@ void BMRoom::resetForPostMatchRoom(const char *reason)
 		name.c_str(), reason != nullptr ? reason : "post_match", battleEndSent ? 1 : 0,
 		battleEndDecidedByDeath ? 1 : 0, deadManBitmap);
 
+	cancelPostMatchSafetyTimer();
 	stopInGameLiveness();
 	stopMatchEndTimer();
 	refreshSyncPlayers();
@@ -2225,6 +2227,47 @@ void BMRoom::broadcastBattleEndSequence(const char *reason)
 	stopMatchEndTimer();
 	for (Player *player : players)
 		sendBattleEndSequenceTo(player, reason);
+
+	// Safety net for the battle-set-complete -> back-to-room transition.
+	// Normal flow: surviving client emits cmd=0xc rule sync after watching
+	// its results screen (~19 sec in 09:21 capture); the cmd=0xc handler
+	// then drives resetForPostMatchRoom. If for any reason cmd=0xc never
+	// arrives (e.g. client gets stuck), this safety timer drives the
+	// reset 30 sec after the cmd=15 send so both clients still converge
+	// on the rules screen instead of timing out into "line disconnect".
+	// Cancelled by resetForPostMatchRoom on the natural path.
+	if (battleEndDecidedByDeath && isBattleSetComplete())
+		armPostMatchSafetyTimer(30, reason);
+}
+
+void BMRoom::armPostMatchSafetyTimer(uint32_t seconds, const char *reason)
+{
+	cancelPostMatchSafetyTimer();
+	postMatchSafetyTimer.expires_after(std::chrono::seconds(seconds));
+	postMatchSafetyTimer.async_wait(
+		std::bind(&BMRoom::handlePostMatchSafetyTimer, this, asio::placeholders::error));
+	INFO_LOG(Game::Bomberman, "%s: post-match safety timer armed (%s) for %u sec",
+		name.c_str(), reason != nullptr ? reason : "battle_set_complete", seconds);
+}
+
+void BMRoom::cancelPostMatchSafetyTimer()
+{
+	postMatchSafetyTimer.cancel();
+}
+
+void BMRoom::handlePostMatchSafetyTimer(const std::error_code& ec)
+{
+	if (ec)
+		return; // cancelled or destroyed
+	if (!battleEndSent || !battleEndDecidedByDeath || !isBattleSetComplete())
+	{
+		// State changed under us; the natural cmd=0xc path already handled it.
+		return;
+	}
+	INFO_LOG(Game::Bomberman,
+		"%s: post-match safety timer fired - cmd=0xc rule sync did not arrive within 30 sec; driving room reset",
+		name.c_str());
+	resetForPostMatchRoom("safety_timer");
 }
 
 void BMRoom::broadcastOwnerKeyholderSync(const char *reason) const
