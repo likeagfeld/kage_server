@@ -4805,3 +4805,63 @@ chain count, which requires either:
   non-stack functions; needs cross-referencing against active player
   pointer for definitive identification)
 
+
+## 2026-04-27 (final-finally) Chain count gate is actually a flag register at player+0x3c
+
+Continued binary trace. The field at player+0x3c is NOT a chain count
+short - it is a 4-byte FLAG REGISTER that the chain processor reads as
+a short (low 16 bits) for its early-exit gate.
+
+Bit semantics traced:
+- bit 3 (0x08) set when player coordinate matches one chain condition
+- bit 4 (0x10) set when player coordinate matches another condition
+- both bits cleared by coordinate-mismatch checks
+
+Setter function: **FUN_8c0a7140** (pass102_live_state_size_candidates).
+Pseudocode:
+```c
+if (iVar8 + -1 == 0) {
+    *(uint *)(param_1 + 0x3c) |= 8;        // bit 3
+} else {
+    *(uint *)(param_1 + 0x3c) |= 0x10;     // bit 4
+}
+// ... later, conditional clears based on coordinate matches:
+*(uint *)(param_1 + 0x3c) &= 0xfffffff7;   // clear bit 3
+*(uint *)(param_1 + 0x3c) &= 0xffffffef;   // clear bit 4
+```
+
+**6 callers of FUN_8c0a7140**, all in the 0x8c0a6xxx range:
+- 8c0a63d6, 8c0a64e6, 8c0a6594, 8c0a6734, 8c0a6a46
+- 8c0a75c2, 8c0a7812
+
+These are scene/state update functions in the panel-mechanic subsystem.
+For chain-bit set => chain processor activates => state advances 7→9
+=> PanelHasReached returns true => pickup completes.
+
+**Definitive conclusion (binary-grounded):**
+
+The 0x8c0a6xxx scene functions are the path that sets the gate flags
+and enables panel pickup. If the user's binary scene-state loads a
+code path that does NOT include those 0x8c0a6xxx scene functions, the
+gate flags never get set and the chain processor never runs.
+
+The binary therefore appears to have TWO pickup code paths:
+1. Panel/chain pickup (via FUN_8c089b84 + 0x8c0a6xxx scene functions)
+2. Possibly a non-chain direct pickup that we have not located
+
+The user's setup is on path #1 but the 0x8c0a6xxx functions aren't
+firing to set the gate flags. The MOST LIKELY missing piece is some
+server-driven scene-state setup (possibly the room attribute, possibly
+the rule blob byte that selects scene-class - CNetworkPanelScene vs
+something else) that would make the 0x8c0a6xxx scene-functions
+relevant for this player.
+
+End of binary trace. The complete pickup mechanism path is now
+established but the missing scene-init signal remains the open
+question. Further work would require either:
+- An original-server packet capture for direct comparison, OR
+- Decompiling the SCENE selector / room-init code to identify which
+  rule/attribute byte selects which pickup path
+
+Pass286 / pass287 / pass288 (this final trace) artifacts checked in.
+
