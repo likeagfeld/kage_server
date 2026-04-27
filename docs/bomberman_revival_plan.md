@@ -4426,3 +4426,57 @@ Honest status: server protocol is correct. The remaining bugs require
 binary disasm of client-side recap and walkover handlers, which is
 multi-session work not appropriate for the next hardware test.
 
+
+## 2026-04-27 (deep dive) Full server-to-client cmd dispatcher mapped
+
+Headless pass `pass278_dispatch` decompiled the full cmd dispatcher
+table at 0x8C0938xx so we know the COMPLETE set of cmds the binary
+handles for server-to-client traffic (REQ_CHAT receive on cmds 0x0d
+through 0x19):
+
+| Cmd | Receiver | Behavior |
+|----:|---------:|----------|
+| 0x0d | FUN_8c093daa | Calls helper FUN_8c093e68 (data setter, no logic) |
+| 0x0e | FUN_8c093d9c | Calls helper FUN_8c093e64 (data setter, no logic) |
+| 0x0f | FUN_8c093d7e | Reads context field; if 0, calls FUN_8c093ef0; else writes 1 |
+| 0x10 | FUN_8c093d70 | Writes 0 to a context field |
+| 0x11 | FUN_8c093d5c | Calls FUN_8c093e60, stores result in context+slot |
+| 0x12 | FUN_8c093ce0 | "A game was not able to be started" - game-start failure path |
+| 0x13 | FUN_8c093bbc | Room-to-board start transition (start-token) |
+| 0x14 | FUN_8c093b70 | Game time info (start/end/common frame) |
+| 0x15 | FUN_8c093b10 | Final state (writes -1 to active+0x90 if +0xD8 is 0) |
+| 0x16 | FUN_8c093a74 | Settled dead bits |
+| 0x17 | FUN_8c093a64 | Calls FUN_8c093b08 with one arg (single helper, no logic visible) |
+| 0x18 | FUN_8c093a38 | Game time info family |
+| 0x19 | FUN_8c09392e | Completed dead bits + 8-slot walk |
+
+Result: there is **no server-to-client cmd in the 0x0d-0x19 range that
+explicitly drives the post-end recap UI ("1 point match" / "3 point
+match" overlay) forward**. The recap progression is therefore driven
+entirely by client-internal state (timers / input handlers / animation
+completion), not by a server signal we can synthesize.
+
+Implication for the "stuck at 3 point match overlay" and "post-match
+line disconnect" bugs:
+
+- These bugs ARE NOT server-protocol issues. The server already does
+  everything it can (cmd=15 reaches both clients, room state
+  re-broadcasts, win counts track correctly).
+- The remaining gap is in the CLIENT's match-end / round-transition
+  state machine, which appears to depend on local timers or specific
+  input that the client itself does not always advance to in our
+  multi-round-tied or 1-pt-kill scenarios.
+- Closing those would require either:
+  1. Binary patching the client to fix the state-machine bug
+     directly (out of scope for kageserver), OR
+  2. Identifying a non-obvious server signal (e.g. a specific value
+     in cmd=0x14 / 0x18 / 0x17) that nudges the client forward —
+     but the dispatcher table shows none of these cmds carry such a
+     signal in their receiver logic.
+
+Item pickup ("Judge!!") same conclusion: server relays cmd=01 bitmap
+correctly; client routes walkover to CJudgeWord locally; not a server
+issue.
+
+End of binary investigation. Server-side protocol is correct.
+

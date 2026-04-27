@@ -59,6 +59,32 @@ public class DecompileTargetedFunctions extends GhidraScript {
         "0x8C0DD698", // 28-record object table parser
         // Anchor address that emits cmd=0x10 client signal (if discoverable)
         "0x8C077F00", // top of dispatcher containing FUN_8c0781aa
+        // Rule blob decoder - CSetupRule/CCheckRule methods
+        "0x8C12DB10", "0x8C12DB14", "0x8C12E576", "0x8C12E57A", "0x8C12E57E", "0x8C12E582",
+        "0x8C12E3DC", "0x8C12E400", "0x8C12E422", "0x8C12E444", "0x8C12E49E", "0x8C12E4A2",
+        "0x8C12F656", "0x8C12F676", "0x8C12F69E", "0x8C12F6B8", "0x8C12F6FA", "0x8C12F70C",
+        // CJudgeWord constructor area (8c043636 referenced data) - find caller
+        "0x8C043636",
+        // CJudgeWord state field reader (8c046378 = method body)
+        "0x8C046370",
+        // Walk dispatcher area - 8c0468ca references CDrawable/CJudgeWord state
+        "0x8C0468CA",
+        // The DeadMan loop top
+        "0x8C077F90",
+        // FULL cmd dispatcher receivers (server-to-client cmds)
+        "0x8C093DAA", // cmd=0x0d
+        "0x8C093D9C", // cmd=0x0e
+        "0x8C093D7E", // cmd=0x0f
+        "0x8C093D70", // cmd=0x10
+        "0x8C093D5C", // cmd=0x11
+        "0x8C093CE0", // cmd=0x12 - UNKNOWN, possibly score/recap
+        "0x8C093BBC", // cmd=0x13 - room-to-board transition
+        "0x8C093A64", // cmd=0x17 - UNKNOWN
+        "0x8C093A38", // cmd=0x18 - game time info family
+        // CExitMenuYouLose vtable destructor (will lead to the class)
+        "0x8C0C22B2",
+        "0x8C0C2160", // adjacent vtable entry
+        "0x8C0C22AE", // adjacent vtable entry
     };
 
     @Override
