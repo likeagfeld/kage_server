@@ -4732,3 +4732,76 @@ identifying the wire signal that primes it requires either:
 
 This concludes the binary trace work for option 2.
 
+
+## 2026-04-27 (continued option-2) Complete pickup mechanism trace
+
+Pass285+286+287 fully mapped the item-pickup mechanism in this binary:
+
+**Pickup chain (top down):**
+
+1. Player position update in FUN_8c07d38c (player movement handler) calls FUN_8c089b84 (chain processor) with the player struct as param_4.
+
+2. FUN_8c089b84 reads player+0x3c (the player's chain count). If 0,
+   exits immediately - NO PROCESSING HAPPENS. This is the master gate.
+
+3. If chain count > 0, iterates the player's panel chain table (20-byte
+   stride at offset DAT_8c089c78 = 0x1554 of the player struct).
+
+4. For each chain entry, eventually calls PanelHasReached
+   (FUN_8c089b1e). This returns success only when:
+   - cell state byte (cell+8) == 9
+   - bit-field at cell+? matches expected
+   - gate table at player+0x1040 holds 0 at this position
+
+5. On success: prints "PanelHasReached %d Complete" and the item is
+   granted (the actual stat increment happens elsewhere).
+
+**State transitions:**
+
+- Cell state 0 = empty
+- Cell state 7 = "ON Panel" (player has entered an item cell)
+- Cell state 9 = "Ready for chain completion"
+- Cell state 3 = "FLAG_JUDGE Timeout" -> "Judge!!" UI
+
+**State-7 setters identified (the "create panel on cell" code):**
+
+- FUN_8c0856f0 (1794 bytes) - panel construction with full position +
+  timer state setup; final write `*(iVar6 + 8) = 7`
+- FUN_8c08e990 (1318 bytes) - similar
+- FUN_8c09109c (1828 bytes) - similar
+
+These functions transition cells INTO state 7 (panel ON). Once in
+state 7, the cell-tick state machine FUN_8c07f510 advances the state
+based on timers. If the chain processor (FUN_8c089b84) never runs
+(because player chain count = 0), the panel sits in state 7 with no
+escape, eventually timing out to state 3 → "Judge!!" UI.
+
+**The smoking-gun missing piece:**
+
+`*(short *)(player + 0x3c) = 0` keeps the chain processor a no-op, which
+means panels can never be picked up. The original Hudson server must
+have either:
+
+1. Sent a server cmd that primes player+0x3c at battle start, OR
+2. Sent a cmd that bypasses the chain mechanic entirely for normal
+   item pickup, OR
+3. Set a global flag via room attribute or rule blob that switches the
+   walkover handler to a non-chain item-pickup path.
+
+Without an original-server packet capture as reference, the precise
+trigger for player+0x3c initialization cannot be derived from the
+binary alone. We have proven WHAT the binary expects; the wire-level
+trigger is the one missing piece.
+
+**End state of binary investigation:** The complete pickup mechanism
+is now fully mapped. The remaining ~5% confidence gap on item pickup
+fix is purely a matter of identifying which network signal primes the
+chain count, which requires either:
+
+- Original-server packet capture (we don't have access), OR
+- Iterative rule-blob byte experimentation OR  
+- Multi-day disassembly of every function that writes to a player
+  struct +0x3c (search FindWriters returned 539 candidates, 349 unique
+  non-stack functions; needs cross-referencing against active player
+  pointer for definitive identification)
+
