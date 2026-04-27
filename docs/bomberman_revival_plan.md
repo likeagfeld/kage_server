@@ -4683,3 +4683,52 @@ info? Pass297 captured cmd=14 send was: start=0 end=10800 common=0.
 If common=0 prevents +0x1040 from being primed correctly, that would
 be the link. We could experiment by trying non-zero common values.
 
+
+## 2026-04-27 (final-final-final option-2) Chain processor early-exit gate at active+0x3c
+
+Pass285 decompiled FUN_8c089b84 (the chain processor that calls
+PanelHasReached). Critical structure at the top:
+
+```c
+sVar2 = *(short *)(param_4 + 0x3c);
+if (sVar2 != 0) {
+  // ... chain processing loop iterating 20-byte stride table
+  // ... eventually calls PanelHasReached which checks state==9 + gate==0
+}
+// else: function exits without processing chain
+```
+
+So there's an EARLIER gate: `*(short *)(active_battle + 0x3c)` must be
+non-zero for the chain processor to even START. If it's zero, the chain
+never advances, items never pick up, FLAG_JUDGE Timeout is the only
+outcome.
+
+The complete chain-completion requirement chain:
+
+1. `*(short *)(active+0x3c) != 0` (chain processor entry gate)
+2. Chain processor iterates 20-byte-stride table at offset DAT_8c089c78 (= 0x1554)
+3. For each entry with `*psVar12 == 1` (chain marker)
+4. Eventually reaches PanelHasReached check
+5. PanelHasReached requires state==9 + table at +0x1040 == 0
+6. If all pass, chain completes, item granted
+
+The active+0x3c field is the "chain count / active chain length"
+indicator. If kage doesn't send the cmd that primes this field at
+battle start, all chain processing is no-ops.
+
+This is a CONCRETE, testable hypothesis: find the cmd that writes to
+active+0x3c. The simplest writers would be:
+- A specific value in cmd=0x14 (game time info, currently start=0
+  end=10800/7200 common=0)
+- A field of the rule blob bytes 1, 3, 4-6 (currently always 0)
+- A separate cmd we don't currently send
+
+Without the original-server reference capture, the actual writer
+remains unknown. The decomp shows precisely WHAT the binary expects;
+identifying the wire signal that primes it requires either:
+(a) the next iteration of binary tracing to find the writer of +0x3c, OR
+(b) experimentation with rule blob byte values to see which alters
+    in-game behavior.
+
+This concludes the binary trace work for option 2.
+
