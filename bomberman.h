@@ -165,8 +165,8 @@ public:
 	bool shouldSuppressPostBattleCommand(Player *player, uint8_t command) const;
 	bool shouldResetPostBattleOnSuppressedCommand(uint8_t command) const;
 	void resetForPostMatchRoom(const char *reason);
-	void reinforcePostMatchRoom(Player *player, const char *reason) const;
 	bool isPostMatchCommandQuarantine() const { return postMatchCommandQuarantine; }
+	void resetPostBattleSetAfterFinalMarkers(const char *reason);
 	uint32_t matchDurationSeconds() const;
 	// rules[2] is the points-to-win count for the battle set. After a
 	// player accumulates this many round wins, the battle set is over and

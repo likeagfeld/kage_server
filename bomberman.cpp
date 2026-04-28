@@ -2296,6 +2296,7 @@ void BMRoom::advanceBattleEndSequence(Player *player, SyncPlayerState& state, co
 			name.c_str(), reason != nullptr ? reason : "acked", player->getName().c_str(), player->getId());
 		state.battleEndPhase = BattleEndPhase::FinalState;
 		sendBattleStateCommandTo(player, 0x15, 0, "final_state");
+		resetPostBattleSetAfterFinalMarkers("both_final_markers_sent");
 		// 2026-04-27 22:00: REMOVED cmd=0x17 send. Empirical evidence from the
 		// 19:44 hardware test shows each of cmd=16, cmd=19, cmd=15, cmd=17
 		// carries deadManBitmap (or implies a winner) and the CLIENT increments
@@ -2484,24 +2485,25 @@ void BMRoom::resetForPostMatchRoom(const char *reason)
 	broadcastOwnerKeyholderSync("post_match_room");
 }
 
-void BMRoom::reinforcePostMatchRoom(Player *player, const char *reason) const
+void BMRoom::resetPostBattleSetAfterFinalMarkers(const char *reason)
 {
-	// Latest hardware evidence (2026-04-28 10:39) showed the first post-match
-	// reset can arrive while the losing client is already streaming stale
-	// next-map packets. When that happens, silent ACK+drop leaves that client
-	// stuck on a sprite-less Battle Start board. Re-send only the proven
-	// room/rules/keyholder trio; do not relay any stale map payload.
-	if (player != nullptr)
-	{
-		sendOccupiedSlotMaskTo(player, reason);
-		sendRuleBlobTo(player, reason, 0x8000);
-		sendOwnerKeyholderSyncTo(player, reason);
+	if (!battleEndSent || !battleEndDecidedByDeath || !isBattleSetComplete())
 		return;
+
+	for (Player *player : players)
+	{
+		auto it = syncPlayers.find(player->getId());
+		if (it == syncPlayers.end())
+			return;
+		const BattleEndPhase phase = it->second.battleEndPhase;
+		if (phase != BattleEndPhase::FinalState && phase != BattleEndPhase::Done)
+			return;
 	}
 
-	broadcastOccupiedSlotMask(reason);
-	broadcastRuleBlob(reason, 0x8000);
-	broadcastOwnerKeyholderSync(reason);
+	INFO_LOG(Game::Bomberman,
+		"%s: all clients have final result marker; resetting completed battle set before stale next-map bootstrap",
+		name.c_str());
+	resetForPostMatchRoom(reason);
 }
 
 void BMRoom::broadcastBattleEndSequence(const char *reason)
@@ -2910,10 +2912,6 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 						replyPacket.reset();
 						room->resetForPostMatchRoom("post_battle_next_round_suppressed");
 					}
-					else
-					{
-						room->reinforcePostMatchRoom(player, "post_match_quarantine_cmd4");
-					}
 					break;
 				}
 				relayPacket.init(Packet::REQ_CHAT);
@@ -2937,10 +2935,6 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 						player->send(replyPacket);
 						replyPacket.reset();
 						room->resetForPostMatchRoom("post_battle_next_round_suppressed");
-					}
-					else
-					{
-						room->reinforcePostMatchRoom(player, "post_match_quarantine_cmd9");
 					}
 					break;
 				}
@@ -3022,8 +3016,6 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 					// complete (some slot has reached pointsToWinSet).
 					if (room->isBattleEndSent() && room->isBattleSetComplete())
 						room->resetForPostMatchRoom("post_battle_rule_sync");
-					else if (room->isPostMatchCommandQuarantine())
-						room->reinforcePostMatchRoom(nullptr, "post_match_rule_sync_quarantine");
 				}
 				break;
 			}
@@ -3044,10 +3036,6 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 					player->send(replyPacket);
 					replyPacket.reset();
 					room->resetForPostMatchRoom("post_battle_next_round_suppressed");
-				}
-				else
-				{
-					room->reinforcePostMatchRoom(player, "post_match_quarantine_cmd0f");
 				}
 				break;
 			}
@@ -3174,10 +3162,6 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 						player->send(replyPacket);
 						replyPacket.reset();
 						room->resetForPostMatchRoom("post_battle_next_round_suppressed");
-					}
-					else
-					{
-						room->reinforcePostMatchRoom(player, "post_match_quarantine_game_data");
 					}
 					break;
 				}

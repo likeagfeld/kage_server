@@ -5311,3 +5311,39 @@ Next hardware test expectation:
 - if the loser keeps sending `cmd=04/05/1a/1b/0f`, logs should now show `post_match_quarantine_*` room-state reinforcement sends to that same player
 - both clients should return to Room/rules state without either loading the sprite-less `2:01` board
 - if trophy count is still wrong after both consoles return cleanly, inspect whether the client increments once from persisted VMU state or multiple times from `cmd=16/19/15`
+
+## 2026-04-28 Follow-up: reinforcement flood and earlier final-marker reset
+
+Hardware result after commit `1d1cfbf`:
+
+- loser returned to Room successfully
+- winner still entered `Battle Start`, loaded a map, and stuck at `2:01` without sprites
+- loser room UI flooded with repeated system/chat messages that FARKUS was host and rules had been set
+- trophy count showed only one trophy for the win in this run
+
+Fresh `D:\kageserver\logs\kageserver.stderr.log` evidence:
+
+- FARKUS won, battle set complete, and both clients reached the existing result sequence
+- FARKUS got `cmd=15 final_state` at about `+319ms`; FARKUS2 got `cmd=15 final_state` at about `+660ms`
+- FARKUS began stale next-round bootstrap with `cmd=04` at about `+2334ms`
+- therefore there is a measured ~1.67s gap after both final markers and before stale next-map bootstrap begins
+- the prior `1d1cfbf` reinforcement fired on every quarantined `cmd=0c`, producing thousands of `post_match_rule_sync_quarantine` room-state broadcasts and matching the user's repeated room messages
+
+Correction implemented:
+
+- removed the repeated post-quarantine room-state reinforcement path
+- removed `cmd=0c` quarantine broadcast response so repeated client `cmd=0c` no longer causes room-message flooding
+- added `resetPostBattleSetAfterFinalMarkers("both_final_markers_sent")`
+- when a death-decided battle set is complete and every current player has reached `BattleEndPhase::FinalState` or `Done`, Kage immediately calls `resetForPostMatchRoom` before the observed stale `cmd=04` window opens
+- this is distinct from all previous reset triggers:
+  - not the old 3/30-second safety timer
+  - not waiting for natural `cmd=0c`
+  - not waiting for first stale `cmd=04`
+  - not repeated post-reset reinforcement
+
+Next validation expectation:
+
+- logs should show `all clients have final result marker; resetting completed battle set before stale next-map bootstrap`
+- reset should occur around +600-700ms instead of +2334ms or later
+- no `post_match_rule_sync_quarantine` flood should appear
+- both consoles should converge to Room/rules without winner entering sprite-less `2:01`
