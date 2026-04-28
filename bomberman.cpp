@@ -1386,6 +1386,29 @@ void BMRoom::noteActionLane(Player *player, bool active, size_t recordIndex, con
 	std::array<uint8_t, 6> current {};
 	memcpy(current.data(), record, current.size());
 	const std::array<uint8_t, 6> promotionKey = makeBombermanCmd01PromotionKey(record);
+	const uint8_t currentSelectorEarly = (uint8_t)((current[2] >> 4) & 0x0f);
+
+	// 2026-04-28: clear hasLastPromotedRecord when the previous bomb's
+	// lifecycle terminates. The lifecycle is selector 4 (intent) -> 1
+	// (lingering) -> 0 (cleanup). Once selector hits 0, the bomb has
+	// fully resolved (placed/exploded) and the cell is again eligible
+	// for a fresh promotion.
+	//
+	// Without this, the previous "different key" clear at line below
+	// only ran when a player bombed a DIFFERENT cell. If the player
+	// bombed the SAME cell twice (after the first exploded), the key
+	// was identical so the clear never fired, the next selector=4 hit
+	// the "already promoted" guard in consumePendingBombPromotion, and
+	// the bomb never got promoted to selector=5 -> peer client showed
+	// only the yellow arm-ring fade with no bomb sprite. This is the
+	// "certain spots" reproducer the user reported across multiple
+	// iterations.
+	if (state.hasLastPromotedRecord && currentSelectorEarly == 0
+		&& state.lastPromotedRecord == promotionKey)
+	{
+		state.hasLastPromotedRecord = false;
+	}
+
 	if (state.active && state.record == current)
 		return;
 	if (state.hasLastPromotedRecord && state.lastPromotedRecord != promotionKey)
