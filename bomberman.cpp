@@ -963,16 +963,40 @@ inline unsigned bmPickupPhase(uint16_t param) {
 }
 
 // Phase priority — HIGHER = LATER in state machine, wins arbitration.
-// Phase 4 is the final consumed state, so it has highest priority.
+//
+// Validated against binary's own state machine in FUN_8c07dd36 line 74:
+//     bVar5 = *(byte *)(puVar9 + 9) & 0x7f;
+//     if (bVar5 == 1) ... [HIDDEN handler]
+//     if (bVar5 == 3) ... [VISIBLE -> sets cell+9 = (cell+9 & MASK) | 4]
+//     if (bVar5 == 4) ... [CONSUMED handler]
+//
+// The cell+9 byte stores the phase. Bit 7 (0x80) of cell+9 is the
+// "picked-up flag" — separate from the base phase, set independently when
+// a player walks onto a visible cell.
+//
+// In the cmd=2 wire format, the high nibble of byte[2] of each record is
+// the phase nibble. It decomposes as:
+//     bits 0-2 of nibble: base phase (1=HIDDEN, 2=APPEARING, 3=VISIBLE, 4=CONSUMED)
+//     bit 3 of nibble (0x8): picked-up flag
+//
+// So valid phase nibble values are: 0, 1, 2, 3, 4 (base only), 9, a, b, c
+// (base + pickup flag). Phases 5, 6, 7, d, e, f are invalid.
+//
+// Forward progression captured in 19:44 + 20:07 tests:
+//     0 -> 1 -> 2 -> 3 -> b -> 4   (with pickup)
+//     0 -> 1 -> 2 -> 3 -> 4        (timeout, no pickup)
 inline unsigned bmPhasePriority(unsigned phase) {
 	switch (phase) {
-		case 0: return 0;   // uninit (before any cmd=2 received)
-		case 1: return 1;   // hidden under brick
-		case 2: return 2;   // appearing animation
-		case 3: return 3;   // visible, ready to pick up
-		case 0xb: return 4; // picked up, transient (8000 OR-ed into 3???)
-		case 4: return 5;   // CONSUMED — final state, terminal
-		default: return phase; // unknown phases — fall through to numeric
+		case 0:   return 0;   // uninit (before any cmd=2 received)
+		case 1:   return 1;   // HIDDEN
+		case 9:   return 2;   // HIDDEN + pickup flag (rare/transient)
+		case 2:   return 3;   // APPEARING
+		case 0xa: return 4;   // APPEARING + pickup flag
+		case 3:   return 5;   // VISIBLE
+		case 0xb: return 6;   // VISIBLE + pickup flag (picked up, transient)
+		case 4:   return 7;   // CONSUMED — final
+		case 0xc: return 7;   // CONSUMED + pickup flag — final, same priority as 4
+		default:  return 0;   // invalid phase — treat as uninit (don't adopt)
 	}
 }
 
