@@ -5377,3 +5377,46 @@ Next validation expectation:
 - logs should not show `battle state sync (final_state)` / `cmd=15` sent to that dead player from the `client_signal` path
 - the winner should still receive final result handling and return to Room
 - the loser should stop entering the stale next-map/bootstrap sequence; if stale `cmd=04/05/1a/1b/0f` still appears, the next evidence is whether it happened without any server `cmd=15` to the dead player
+
+## 2026-04-28 Follow-up: dead cmd10 guard fired but loser still took stale next-map path
+
+Hardware result after commit `53e47c0`:
+
+- winner returned to Room successfully
+- loser still entered `Battle Start`, reloaded a map, and stuck at `2:01` without sprites
+- trophy/result count again looked clean for the winner: zero existing trophies, then one first-win trophy
+
+Fresh `D:\kageserver\logs\kageserver.log` evidence from the `16:10` run:
+
+- FARKUS died at position 1 (`deadMap=02`); FARKUS2 won the 1-point set
+- the new guard fired exactly as intended:
+  - `dead player FARKUS [1003] sent cmd=10 after cmd=19; marking final without cmd=15`
+  - `dead_client_signal_no_cmd15`
+- the loser did not receive server `cmd=15` from the client-signal path
+- the winner did receive `cmd=15` via the normal ACK path, then the server reset to post-match room state at `+651ms`
+- despite no loser `cmd=15`, the loser started stale next-map/bootstrap traffic at `+~1.3s`: repeated `cmd=04`, then `cmd=05`, `cmd=1a`, `cmd=1b`, and `cmd=0f`
+- the winner later sent `cmd=13` and `REQ_CHG_ROOM_ATTR STAT=00000001`, which is the path correlated with returning to Room
+- the loser never sent `cmd=13`; it stayed in the stale map/bootstrap path until timeout
+
+What this falsifies:
+
+- the stale loser path is not caused solely by the server sending `cmd=15` to the dead player
+- the previous hypothesis was useful because it removed one variable, but the fresh log proves the client can enter the same local next-map branch without loser `cmd=15`
+
+Correction implemented:
+
+- added a per-player, one-shot `post-match STAT nudge`
+- when a player is already in post-match quarantine and sends its first suppressed stale next-map packet, Kage sends that same player one direct `REQ_CHG_ROOM_ATTR STAT` packet with the room's current attributes
+- this mirrors the proven winner return-to-room path (`REQ_CHG_ROOM_ATTR STAT=00000001` / `Bomberman self room attr sync`) instead of repeating the old mask/rule/keyholder trio
+- this deliberately avoids the previous reinforcement regression:
+  - no repeated broadcast
+  - no chat/system flood
+  - no mask/rule/keyholder spam
+  - one STAT packet per player per post-match reset
+
+Next validation expectation:
+
+- after death, logs should still show `dead_client_signal_no_cmd15`
+- when the loser first sends stale `cmd=04`, logs should show `post-match STAT nudge -> <loser> after suppressed cmd=04`
+- if this is the missing room-return cue, the loser should return to Room like the winner instead of continuing through `cmd=05/1a/1b/0f`
+- if stale map packets continue after the STAT nudge, the next evidence is that STAT alone is insufficient, and we should compare the full winner `cmd=13 + STAT` response sequence against the loser path rather than revisiting `cmd=15`

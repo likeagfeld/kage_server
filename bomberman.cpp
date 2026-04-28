@@ -372,6 +372,25 @@ void BMRoom::sendRoomAttrSyncTo(Player *player) const
 	player->send(packet);
 }
 
+void BMRoom::sendPostMatchStatNudgeTo(Player *player, uint8_t command)
+{
+	if (player == nullptr || !postMatchCommandQuarantine)
+		return;
+
+	refreshSyncPlayers();
+	SyncPlayerState& state = syncPlayers[player->getId()];
+	if (state.postMatchStatNudgeSent)
+		return;
+
+	state.postMatchStatNudgeSent = true;
+	Packet packet;
+	writeRoomAttr(packet, "STAT");
+	INFO_LOG(Game::Bomberman,
+		"%s: post-match STAT nudge -> %s [%x] after suppressed cmd=%02x STAT=%08x",
+		name.c_str(), player->getName().c_str(), player->getId(), command, getAttributes());
+	player->send(packet);
+}
+
 void BMRoom::sendLobbyJoinEventTo(Player *recipient, const Player *subject) const
 {
 	Packet packet;
@@ -893,6 +912,7 @@ void BMRoom::resetMatchSync()
 		state.rulesAccepted = false;
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
+		state.postMatchStatNudgeSent = false;
 		state.battleEndPhase = BattleEndPhase::None;
 	}
 	syncState = SyncState::Idle;
@@ -1828,6 +1848,7 @@ bool BMRoom::beginStartBattle(Player *player)
 	{
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
+		state.postMatchStatNudgeSent = false;
 		state.battleEndPhase = BattleEndPhase::None;
 	}
 	gameTimeInfoSent = false;
@@ -1968,6 +1989,7 @@ void BMRoom::prepareNextRoundFromPostEndFlow(Player *player, uint8_t command)
 	for (auto& [id, state] : syncPlayers)
 	{
 		state.postMapMarkerSeen = false;
+		state.postMatchStatNudgeSent = false;
 		state.battleEndPhase = BattleEndPhase::None;
 	}
 	stopInGameLiveness();
@@ -2472,6 +2494,7 @@ void BMRoom::resetForPostMatchRoom(const char *reason)
 	{
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
+		state.postMatchStatNudgeSent = false;
 		state.battleEndPhase = BattleEndPhase::None;
 		// Keep rulesAccepted as the players were just in-game with rules set;
 		// the upcoming rule blob broadcast will let them re-confirm.
@@ -2921,6 +2944,7 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 				room->prepareNextRoundFromPostEndFlow(player, (uint8_t)cmd.command);
 				if (room->shouldSuppressPostBattleCommand(player, (uint8_t)cmd.command))
 				{
+					room->sendPostMatchStatNudgeTo(player, (uint8_t)cmd.command);
 					if (room->shouldResetPostBattleOnSuppressedCommand((uint8_t)cmd.command))
 					{
 						player->send(replyPacket);
@@ -2945,6 +2969,7 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 			{
 				if (room->shouldSuppressPostBattleCommand(player, (uint8_t)cmd.command))
 				{
+					room->sendPostMatchStatNudgeTo(player, (uint8_t)cmd.command);
 					if (room->shouldResetPostBattleOnSuppressedCommand((uint8_t)cmd.command))
 					{
 						player->send(replyPacket);
@@ -3046,6 +3071,7 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 			if (room != nullptr && room->shouldSuppressPostBattleCommand(player, (uint8_t)cmd.command))
 			{
 				relayPacket.reset();
+				room->sendPostMatchStatNudgeTo(player, (uint8_t)cmd.command);
 				if (room->shouldResetPostBattleOnSuppressedCommand((uint8_t)cmd.command))
 				{
 					player->send(replyPacket);
@@ -3172,6 +3198,7 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 				player->ackPacket(replyPacket, data);
 				if (room != nullptr && room->shouldSuppressPostBattleCommand(player, (uint8_t)cmd.command))
 				{
+					room->sendPostMatchStatNudgeTo(player, (uint8_t)cmd.command);
 					if (room->shouldResetPostBattleOnSuppressedCommand((uint8_t)cmd.command))
 					{
 						player->send(replyPacket);
