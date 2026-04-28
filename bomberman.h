@@ -19,6 +19,7 @@
 #pragma once
 #include "model.h"
 #include <array>
+#include <chrono>
 #include <filesystem>
 #include <map>
 #include <vector>
@@ -156,6 +157,12 @@ public:
 	uint32_t getJoinedPlayerCount() const;
 	const char *getSyncStateName() const;
 	bool isBattleEndSent() const { return battleEndSent; }
+	// Diagnostic timeline for the post-battle window. The elapsed time makes
+	// hardware logs much easier to line up against the Dreamcast UI.
+	void logEndTimeline(const char *event, const Player *player, uint8_t cmd,
+		uint32_t value, const char *extra) const;
+	void traceInboundIfBattleEnd(Player *player, uint8_t cmd, uint16_t word);
+	bool shouldSuppressPostBattleCommand(Player *player, uint8_t command) const;
 	void resetForPostMatchRoom(const char *reason);
 	uint32_t matchDurationSeconds() const;
 	// rules[2] is the points-to-win count for the battle set. After a
@@ -335,6 +342,10 @@ private:
 	SyncState syncState = SyncState::Idle;
 	bool gameTimeInfoSent = false;
 	bool battleEndSent = false;
+	// After a completed battle set returns to the room/rules path, one client can
+	// still emit stale next-map bootstrap traffic for a few seconds. ACK it, but
+	// do not let it become authoritative room state until the next Start Battle.
+	bool postMatchCommandQuarantine = false;
 	bool liveSlotRefreshSent = false;
 	bool awaitingPostEndMapMarker = false;
 	// Bitmap of dead players by position 0..7. Built from observed live
@@ -351,6 +362,8 @@ private:
 	// the round was decided by deaths (so the client's results screen can
 	// run rather than the server flipping back to "next round" state).
 	bool battleEndDecidedByDeath = false;
+	// T0 for BATTLE_END_TIMELINE, set on every broadcastBattleEndSequence call.
+	std::chrono::steady_clock::time_point battleEndStartTime {};
 	// Per-slot round wins accumulated within the current battle set.
 	// Cleared on resetMatchSync (room exit) and on resetForPostMatchRoom
 	// (battle set complete -> back to rules screen). NOT cleared on a

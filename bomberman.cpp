@@ -898,6 +898,7 @@ void BMRoom::resetMatchSync()
 	syncState = SyncState::Idle;
 	gameTimeInfoSent = false;
 	battleEndSent = false;
+	postMatchCommandQuarantine = false;
 	liveSlotRefreshSent = false;
 	awaitingPostEndMapMarker = false;
 	livePlayerStates.clear();
@@ -1831,6 +1832,7 @@ bool BMRoom::beginStartBattle(Player *player)
 	}
 	gameTimeInfoSent = false;
 	battleEndSent = false;
+	postMatchCommandQuarantine = false;
 	liveSlotRefreshSent = false;
 	awaitingPostEndMapMarker = false;
 	syncPlayers[player->getId()].startAcked = true;
@@ -1972,6 +1974,7 @@ void BMRoom::prepareNextRoundFromPostEndFlow(Player *player, uint8_t command)
 	stopMatchEndTimer();
 	gameTimeInfoSent = false;
 	battleEndSent = false;
+	postMatchCommandQuarantine = false;
 	liveSlotRefreshSent = false;
 	awaitingPostEndMapMarker = true;
 	livePlayerStates.clear();
@@ -2213,6 +2216,7 @@ void BMRoom::startMatchEndTimer(uint32_t endFrame)
 {
 	stopMatchEndTimer();
 	battleEndSent = false;
+	postMatchCommandQuarantine = false;
 	refreshSyncPlayers();
 	for (auto& [id, state] : syncPlayers)
 		state.battleEndPhase = BattleEndPhase::None;
@@ -2260,6 +2264,8 @@ void BMRoom::sendBattleStateCommandTo(Player *player, uint8_t command, uint32_t 
 	INFO_LOG(Game::Bomberman, "%s: battle state sync (%s) -> %s [%x] cmd=%02x value=%08x reliable=%u",
 		name.c_str(), reason != nullptr ? reason : "battle", player->getName().c_str(), player->getId(),
 		command, value, command != 0x15 ? 1 : 0);
+	if (battleEndSent)
+		logEndTimeline("send", player, command, value, reason);
 	player->send(packet);
 }
 
@@ -2268,6 +2274,8 @@ void BMRoom::advanceBattleEndSequence(Player *player, SyncPlayerState& state, co
 	if (player == nullptr)
 		return;
 
+	logEndTimeline("ack_advance", player, 0, (uint32_t)state.battleEndPhase,
+		reason != nullptr ? reason : "advance");
 	switch (state.battleEndPhase)
 	{
 	case BattleEndPhase::SettledDeadBits:
@@ -2437,6 +2445,8 @@ void BMRoom::resetForPostMatchRoom(const char *reason)
 		"%s: post-match room reset (%s); battleEndSent=%d battleEndDecidedByDeath=%d deadMap=%02x",
 		name.c_str(), reason != nullptr ? reason : "post_match", battleEndSent ? 1 : 0,
 		battleEndDecidedByDeath ? 1 : 0, deadManBitmap);
+	logEndTimeline("reset_for_post_match", nullptr, 0, deadManBitmap,
+		reason != nullptr ? reason : "post_match");
 
 	cancelPostMatchSafetyTimer();
 	stopInGameLiveness();
@@ -2453,6 +2463,7 @@ void BMRoom::resetForPostMatchRoom(const char *reason)
 	syncState = SyncState::ReadyToStart;
 	gameTimeInfoSent = false;
 	battleEndSent = false;
+	postMatchCommandQuarantine = true;
 	liveSlotRefreshSent = false;
 	awaitingPostEndMapMarker = false;
 	livePlayerStates.clear();
@@ -2478,6 +2489,9 @@ void BMRoom::broadcastBattleEndSequence(const char *reason)
 	if (battleEndSent)
 		return;
 	battleEndSent = true;
+	battleEndStartTime = std::chrono::steady_clock::now();
+	logEndTimeline("battle_end_T0", nullptr, 0, 0,
+		reason != nullptr ? reason : "battle_end");
 	stopInGameLiveness();
 	stopMatchEndTimer();
 	for (Player *player : players)
@@ -2492,18 +2506,12 @@ void BMRoom::broadcastBattleEndSequence(const char *reason)
 	// on the rules screen instead of timing out into "line disconnect".
 	// Cancelled by resetForPostMatchRoom on the natural path.
 	//
-	// 2026-04-28: shorter timer (3 sec) when battle set is complete. The
-	// 04/28 08:41 capture showed the LOSER client (FARKUS2) starts sending
-	// pre-match cmd=4 (loading next battle) only 3 seconds after battle
-	// end. With the old 30-sec timer the post-match reset broadcast
-	// arrived too late — FARKUS2 had already committed to "next battle"
-	// state and the rule blob / roster broadcasts didn't pull it out of
-	// that state, leading to a 45+ sec line-disconnect timeout. Firing
-	// the reset immediately (3 sec) blocks that window before the loser's
-	// binary auto-progresses past the recap into next-battle load.
-	if (battleEndDecidedByDeath && isBattleSetComplete())
-		armPostMatchSafetyTimer(3, reason);
-	else if (battleEndDecidedByDeath)
+	// 2026-04-28: the 09:26 BATTLE_END_TIMELINE capture showed that a 3-second
+	// reset is too early. The loser is still in recap/next-round preparation,
+	// and a rule-blob-bearing reset can leave the two consoles split. Let the
+	// natural winner cmd=0x0c arrive first (observed at about +19s) and use the
+	// timer only as a fallback.
+	if (battleEndDecidedByDeath)
 		armPostMatchSafetyTimer(30, reason);
 }
 
@@ -2534,7 +2542,63 @@ void BMRoom::handlePostMatchSafetyTimer(const std::error_code& ec)
 	INFO_LOG(Game::Bomberman,
 		"%s: post-match safety timer fired - cmd=0xc rule sync did not arrive within 30 sec; driving room reset",
 		name.c_str());
+	logEndTimeline("safety_timer_fire", nullptr, 0, 0, "");
 	resetForPostMatchRoom("safety_timer");
+}
+
+void BMRoom::logEndTimeline(const char *event, const Player *player, uint8_t cmd,
+	uint32_t value, const char *extra) const
+{
+	using namespace std::chrono;
+	long long elapsedMs = -1;
+	if (battleEndStartTime != steady_clock::time_point{})
+	{
+		elapsedMs = duration_cast<milliseconds>(
+			steady_clock::now() - battleEndStartTime).count();
+	}
+	const char *who = player != nullptr ? player->getName().c_str() : "-";
+	uint32_t whoId = player != nullptr ? player->getId() : 0;
+	INFO_LOG(Game::Bomberman,
+		"%s: BATTLE_END_TIMELINE +%lldms event=%s player=%s [%x] cmd=0x%02x value=%08x %s",
+		name.c_str(), elapsedMs, event != nullptr ? event : "?", who, whoId, cmd, value,
+		extra != nullptr ? extra : "");
+}
+
+void BMRoom::traceInboundIfBattleEnd(Player *player, uint8_t cmd, uint16_t word)
+{
+	if (!battleEndSent)
+		return;
+	logEndTimeline("inbound", player, cmd, (uint32_t)word, "");
+}
+
+bool BMRoom::shouldSuppressPostBattleCommand(Player *player, uint8_t command) const
+{
+	const bool awaitingFinalPostBattleReset = battleEndSent && battleEndDecidedByDeath && isBattleSetComplete();
+	if (!awaitingFinalPostBattleReset && !postMatchCommandQuarantine)
+		return false;
+
+	switch (command)
+	{
+	case 0x04: // pre-match sync / next-round bootstrap
+	case 0x05: // next-round tick/state
+	case 0x09: // additional pre-match blob
+	case 0x0d: // map phase marker
+	case 0x0e: // post-map marker
+	case 0x0f: // post-end map marker
+	case 0x1a: // map block
+	case 0x1b: // map block
+		INFO_LOG(Game::Bomberman,
+			"%s: suppressing post-battle cmd=%02x from %s [%x]; %s",
+			name.c_str(), command,
+			player != nullptr ? player->getName().c_str() : "?",
+			player != nullptr ? player->getId() : 0,
+			awaitingFinalPostBattleReset
+				? "battle set complete, awaiting cmd=0x0c reset"
+				: "post-match quarantine until next Start Battle");
+		return true;
+	default:
+		return false;
+	}
 }
 
 void BMRoom::broadcastOwnerKeyholderSync(const char *reason) const
@@ -2762,6 +2826,9 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 	cmd.full = subtype;
 	if (data[3] == Packet::REQ_GAME_DATA)
 	{
+		if (room != nullptr)
+			room->traceInboundIfBattleEnd(player, (uint8_t)cmd.command,
+				len >= 0x14 ? read16(data, 0x12) : 0);
 		switch (cmd.command)
 		{
 		case 7:		// Set game rules
@@ -2794,6 +2861,8 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 			if (room != nullptr)
 			{
 				room->prepareNextRoundFromPostEndFlow(player, (uint8_t)cmd.command);
+				if (room->shouldSuppressPostBattleCommand(player, (uint8_t)cmd.command))
+					break;
 				relayPacket.init(Packet::REQ_CHAT);
 				relayPacket.flags |= Packet::FLAG_RUDP;
 				relayPacket.writeData(&data[0x10], (int)(len - 0x10));
@@ -2808,6 +2877,8 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 
 			if (room != nullptr)
 			{
+				if (room->shouldSuppressPostBattleCommand(player, (uint8_t)cmd.command))
+					break;
 				relayPacket.init(Packet::REQ_CHAT);
 				relayPacket.flags |= Packet::FLAG_RUDP;
 				relayPacket.writeData(&data[0x10], (int)(len - 0x10));
@@ -2898,6 +2969,11 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 			relayPacket.flags |= Packet::FLAG_RUDP;
 			relayPacket.writeData(cmd.full);
 			relayPacket.writeData(read16(data, 0x12));
+			if (room != nullptr && room->shouldSuppressPostBattleCommand(player, (uint8_t)cmd.command))
+			{
+				relayPacket.reset();
+				break;
+			}
 			if (room != nullptr && room->isAwaitingPostEndMapMarker())
 			{
 				if (!replyPacket.empty())
@@ -3012,6 +3088,10 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 				}
 				const uint16_t word = len >= 0x14 ? read16(data, 0x12) : 0;
 				const uint32_t payload0 = len >= 0x18 ? read32(data, 0x14) : 0;
+				replyPacket.init(Packet::REQ_NOP);
+				player->ackPacket(replyPacket, data);
+				if (room != nullptr && room->shouldSuppressPostBattleCommand(player, (uint8_t)cmd.command))
+					break;
 				size_t activeCmd01RecordIndex = 0;
 				const uint8_t *activeCmd01Record = nullptr;
 				const bool activeCmd01Lane = cmd.command == 0x1
@@ -3033,9 +3113,6 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 						player->getName().c_str(), cmd.command, cmd.full, word, payload0, payloadSize);
 					logCount++;
 				}
-
-				replyPacket.init(Packet::REQ_NOP);
-				player->ackPacket(replyPacket, data);
 
 				if (room != nullptr && room->getPlayers().size() > 1)
 				{

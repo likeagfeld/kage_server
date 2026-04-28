@@ -5170,3 +5170,72 @@ Total Ghidra scripts written for this trace:
 - FindOffsetReaders.java
 - FindPhaseSwitch.java
 - FindCmd2StructConsumers.java
+
+## 2026-04-28 Katana FID import and post-match packet quarantine
+
+New reverse-engineering workflow added from user/flyinghead guidance:
+
+- import `D:\ghidra_input\1ST_READ.BIN` as raw binary
+- language/compiler: `SuperH4:LE:32:default:default`
+- loader: `BinaryLoader`
+- base address: `0x8c010000`
+- apply all FIDBs from `D:\Ghidra Function IDs for Dreamcast Katana SDKs`
+- export full ASCII listing
+
+Executed successfully into:
+
+- `D:\ghidra_projects\BombermanOnlineDC_KatanaFID_20260428b`
+- `D:\kageserver\docs\ghidra_decompile\katana_fid_20260428\1ST_READ.BIN.fidb_full.txt`
+
+The export is about 175 MB and had 11 Katana/NAOMI SDK FID databases active.
+Use this project/dump as the preferred binary evidence base for new handler work.
+
+Fresh 09:24 Claude/Kage hardware evidence from
+`D:\bombermanrevivalCLAUDE\kage_server\logs\kageserver.log` falsifies the
+previous narrow `cmd=0x13 broadcast` root cause. Flyinghead does not broadcast
+`0x13` in the same way and still exhibits the post-game problem. The common
+failure is the next-round/timer/map bootstrap family after a completed battle
+set:
+
+- death detected at 09:26:23, FARKUS2 dead, FARKUS winner
+- battle set complete, Kage sends `cmd=16`, `cmd=19`, `cmd=15`
+- both clients acknowledge the battle-end sequence
+- about +2.3 sec later loser sends `cmd=0x04`
+- about +3 sec safety reset fired too early in the bad build
+- loser then continues emitting `cmd=0x05`, `cmd=0x1a`, `cmd=0x1b`
+- outbound dump confirms Kage relayed those map/timer packets after the set was already complete
+- winner emits natural post-battle `cmd=0x0c` much later, around +19 sec
+
+Interpretation:
+
+- `cmd=0x10` is not ignored; Kage handles it by advancing that client from
+  completed dead bits to `cmd=0x15 final_state`.
+- The desync starts after that, when stale loser next-map/timer packets look
+  syntactically valid and are relayed as room-wide state.
+- `prepareNextRoundFromPostEndFlow` logged that it was ignoring `cmd=0x04`,
+  but the caller still built/relayed the packet afterward.
+
+Implemented fix in this build:
+
+- ACK but suppress `cmd=0x04`, `0x05`, `0x09`, `0x0d`, `0x0e`, `0x0f`,
+  `0x1a`, and `0x1b` while a death-decided battle set is complete and Kage is
+  waiting for the post-battle `cmd=0x0c` reset.
+- Keep a `postMatchCommandQuarantine` flag after `resetForPostMatchRoom` so a
+  loser that is already in the next-map path cannot keep polluting room state
+  immediately after reset.
+- Clear the quarantine only on `beginStartBattle`, `resetMatchSync`,
+  `startMatchEndTimer`, or a legitimate non-final next-round recycle.
+- Restore the post-match safety timer to 30 sec because the 3 sec timer fired
+  before the observed natural winner `cmd=0x0c` path.
+- Add `BATTLE_END_TIMELINE` diagnostics for inbound battle-end-window packets,
+  server sends, ack advancement, safety timer, and reset.
+
+Next hardware test should specifically verify:
+
+- after death, logs show `battle set complete`
+- `cmd=0x10` is ACKed and followed by server `cmd=0x15`
+- if loser emits `cmd=0x04/05/1a/1b`, logs show `suppressing post-battle cmd=..`
+- outbound dump no longer contains those post-set `REQ_GAME_DATA cmd=05/1a/1b`
+  relays
+- the consoles return to a coherent post-match room/rules state instead of one
+  console disconnecting and the other loading a 2:01 board without sprites
