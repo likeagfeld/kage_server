@@ -93,7 +93,10 @@ void Player::send(Packet& packet)
 			// unreliable NOPs don't have a seq#
 			write32(packet.data, i + 8, unrelSeq++);
 		}
-		if (!(flags & Packet::FLAG_RELAY))
+		// Most server packets use the recipient id as the source field, but a few
+		// game-specific paths prefill a different source id and expect it to stay
+		// intact all the way to the client.
+		if (!(flags & Packet::FLAG_RELAY) && read32(packet.data, i + 4) == 0)
 			write32(packet.data, i + 4, id);
 		i += size;
 	}
