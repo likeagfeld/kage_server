@@ -163,6 +163,7 @@ public:
 		uint32_t value, const char *extra) const;
 	void traceInboundIfBattleEnd(Player *player, uint8_t cmd, uint16_t word);
 	bool shouldSuppressPostBattleCommand(Player *player, uint8_t command) const;
+	bool shouldResetPostBattleOnSuppressedCommand(uint8_t command) const;
 	void resetForPostMatchRoom(const char *reason);
 	uint32_t matchDurationSeconds() const;
 	// rules[2] is the points-to-win count for the battle set. After a

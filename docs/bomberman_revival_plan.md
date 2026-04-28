@@ -5239,3 +5239,40 @@ Next hardware test should specifically verify:
   relays
 - the consoles return to a coherent post-match room/rules state instead of one
   console disconnecting and the other loading a 2:01 board without sprites
+
+## 2026-04-28 Follow-up: winner still entered local next-map path
+
+Fresh hardware result after stale packet quarantine:
+
+- loser returned to Room successfully
+- winner showed `Battle Start`, loaded map, timer stuck at `2:01`, no player sprites
+- trophy count was one, which supports the current `cmd=16/19/15` result sequence
+
+Fresh log evidence from `D:\kageserver\logs\kageserver.stderr.log`:
+
+- FARKUS won (`deadMap=01`) and battle set was complete
+- Kage sent `cmd=16`, `cmd=19`, `cmd=15`
+- winner FARKUS began local next-round bootstrap at +2360ms with `cmd=0x04`
+- Kage correctly suppressed FARKUS `cmd=04`, then `cmd=05`, `cmd=1a`, `cmd=1b`, `cmd=0f`
+- however, Kage waited until the 30s safety timer to broadcast `resetForPostMatchRoom`
+- by then the winner's own client had already committed locally into the next-map/Battle Start path
+
+Correction implemented:
+
+- when a death-decided battle set is complete, the first suppressed next-round
+  bootstrap packet (`cmd=04/05/09/0d/0e/0f/1a/1b`) is now ACKed and then
+  immediately drives `resetForPostMatchRoom("post_battle_next_round_suppressed")`.
+- this keeps the quarantine behavior from the previous patch, so stale map
+  packets after reset still cannot become authoritative room state.
+- this is intentionally different from the earlier failed 3-second timer: the
+  reset is now driven by a concrete client packet that proves the client is
+  leaving recap/results for next-map bootstrap, and the post-reset quarantine is active.
+
+Next test expectation:
+
+- after death, first completed-set `cmd=04` should log suppression and immediate
+  `post-match room reset (post_battle_next_round_suppressed)` around +2-3 sec
+- both clients should return to Room/rules state instead of winner loading a
+  sprite-less 2:01 board
+- if either client still diverges, the next evidence to capture is which packet
+  follows the immediate reset, not the older 30-second safety path

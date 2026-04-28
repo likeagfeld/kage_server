@@ -2601,6 +2601,27 @@ bool BMRoom::shouldSuppressPostBattleCommand(Player *player, uint8_t command) co
 	}
 }
 
+bool BMRoom::shouldResetPostBattleOnSuppressedCommand(uint8_t command) const
+{
+	if (!battleEndSent || !battleEndDecidedByDeath || !isBattleSetComplete())
+		return false;
+
+	switch (command)
+	{
+	case 0x04:
+	case 0x05:
+	case 0x09:
+	case 0x0d:
+	case 0x0e:
+	case 0x0f:
+	case 0x1a:
+	case 0x1b:
+		return true;
+	default:
+		return false;
+	}
+}
+
 void BMRoom::broadcastOwnerKeyholderSync(const char *reason) const
 {
 	for (Player *player : players)
@@ -2862,7 +2883,15 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 			{
 				room->prepareNextRoundFromPostEndFlow(player, (uint8_t)cmd.command);
 				if (room->shouldSuppressPostBattleCommand(player, (uint8_t)cmd.command))
+				{
+					if (room->shouldResetPostBattleOnSuppressedCommand((uint8_t)cmd.command))
+					{
+						player->send(replyPacket);
+						replyPacket.reset();
+						room->resetForPostMatchRoom("post_battle_next_round_suppressed");
+					}
 					break;
+				}
 				relayPacket.init(Packet::REQ_CHAT);
 				relayPacket.flags |= Packet::FLAG_RUDP;
 				relayPacket.writeData(&data[0x10], (int)(len - 0x10));
@@ -2878,7 +2907,15 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 			if (room != nullptr)
 			{
 				if (room->shouldSuppressPostBattleCommand(player, (uint8_t)cmd.command))
+				{
+					if (room->shouldResetPostBattleOnSuppressedCommand((uint8_t)cmd.command))
+					{
+						player->send(replyPacket);
+						replyPacket.reset();
+						room->resetForPostMatchRoom("post_battle_next_round_suppressed");
+					}
 					break;
+				}
 				relayPacket.init(Packet::REQ_CHAT);
 				relayPacket.flags |= Packet::FLAG_RUDP;
 				relayPacket.writeData(&data[0x10], (int)(len - 0x10));
@@ -2972,6 +3009,12 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 			if (room != nullptr && room->shouldSuppressPostBattleCommand(player, (uint8_t)cmd.command))
 			{
 				relayPacket.reset();
+				if (room->shouldResetPostBattleOnSuppressedCommand((uint8_t)cmd.command))
+				{
+					player->send(replyPacket);
+					replyPacket.reset();
+					room->resetForPostMatchRoom("post_battle_next_round_suppressed");
+				}
 				break;
 			}
 			if (room != nullptr && room->isAwaitingPostEndMapMarker())
@@ -3091,7 +3134,15 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 				replyPacket.init(Packet::REQ_NOP);
 				player->ackPacket(replyPacket, data);
 				if (room != nullptr && room->shouldSuppressPostBattleCommand(player, (uint8_t)cmd.command))
+				{
+					if (room->shouldResetPostBattleOnSuppressedCommand((uint8_t)cmd.command))
+					{
+						player->send(replyPacket);
+						replyPacket.reset();
+						room->resetForPostMatchRoom("post_battle_next_round_suppressed");
+					}
 					break;
+				}
 				size_t activeCmd01RecordIndex = 0;
 				const uint8_t *activeCmd01Record = nullptr;
 				const bool activeCmd01Lane = cmd.command == 0x1
