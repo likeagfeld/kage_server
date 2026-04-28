@@ -929,31 +929,59 @@ constexpr size_t BMPlayerSlotCount = 8;
 constexpr size_t BMPlayerSlotRecordSize = 4;
 
 // =====================================================================
-// SERVER-SIDE POWERUP PICKUP — DIAGNOSTIC ONLY (no payload mutation)
+// SERVER-SIDE POWERUP PICKUP ARBITRATION (v3 — phase-priority based)
 //
-// Validated state machine from PICKUP_DIAG capture (2026-04-27 19:44+):
-//   * 0x1000 HIDDEN -> 0x2000 APPEARING -> 0x3000 VISIBLE -> 0xb000 PICKED
-//   * BUT the state machine continues past 0xb000: cmd02 obj diff slot 20
-//     showed 0xb1 -> 0x31 -> 0x41, where 0x41 is the FINAL consumed state.
-//   * Earlier arbitration treated 0xb000 as terminal and rewrote the relay
-//     payload to lock it at 0xb000. This BLOCKED the natural transition to
-//     0x41, causing FARKUS's client to repeatedly try-pickup -> revert
-//     visible -> try-pickup -> revert in a loop. The result: items never
-//     visually consumed even though the server saw the pickup.
+// State machine PROVEN from 19:44 + 20:08 hardware tests:
 //
-// Lesson: server-side pickup arbitration was wrong assumption. The clients
-// actually CONVERGE naturally if we just relay each one's view unmodified
-// (slot 20 reached 0x41 on both sides at 19:44:47 with no server help).
+//     phase 0 (uninit)
+//       -> phase 1 (HIDDEN, under brick)            param 0x1???
+//       -> phase 2 (APPEARING, brick destroyed)     param 0x2???
+//       -> phase 3 (VISIBLE, ready to pick up)      param 0x3???
+//       -> phase b (PICKED UP, transient claim)     param 0xb??? (=0x8000|0x3???)
+//       -> phase 4 (CONSUMED, final)                param 0x4???
 //
-// Current behavior: capture transitions for diagnostic, do NOT mutate the
-// relay payload. Let clients handle pickup convergence themselves as they
-// did pre-2afd0b6 — our previous tests with relay-only also worked for
-// pickup.
+// CRITICAL: phase 4 is the FINAL state, NOT phase b. Earlier arbitration
+// (commit 2afd0b6) locked at phase b and BLOCKED the transition to phase
+// 4, which is why pickup never visually applied even though the server
+// detected it. The 19:44 cmd02 obj diff for slot 20 confirmed:
+//   0x10 -> 0x20 -> 0x30 -> 0xb1 -> 0x31 -> 0xb1 -> 0x31 -> 0x41
+//                                                            ^FINAL
+// Without server help, clients ALSO flip-flop indefinitely between
+// phase 3 (visible per non-picker view) and phase b (picked up per picker
+// view). The 20:07 PICKUP_DIAG for idx=4 captured 5+ flip-flops with no
+// convergence to phase 4.
+//
+// Arbitration: track per-record server state with PHASE PRIORITY ordering
+// (NOT numeric ordering, since b numerically > 4 but 4 is later in the
+// state machine). Once at phase 4, terminal until round reset. b can
+// advance to 4 but not regress to 3.
 // =====================================================================
 
 namespace {
 inline unsigned bmPickupPhase(uint16_t param) {
 	return (unsigned)((param >> 12) & 0xf);
+}
+
+// Phase priority — HIGHER = LATER in state machine, wins arbitration.
+// Phase 4 is the final consumed state, so it has highest priority.
+inline unsigned bmPhasePriority(unsigned phase) {
+	switch (phase) {
+		case 0: return 0;   // uninit (before any cmd=2 received)
+		case 1: return 1;   // hidden under brick
+		case 2: return 2;   // appearing animation
+		case 3: return 3;   // visible, ready to pick up
+		case 0xb: return 4; // picked up, transient (8000 OR-ed into 3???)
+		case 4: return 5;   // CONSUMED — final state, terminal
+		default: return phase; // unknown phases — fall through to numeric
+	}
+}
+
+inline bool bmIncomingWins(uint16_t current, uint16_t incoming) {
+	const unsigned curP = bmPhasePriority(bmPickupPhase(current));
+	const unsigned incP = bmPhasePriority(bmPickupPhase(incoming));
+	if (incP > curP) return true;       // strictly later state — adopt
+	if (incP == curP && incoming != current) return true; // same phase, sub-state may differ
+	return false;                        // earlier phase — reject (no regression)
 }
 }  // namespace
 
@@ -965,7 +993,6 @@ bool BMRoom::resolvePickupsFromCmd2(Player *sender, uint8_t *payload, size_t pay
 	if (payloadSize < requiredSize)
 		return false;
 
-	// Absorb sender's player positions (diagnostic only).
 	const int senderPos = sender != nullptr ? getPlayerPosition(sender) : -1;
 	const int senderSlots = sender != nullptr ? getSlotCount(sender) : 0;
 	for (int i = 0; i < senderSlots; i++)
@@ -977,28 +1004,45 @@ bool BMRoom::resolvePickupsFromCmd2(Player *sender, uint8_t *payload, size_t pay
 		serverPlayerCells[slot].readFrom(userBytes);
 	}
 
-	// Log only the FIRST-OBSERVED phase transition per (slot, phase) — i.e.
-	// each unique high-nibble appearance on each record. This keeps the log
-	// volume tiny (max 16 lines per record per round) yet captures the
-	// state machine progression. No payload mutation.
+	bool modified = false;
 	for (size_t i = 0; i < BMPowerupCount; i++)
 	{
-		const uint8_t *recBytes = payload + BMPowerupTableOffsetCmd2 + i * BMPowerupRecordSize;
+		uint8_t *recBytes = payload + BMPowerupTableOffsetCmd2 + i * BMPowerupRecordSize;
 		BMPowerUp incoming(recBytes);
 		BMPowerUp& current = serverPowerUps[i];
 		const unsigned prevPhase = bmPickupPhase(current.param);
 		const unsigned incomingPhase = bmPickupPhase(incoming.param);
-		if (incomingPhase != prevPhase)
+		const uint16_t prevParam = current.param;
+
+		if (bmIncomingWins(current.param, incoming.param))
 		{
-			INFO_LOG(Game::Bomberman,
-				"%s: PICKUP idx=%zu phase %x -> %x (param %04x -> %04x) sender=%s",
-				name.c_str(), i, prevPhase, incomingPhase,
-				current.param, incoming.param,
-				sender != nullptr ? sender->getName().c_str() : "?");
+			current.param = incoming.param;
+			if (incoming.pos.full != 0)
+				current.pos = incoming.pos;
+			if (prevPhase != incomingPhase)
+			{
+				INFO_LOG(Game::Bomberman,
+					"%s: PICKUP idx=%zu phase %x -> %x (param %04x -> %04x) sender=%s%s",
+					name.c_str(), i, prevPhase, incomingPhase,
+					prevParam, incoming.param,
+					sender != nullptr ? sender->getName().c_str() : "?",
+					incomingPhase == 4 ? " [CONSUMED]" :
+					incomingPhase == 0xb ? " [PICKED UP]" : "");
+				if (incomingPhase == 4)
+					serverPickupCount++;
+			}
 		}
-		current = incoming;  // tracker only; payload is NOT modified
+
+		// Always rewrite outgoing payload with server's authoritative state.
+		uint8_t writeBuf[BMPowerupRecordSize];
+		current.writeTo(writeBuf);
+		if (memcmp(recBytes, writeBuf, BMPowerupRecordSize) != 0)
+		{
+			memcpy(recBytes, writeBuf, BMPowerupRecordSize);
+			modified = true;
+		}
 	}
-	return false;  // never report payload modified — relay sends unchanged
+	return modified;
 }
 
 void BMRoom::absorbPlayerPositionsFromCmd1(Player *sender, const uint8_t *payload, size_t payloadSize)
@@ -2820,13 +2864,30 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 				player->ackPacket(replyPacket, data);
 				if (room != nullptr && room->isBattleEndSent())
 				{
-					// Reflect the original server's hand-shake: send cmd=0x13
-					// start-transition back to all clients so they can advance.
-					// Reuses the existing broadcastStartTransition path.
-					INFO_LOG(Game::Bomberman,
-						"%s: broadcasting cmd=13 start transition in response to post-match advance",
-						player->getName().c_str());
-					room->broadcastStartTransition("post_match_advance", word);
+					// CRITICAL: do NOT broadcast cmd=13 if the BATTLE SET is
+					// complete (winner reached pointsToWinSet). The 20:08:51
+					// hardware capture showed cmd=13 being broadcast after
+					// the 1-point match was won, which triggered both
+					// clients to start a NEW battle instead of returning to
+					// the rules screen — caused FARKUS2 to land on a 2:01
+					// timer board with no character sprites and FARKUS to
+					// disconnect. When battle set is complete, the
+					// post_battle_rule_sync path (cmd=0xc from clients)
+					// drives resetForPostMatchRoom which is the correct
+					// post-set transition.
+					if (room->isBattleSetComplete())
+					{
+						INFO_LOG(Game::Bomberman,
+							"%s: suppressing cmd=13 broadcast — battle set complete, awaiting post-match rule sync",
+							player->getName().c_str());
+					}
+					else
+					{
+						INFO_LOG(Game::Bomberman,
+							"%s: broadcasting cmd=13 start transition in response to post-match advance",
+							player->getName().c_str());
+						room->broadcastStartTransition("post_match_advance", word);
+					}
 				}
 				break;
 			}
