@@ -1043,6 +1043,24 @@ bool BMRoom::resolvePickupsFromCmd2(Player *sender, uint8_t *payload, size_t pay
 			current.param = incoming.param;
 			if (incoming.pos.full != 0)
 				current.pos = incoming.pos;
+			// Phase b (picked up, transient) gets COLLAPSED to phase 4
+			// (CONSUMED) at the server. The 04/28 08:26 test showed clients
+			// reaching phase b but never auto-transitioning to phase 4 —
+			// because FUN_8c07dd36's cell state machine has handlers ONLY
+			// for bVar5 == 1 (HIDDEN), 3 (VISIBLE), 4 (CONSUMED). Phase b
+			// has no handler — receiving clients stall there.
+			//
+			// By collapsing b -> 4 in the server's authoritative state, the
+			// rewritten relay payload always carries a phase the client can
+			// process. The picked-up flag (bit 0x8 of phase nibble) is
+			// transient — once it triggers the consumed transition on the
+			// picker's binary, neither side needs to keep observing phase b.
+			if (incomingPhase == 0xb)
+			{
+				// Preserve sub-state bits (low nibble of byte[2], + byte[3])
+				// while flipping the phase nibble from 0xb to 0x4.
+				current.param = (uint16_t)((current.param & 0x0fff) | 0x4000);
+			}
 			if (prevPhase != incomingPhase)
 			{
 				INFO_LOG(Game::Bomberman,
