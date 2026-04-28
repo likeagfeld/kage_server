@@ -5072,3 +5072,101 @@ our branch.** First test flyinghead's branch as-is to see if his
 architecture alone fixes pickup. If yes, our diagnostic is moot. If no,
 the diagnostic is still useful but should be added to his branch (where
 it can capture the powerup-state arbitration moment).
+
+
+## 2026-04-28 BREAKTHROUGH: Powerup pickup mechanism solved
+
+After ~6 hours of binary tracing across multiple sessions, identified
+the actual cell-state machine in FUN_8c07dd36 (line 74):
+
+```c
+bVar5 = *(byte *)(puVar9 + 9) & 0x7f;
+if (bVar5 == 1) { /* HIDDEN: timer counts up */ }
+if (bVar5 == 3) { /* VISIBLE -> when timer expires, set cell+9 = (... & MASK) | 4 */ }
+else if (bVar5 == 4) { /* CONSUMED handler */ }
+```
+
+**Critical discovery:** there is NO handler for `bVar5 == 0xb`. Phase b
+is a transient state observed in the wire format but the cell state
+machine has no logic to advance from it. Items reaching phase b would
+stall there indefinitely.
+
+State machine encoding:
+- cell+9 byte = phase nibble + picked-up flag
+- bits 0-2: base phase (1=HIDDEN, 2=APPEARING, 3=VISIBLE, 4=CONSUMED)
+- bit 3 (0x8): picked-up flag (= phase 0xb when set with base 3)
+- bit 7 (0x80): another flag (consumed via timer vs pickup?)
+
+State sequence: 0 → 1 → 2 → 3 → b → 4 (with pickup) or 1 → 2 → 3 → 4
+(timer expiry, no pickup).
+
+### Fix: phase b → phase 4 collapse (commit e4677e6)
+
+In `resolvePickupsFromCmd2`, when incoming phase is 0xb, server rewrites
+to 0x4 before propagating:
+
+```cpp
+if (incomingPhase == 0xb) {
+    current.param = (uint16_t)((current.param & 0x0fff) | 0x4000);
+}
+```
+
+This makes the relay payload always carry a phase the receiving client's
+state machine can handle. Sub-state bits (low 12 bits) preserved.
+
+Validated 04/28 08:39 hardware test: pickups visually disappear on the
+picker's screen, stat updates apply, no flip-flop, no stall.
+
+### Remaining issues from 04/28 08:39 test
+
+1. **Post-battle line disconnect (45 sec timeout)**: loser client (FARKUS2)
+   starts loading next battle 3 sec after battle end. Post-match reset
+   was firing on cmd=0xc rule sync at ~17 sec — too late. Loser already
+   committed to "next battle" state, ignoring the post-match broadcasts.
+
+   **Fix attempt** (commit after e4677e6): reduce post-match safety
+   timer from 30 sec to 3 sec when battle set complete. Forces reset
+   broadcast before loser binary auto-loads.
+
+2. **Trophy multiplier (3 trophies on 1st win)**: stable at 3 across
+   multiple tests since removing cmd=17. The server sends 3 cmds at
+   battle end (cmd=16, cmd=19, cmd=15). Hypothesis: client-side
+   cumulative win counter saved to VMU; not server-fixable without
+   either binary patching or VMU reset.
+
+3. **Intermittent "fading yellow ring no bomb"**: NOT reproduced in
+   latest test (3/3 FARKUS2 bombs promoted correctly). Per `consumePending
+   BombPromotion` logic, possible cause is `lastPromotedRecord` blocking
+   re-promotion of identical record bytes within a short window.
+
+### Total binary trace passes 314-328
+
+- 314: cmd=2 receiver decompile (FUN_8c0ddbe4 + FUN_8c0dd698)
+- 315: SH-4 asm of bfswu decomposition
+- 316: cmd=2 receiver caller chain (3 callers identified)
+- 317: ptr resolution (PTR_FUN_8c094130 → FUN_8c0ddbe4)
+- 318: cmd=2 dispatch asm at 0x8c0940c8
+- 319: cmd=2 dispatch setup
+- 320: offset 0x8c readers (0 hits — indexed access)
+- 321: offset 0x24 readers (141 candidates)
+- 322: phase processor candidates v1 (FUN_8c0818c0 etc.)
+- 323: phase processor candidates v2
+- 324: phase byte readers at offset 0x26 (0 hits)
+- 325: phase switch detection (27 candidate functions with phases 1,2,3,4,b)
+- 326: targeted phase processors v2
+- 327: cmd=2 sync struct consumers via 0x008c literal pool (141 hits)
+- 328: **FOUND** — FUN_8c07dd36 line 74 reads cell+9 byte for state switch
+
+Total Ghidra scripts written for this trace:
+- ResolvePtrsAndDecompile.java
+- DumpListingRanges.java
+- DumpCallersByAddress.java
+- FindWriters.java
+- FindHighNibbleWriters.java
+- FindByteSequenceInCode.java
+- FindImmediateUsages.java
+- LocateAndTraceString.java
+- AnalyzePlayerRecordOffset.java
+- FindOffsetReaders.java
+- FindPhaseSwitch.java
+- FindCmd2StructConsumers.java

@@ -2468,7 +2468,19 @@ void BMRoom::broadcastBattleEndSequence(const char *reason)
 	// reset 30 sec after the cmd=15 send so both clients still converge
 	// on the rules screen instead of timing out into "line disconnect".
 	// Cancelled by resetForPostMatchRoom on the natural path.
+	//
+	// 2026-04-28: shorter timer (3 sec) when battle set is complete. The
+	// 04/28 08:41 capture showed the LOSER client (FARKUS2) starts sending
+	// pre-match cmd=4 (loading next battle) only 3 seconds after battle
+	// end. With the old 30-sec timer the post-match reset broadcast
+	// arrived too late — FARKUS2 had already committed to "next battle"
+	// state and the rule blob / roster broadcasts didn't pull it out of
+	// that state, leading to a 45+ sec line-disconnect timeout. Firing
+	// the reset immediately (3 sec) blocks that window before the loser's
+	// binary auto-progresses past the recap into next-battle load.
 	if (battleEndDecidedByDeath && isBattleSetComplete())
+		armPostMatchSafetyTimer(3, reason);
+	else if (battleEndDecidedByDeath)
 		armPostMatchSafetyTimer(30, reason);
 }
 
