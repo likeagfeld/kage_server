@@ -1857,3 +1857,32 @@ Implication:
   - together with the latest `low=0018` hardware falsification, this further
     confirms the real fix is upstream of the downstream synthetic `cmd=02`
     object lane
+
+### 2026-04-28 post-match room-return phase boundary
+
+- `0x8C078354` `confirmed`
+  - logs/executes the `End Game Play` path
+  - writes active object phase `+0x48 = 0x10`
+  - this feeds the observed client outbound `cmd=10` settle signal
+- `0x8C09758C` `confirmed`
+  - central active phase outbound packet producer
+  - phase `+0x48 = 0x10` emits encoded byte `0x20`, corresponding to client outbound `cmd=10`
+  - phase `+0x48 = 0x16` emits encoded byte `0x26`, corresponding to client outbound `cmd=13`
+  - the `0x16` branch initializes room-return UI state and sets `+0x22e0` when only one slot remains active
+- `0x8C096928` `confirmed`
+  - active room UI loop
+  - reads and clears the `+0x22e0` returned-to-room flag
+  - displays the returned-to-game-room notification path
+- `0x8C093BBC` server command `0x13` receiver `confirmed negative`
+  - not the completed-match room-return command
+  - receiving server `cmd=13` tears down/builds board/start state, matching the prior sprite-less `2:01` failure class if broadcast after a completed battle set
+- `0x8C09AFE4` / `0x8C09B170` `confirmed`
+  - battle state packet builders
+  - explicitly special-case active phases `0x14`, `0x15`, and `0x16`
+  - support the conclusion that phase `0x16` is a distinct post-match advance state, not just another dead-bit state
+
+Consequence:
+
+- the post-match loser bug is now bounded to the missing client transition from phase `0x10` / outbound `cmd=10` to phase `0x16` / outbound `cmd=13`
+- Kage should not treat `FinalState` alone as complete room-return readiness
+- Kage should not broadcast server `cmd=13` as a completed-set fix

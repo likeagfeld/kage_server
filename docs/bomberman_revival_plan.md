@@ -5420,3 +5420,43 @@ Next validation expectation:
 - when the loser first sends stale `cmd=04`, logs should show `post-match STAT nudge -> <loser> after suppressed cmd=04`
 - if this is the missing room-return cue, the loser should return to Room like the winner instead of continuing through `cmd=05/1a/1b/0f`
 - if stale map packets continue after the STAT nudge, the next evidence is that STAT alone is insufficient, and we should compare the full winner `cmd=13 + STAT` response sequence against the loser path rather than revisiting `cmd=15`
+
+## 2026-04-28 Ghidra trace: post-match cmd10 -> cmd13 boundary
+
+Focused Ghidra passes:
+
+- `docs/ghidra_decompile/pass330_postmatch_roomreturn_verify`
+- `docs/ghidra_decompile/pass331_return_room_flag_writers`
+- `docs/ghidra_decompile/pass333_postmatch_phase_callers`
+- `docs/ghidra_decompile/pass334_postmatch_phase_neighbors`
+- `docs/ghidra_decompile/pass335_postmatch_helpers_09`
+
+What the binary now proves:
+
+- server-command receiver `0x8C093BBC` for server `cmd=0x13` is not the post-match room-return command; it tears down/builds board/start state, so broadcasting server `cmd=13` after a completed 1-point match is the wrong direction
+- `FUN_8c078354` logs/executes `End Game Play` and writes active object phase `+0x48 = 0x10`
+- `FUN_8c09758C` consumes active object phase `+0x48 = 0x10` by emitting encoded byte `0x20`, which matches the observed client outbound `cmd=0x10` settle signal
+- the same `FUN_8c09758C` consumes active object phase `+0x48 = 0x16` by emitting encoded byte `0x26`, which matches observed client outbound `cmd=0x13`
+- in the `+0x48 = 0x16` branch, the client also initializes/returns room UI state and sets the `+0x22e0` "returned to game room" flag when only one active slot remains
+- `FUN_8c096928` is the active room UI loop that later reads/clears that `+0x22e0` flag and displays the returned-to-room notification
+- helper senders `0x8C09AFE4` and `0x8C09B170` package battle state differently when active phase is `0x14`, `0x15`, or `0x16`, proving `0x16` is a distinct post-match phase, not just another dead-bit result packet
+
+Correlation to the failing `16:10` hardware log:
+
+- loser FARKUS sent client `cmd=10` after server `cmd=19`
+- Kage marked the loser final and reset post-match state before that client ever emitted client `cmd=13`
+- loser then entered stale next-map/bootstrap traffic: `cmd=04`, `cmd=05`, `cmd=1a`, `cmd=1b`, `cmd=0f`
+- winner FARKUS2 later emitted client `cmd=13`, then `REQ_CHG_ROOM_ATTR STAT=00000001`, and that is the side that returned to Room
+
+What this falsifies:
+
+- STAT-only nudge is not enough evidence as a complete fix; the loser is missing the earlier internal transition from phase `0x10` / outbound `cmd=10` to phase `0x16` / outbound `cmd=13`
+- re-broadcasting server `cmd=13` is not justified and previously matches the sprite-less `2:01` board failure mode
+- the immediate post-final reset can race the losing client before it reaches its natural outbound `cmd=13` phase
+
+Next safest implementation target:
+
+- on client outbound `cmd=10`, do not treat that player as fully post-match complete until it either emits client outbound `cmd=13` or hits an explicitly logged recovery timeout
+- do not reset the completed battle set merely because all current players have reached `FinalState`; wait for every real player to reach `post_match_advance` (`cmd=13`) or recovery
+- if a dead/losing client emits stale `cmd=04/05/1a/1b/0f` before `cmd=13`, classify it as `missing_post_match_advance` and apply a targeted recovery, not a global room reset
+- next trace target, before another risky hardware test, is the exact writer/stimulus that advances active phase from `+0x48 = 0x10` to `+0x48 = 0x16`
