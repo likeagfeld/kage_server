@@ -1,0 +1,1625 @@
+# Phase 1: Find functions referencing 0x15f4 stride (16-bit literal)
+  8c011526 -> fn FUN_8c011390 @ 8c011390
+  8c011a9a -> fn FUN_8c011994 @ 8c011994
+  8c012072 -> fn FUN_8c012030 @ 8c012030
+  8c0123a8 -> fn FUN_8c012340 @ 8c012340
+  8c012a24 -> fn FUN_8c012878 @ 8c012878
+  8c0135a6 -> fn FUN_8c01336c @ 8c01336c
+  8c014b74 -> fn FUN_8c014a3c @ 8c014a3c
+  8c015b26 -> fn FUN_8c0159cc @ 8c0159cc
+  8c016d10 -> fn FUN_8c016c64 @ 8c016c64
+  8c016f52 -> fn FUN_8c016e94 @ 8c016e94
+  8c01744e -> fn FUN_8c017310 @ 8c017310
+  8c01757a -> fn FUN_8c0174de @ 8c0174de
+  8c017842 -> fn FUN_8c0176a4 @ 8c0176a4
+  8c017e72 -> fn FUN_8c017d5a @ 8c017d5a
+  8c018322 -> fn FUN_8c0181dc @ 8c0181dc
+  8c0184a0 -> fn FUN_8c01847e @ 8c01847e
+  8c018c82 -> fn FUN_8c018afc @ 8c018afc
+  8c019372 -> fn FUN_8c0191fa @ 8c0191fa
+  8c01952c -> fn FUN_8c0193ac @ 8c0193ac
+  8c019bea -> fn FUN_8c019a72 @ 8c019a72
+  8c01a032 -> fn FUN_8c019ef8 @ 8c019ef8
+  8c01a3ea -> fn FUN_8c01a2b0 @ 8c01a2b0
+  8c01a7a0 -> fn FUN_8c01a66a @ 8c01a66a
+  8c01ac30 -> fn FUN_8c01ab04 @ 8c01ab04
+  8c01af38 -> fn FUN_8c01ae90 @ 8c01ae90
+  8c01b188 -> fn FUN_8c01b020 @ 8c01b020
+  8c01b6a0 -> fn FUN_8c01b53a @ 8c01b53a
+  8c01b8ae -> fn FUN_8c01b734 @ 8c01b734
+  8c01bc6c -> fn FUN_8c01bb4c @ 8c01bb4c
+  8c01bd3a -> fn FUN_8c01bc96 @ 8c01bc96
+  8c01c38a -> fn FUN_8c01c238 @ 8c01c238
+  8c01ca12 -> fn FUN_8c01c8c0 @ 8c01c8c0
+  8c01ce1a -> fn FUN_8c01ccc8 @ 8c01ccc8
+  8c01d222 -> fn FUN_8c01d0d0 @ 8c01d0d0
+  8c01d62a -> fn FUN_8c01d4d8 @ 8c01d4d8
+  8c01da32 -> fn FUN_8c01d8e0 @ 8c01d8e0
+  8c01de3a -> fn FUN_8c01dce8 @ 8c01dce8
+  8c01ea90 -> fn FUN_8c01e92a @ 8c01e92a
+  8c01f291 -> fn FUN_8c01f186 @ 8c01f186
+  8c01f446 -> fn FUN_8c01f43e @ 8c01f43e
+  8c025ff8 -> fn FUN_8c025a30 @ 8c025a30
+  8c02739a -> fn FUN_8c02722c @ 8c02722c
+  8c028542 -> fn FUN_8c0283d8 @ 8c0283d8
+  8c0290d4 -> fn FUN_8c028f4c @ 8c028f4c
+  8c029602 -> fn FUN_8c029498 @ 8c029498
+  8c029d5c -> fn FUN_8c029bec @ 8c029bec
+  8c02a384 -> fn FUN_8c02a220 @ 8c02a220
+  8c02aacc -> fn FUN_8c02a95c @ 8c02a95c
+  8c02b048 -> fn FUN_8c02aee0 @ 8c02aee0
+  8c02b6f4 -> fn FUN_8c02b588 @ 8c02b588
+  8c02bd9c -> fn FUN_8c02bcbc @ 8c02bcbc
+  8c02bf42 -> fn FUN_8c02bdd4 @ 8c02bdd4
+  8c02c576 -> fn FUN_8c02c49e @ 8c02c49e
+  8c02c714 -> fn FUN_8c02c5ac @ 8c02c5ac
+  8c02cd4a -> fn FUN_8c02cc4c @ 8c02cc4c
+  8c02cfa2 -> fn FUN_8c02ce3c @ 8c02ce3c
+  8c02d600 -> fn FUN_8c02d4ec @ 8c02d4ec
+  8c034606 -> fn FUN_8c03447c @ 8c03447c
+  8c034e9a -> fn FUN_8c034d10 @ 8c034d10
+  8c036392 -> fn FUN_8c036222 @ 8c036222
+  8c036a4c -> fn FUN_8c036754 @ 8c036754
+  8c038cba -> fn FUN_8c038bba @ 8c038bba
+  8c038f54 -> fn FUN_8c038ee2 @ 8c038ee2
+  8c03a17e -> fn FUN_8c03a016 @ 8c03a016
+  8c03a886 -> fn FUN_8c03a75e @ 8c03a75e
+  8c03ac28 -> fn FUN_8c03aa84 @ 8c03aa84
+  8c03af34 -> fn FUN_8c03ae04 @ 8c03ae04
+  8c03b4ca -> fn FUN_8c03b362 @ 8c03b362
+  8c03b642 -> fn FUN_8c03b5dc @ 8c03b5dc
+  8c03b7e4 -> fn FUN_8c03b670 @ 8c03b670
+  8c03bbd0 -> fn FUN_8c03ba30 @ 8c03ba30
+  8c03c16c -> fn FUN_8c03bff8 @ 8c03bff8
+  8c03c9a8 -> fn FUN_8c03c7e4 @ 8c03c7e4
+  8c03d264 -> fn FUN_8c03cf5c @ 8c03cf5c
+  8c03d45c -> fn FUN_8c03d2fa @ 8c03d2fa
+  8c03e33c -> fn FUN_8c03e1f0 @ 8c03e1f0
+  8c03e57e -> fn FUN_8c03e536 @ 8c03e536
+  8c03ebe2 -> fn FUN_8c03eb9a @ 8c03eb9a
+  8c03f35c -> fn FUN_8c03f30c @ 8c03f30c
+  8c03f622 -> fn FUN_8c03f5dc @ 8c03f5dc
+  8c0405ee -> fn FUN_8c040582 @ 8c040582
+  8c040ae4 -> fn FUN_8c040ab8 @ 8c040ab8
+  8c0419d6 -> fn FUN_8c041370 @ 8c041370
+  8c041cf4 -> fn FUN_8c041c7c @ 8c041c7c
+  8c041e9c -> fn FUN_8c041d54 @ 8c041d54
+  8c04728a -> fn FUN_8c0470f4 @ 8c0470f4
+  8c05da77 -> fn FUN_8c05da58 @ 8c05da58
+  8c06753a -> fn FUN_8c06727c @ 8c06727c
+  8c06805e -> fn FUN_8c067f18 @ 8c067f18
+  8c068c9f -> fn FUN_8c068c54 @ 8c068c54
+  8c06939b -> fn FUN_8c06932c @ 8c06932c
+  8c06ab7e -> fn FUN_8c06a91e @ 8c06a91e
+  8c06c16c -> fn FUN_8c06bfe0 @ 8c06bfe0
+  8c06cc62 -> fn FUN_8c06c9a8 @ 8c06c9a8
+  8c06f3e6 -> fn FUN_8c06f0d4 @ 8c06f0d4
+  8c06f8dd -> fn FUN_8c06f8b8 @ 8c06f8b8
+  8c073842 -> fn FUN_8c0736bc @ 8c0736bc
+  8c074676 -> fn FUN_8c0743ec @ 8c0743ec
+  8c074c78 -> fn FUN_8c074b18 @ 8c074b18
+  8c07525e -> fn FUN_8c075108 @ 8c075108
+  8c075f4e -> fn FUN_8c075a78 @ 8c075a78
+  8c0763d0 -> fn FUN_8c076364 @ 8c076364
+  8c077e58 -> fn FUN_8c077ba8 @ 8c077ba8
+  8c07c09a -> fn FUN_8c07bfd8 @ 8c07bfd8
+  8c07cc98 -> fn FUN_8c07cafa @ 8c07cafa
+  8c07d50a -> fn FUN_8c07d38c @ 8c07d38c
+  8c07da0e -> fn FUN_8c07d8ac @ 8c07d8ac
+  8c07deb2 -> fn FUN_8c07dd36 @ 8c07dd36
+  8c07f500 -> fn FUN_8c07f3f0 @ 8c07f3f0
+  8c07f68c -> fn FUN_8c07f510 @ 8c07f510
+  8c082fc2 -> fn FUN_8c082cee @ 8c082cee
+  8c083782 -> fn FUN_8c083654 @ 8c083654
+  8c08390a -> fn FUN_8c0837e0 @ 8c0837e0
+  8c083d80 -> fn FUN_8c083d44 @ 8c083d44
+  8c084206 -> fn FUN_8c0840c0 @ 8c0840c0
+  8c0844be -> fn FUN_8c08440e @ 8c08440e
+  8c0852f2 -> fn FUN_8c085170 @ 8c085170
+  8c0860f0 -> fn FUN_8c085ec0 @ 8c085ec0
+  8c088320 -> fn FUN_8c087bf8 @ 8c087bf8
+  8c088437 -> fn FUN_8c088340 @ 8c088340
+  8c08890a -> fn FUN_8c088860 @ 8c088860
+  8c088a62 -> fn FUN_8c08897a @ 8c08897a
+  8c089b1a -> fn FUN_8c089aa0 @ 8c089aa0
+  8c08b138 -> fn FUN_8c08ae18 @ 8c08ae18
+  8c08b33e -> fn FUN_8c08b1e4 @ 8c08b1e4
+  8c08c476 -> fn FUN_8c08c300 @ 8c08c300
+  8c08c6a6 -> fn FUN_8c08c516 @ 8c08c516
+  8c08dd4f -> fn FUN_8c08da6c @ 8c08da6c
+  8c08f0b2 -> fn FUN_8c08ef24 @ 8c08ef24
+  8c08f5a0 -> fn FUN_8c08f564 @ 8c08f564
+  8c08f840 -> fn FUN_8c08f6d8 @ 8c08f6d8
+  8c08fece -> fn FUN_8c08fdd8 @ 8c08fdd8
+  8c090078 -> fn FUN_8c08feec @ 8c08feec
+  8c0906de -> fn FUN_8c0906a4 @ 8c0906a4
+  8c090cb0 -> fn FUN_8c090bea @ 8c090bea
+  8c0919a0 -> fn FUN_8c091858 @ 8c091858
+  8c0b69f9 -> fn FUN_8c0b696a @ 8c0b696a
+  8c0c14bf -> fn FUN_8c0c142e @ 8c0c142e
+  8c0d0efe -> fn FUN_8c0d0dac @ 8c0d0dac
+  8c0d1442 -> fn FUN_8c0d1428 @ 8c0d1428
+  8c0d25f6 -> fn FUN_8c0d2572 @ 8c0d2572
+  8c0d3858 -> fn FUN_8c0d3754 @ 8c0d3754
+  8c0d6c1f -> fn FUN_8c0d6ae4 @ 8c0d6ae4
+  8c0eb519 -> fn FUN_8c0eb4ba @ 8c0eb4ba
+  8c105181 -> fn FUN_8c10509e @ 8c10509e
+  8c1052f1 -> fn FUN_8c10523a @ 8c10523a
+  8c10545d -> fn FUN_8c10537a @ 8c10537a
+  8c105d95 -> fn FUN_8c105a58 @ 8c105a58
+  8c106533 -> fn FUN_8c1064dc @ 8c1064dc
+  8c1066c7 -> fn FUN_8c106680 @ 8c106680
+  8c12789d -> fn FUN_8c12788e @ 8c12788e
+  8c127b03 -> fn FUN_8c127af4 @ 8c127af4
+  8c137901 -> fn FUN_8c137374 @ 8c137374
+  8c139de1 -> fn FUN_8c139858 @ 8c139858
+  8c1449c3 -> fn FUN_8c1449b4 @ 8c1449b4
+  8c144b23 -> fn FUN_8c144b14 @ 8c144b14
+  8c1544f9 -> fn FUN_8c1544ec @ 8c1544ec
+  8c15485f -> fn FUN_8c154850 @ 8c154850
+  8c1e058f -> fn _njCalcScreen @ 8c1e0580
+  8c1e2ff9 -> fn _njGenerateFogTable3 @ 8c1e2f34
+  8c1e544b -> fn _njInitVertexBuffer @ 8c1e5332
+
+# Phase 2: Find functions referencing 0xab0 (16-bit ctx offset)
+  8c011524 -> fn FUN_8c011390 @ 8c011390
+  8c011a9c -> fn FUN_8c011994 @ 8c011994
+  8c012074 -> fn FUN_8c012030 @ 8c012030
+  8c0123aa -> fn FUN_8c012340 @ 8c012340
+  8c012a22 -> fn FUN_8c012878 @ 8c012878
+  8c0135aa -> fn FUN_8c01336c @ 8c01336c
+  8c014b7e -> fn FUN_8c014a3c @ 8c014a3c
+  8c015b24 -> fn FUN_8c0159cc @ 8c0159cc
+  8c016d12 -> fn FUN_8c016c64 @ 8c016c64
+  8c016f54 -> fn FUN_8c016e94 @ 8c016e94
+  8c017450 -> fn FUN_8c017310 @ 8c017310
+  8c01757c -> fn FUN_8c0174de @ 8c0174de
+  8c017840 -> fn FUN_8c0176a4 @ 8c0176a4
+  8c017e70 -> fn FUN_8c017d5a @ 8c017d5a
+  8c018324 -> fn FUN_8c0181dc @ 8c0181dc
+  8c0184a2 -> fn FUN_8c01847e @ 8c01847e
+  8c018c84 -> fn FUN_8c018afc @ 8c018afc
+  8c019374 -> fn FUN_8c0191fa @ 8c0191fa
+  8c01952e -> fn FUN_8c0193ac @ 8c0193ac
+  8c019bec -> fn FUN_8c019a72 @ 8c019a72
+  8c01a034 -> fn FUN_8c019ef8 @ 8c019ef8
+  8c01a3ec -> fn FUN_8c01a2b0 @ 8c01a2b0
+  8c01a7a2 -> fn FUN_8c01a66a @ 8c01a66a
+  8c01ac32 -> fn FUN_8c01ab04 @ 8c01ab04
+  8c01af3c -> fn FUN_8c01ae90 @ 8c01ae90
+  8c01b18a -> fn FUN_8c01b020 @ 8c01b020
+  8c01b69e -> fn FUN_8c01b53a @ 8c01b53a
+  8c01b8ac -> fn FUN_8c01b734 @ 8c01b734
+  8c01bc6e -> fn FUN_8c01bb4c @ 8c01bb4c
+  8c01bd3e -> fn FUN_8c01bc96 @ 8c01bc96
+  8c01c38c -> fn FUN_8c01c238 @ 8c01c238
+  8c01ca14 -> fn FUN_8c01c8c0 @ 8c01c8c0
+  8c01ce1c -> fn FUN_8c01ccc8 @ 8c01ccc8
+  8c01d224 -> fn FUN_8c01d0d0 @ 8c01d0d0
+  8c01d62c -> fn FUN_8c01d4d8 @ 8c01d4d8
+  8c01da34 -> fn FUN_8c01d8e0 @ 8c01d8e0
+  8c01de3c -> fn FUN_8c01dce8 @ 8c01dce8
+  8c01ea92 -> fn FUN_8c01e92a @ 8c01e92a
+  8c01f2ce -> fn FUN_8c01f186 @ 8c01f186
+  8c01f448 -> fn FUN_8c01f43e @ 8c01f43e
+  8c025ffc -> fn FUN_8c025a30 @ 8c025a30
+  8c02739e -> fn FUN_8c02722c @ 8c02722c
+  8c028544 -> fn FUN_8c0283d8 @ 8c0283d8
+  8c0290de -> fn FUN_8c028f4c @ 8c028f4c
+  8c02960c -> fn FUN_8c029498 @ 8c029498
+  8c029d68 -> fn FUN_8c029bec @ 8c029bec
+  8c02a390 -> fn FUN_8c02a220 @ 8c02a220
+  8c02aad6 -> fn FUN_8c02a95c @ 8c02a95c
+  8c02b052 -> fn FUN_8c02aee0 @ 8c02aee0
+  8c02b6fe -> fn FUN_8c02b588 @ 8c02b588
+  8c02bda6 -> fn FUN_8c02bcbc @ 8c02bcbc
+  8c02bf4c -> fn FUN_8c02bdd4 @ 8c02bdd4
+  8c02c580 -> fn FUN_8c02c49e @ 8c02c49e
+  8c02c71e -> fn FUN_8c02c5ac @ 8c02c5ac
+  8c02cd54 -> fn FUN_8c02cc4c @ 8c02cc4c
+  8c02cfac -> fn FUN_8c02ce3c @ 8c02ce3c
+  8c02d60a -> fn FUN_8c02d4ec @ 8c02d4ec
+  8c034608 -> fn FUN_8c03447c @ 8c03447c
+  8c034e9c -> fn FUN_8c034d10 @ 8c034d10
+  8c036394 -> fn FUN_8c036222 @ 8c036222
+  8c036a4e -> fn FUN_8c036754 @ 8c036754
+  8c038cbc -> fn FUN_8c038bba @ 8c038bba
+  8c038f56 -> fn FUN_8c038ee2 @ 8c038ee2
+  8c03a180 -> fn FUN_8c03a016 @ 8c03a016
+  8c03a888 -> fn FUN_8c03a75e @ 8c03a75e
+  8c03ac26 -> fn FUN_8c03aa84 @ 8c03aa84
+  8c03af38 -> fn FUN_8c03ae04 @ 8c03ae04
+  8c03b4cc -> fn FUN_8c03b362 @ 8c03b362
+  8c03b644 -> fn FUN_8c03b5dc @ 8c03b5dc
+  8c03b7e6 -> fn FUN_8c03b670 @ 8c03b670
+  8c03bbce -> fn FUN_8c03ba30 @ 8c03ba30
+  8c03c16e -> fn FUN_8c03bff8 @ 8c03bff8
+  8c03c9b0 -> fn FUN_8c03c7e4 @ 8c03c7e4
+  8c03d266 -> fn FUN_8c03cf5c @ 8c03cf5c
+  8c03d466 -> fn FUN_8c03d2fa @ 8c03d2fa
+  8c03e33e -> fn FUN_8c03e1f0 @ 8c03e1f0
+  8c03e580 -> fn FUN_8c03e536 @ 8c03e536
+  8c03ebe4 -> fn FUN_8c03eb9a @ 8c03eb9a
+  8c03f35e -> fn FUN_8c03f30c @ 8c03f30c
+  8c03f624 -> fn FUN_8c03f5dc @ 8c03f5dc
+  8c0405f0 -> fn FUN_8c040582 @ 8c040582
+  8c040aee -> fn FUN_8c040ab8 @ 8c040ab8
+  8c0419d4 -> fn FUN_8c041370 @ 8c041370
+  8c041cf2 -> fn FUN_8c041c7c @ 8c041c7c
+  8c041ea6 -> fn FUN_8c041d54 @ 8c041d54
+  8c047288 -> fn FUN_8c0470f4 @ 8c0470f4
+  8c05fda1 -> fn FUN_8c05fbfa @ 8c05fbfa
+  8c067414 -> fn FUN_8c06727c @ 8c06727c
+  8c06805c -> fn FUN_8c067f18 @ 8c067f18
+  8c06ab82 -> fn FUN_8c06a91e @ 8c06a91e
+  8c06c16a -> fn FUN_8c06bfe0 @ 8c06bfe0
+  8c06cc68 -> fn FUN_8c06c9a8 @ 8c06c9a8
+  8c06f3e4 -> fn FUN_8c06f0d4 @ 8c06f0d4
+  8c073840 -> fn FUN_8c0736bc @ 8c0736bc
+  8c074674 -> fn FUN_8c0743ec @ 8c0743ec
+  8c074c76 -> fn FUN_8c074b18 @ 8c074b18
+  8c07525c -> fn FUN_8c075108 @ 8c075108
+  8c075f4c -> fn FUN_8c075a78 @ 8c075a78
+  8c0763d2 -> fn FUN_8c076364 @ 8c076364
+  8c077e56 -> fn FUN_8c077ba8 @ 8c077ba8
+  8c07c09c -> fn FUN_8c07bfd8 @ 8c07bfd8
+  8c07c39a -> fn FUN_8c07c2fe @ 8c07c2fe
+  8c07c516 -> fn FUN_8c07c3c4 @ 8c07c3c4
+  8c07c8e2 -> fn FUN_8c07c5c0 @ 8c07c5c0
+  8c07cc96 -> fn FUN_8c07cafa @ 8c07cafa
+  8c07d508 -> fn FUN_8c07d38c @ 8c07d38c
+  8c07da0c -> fn FUN_8c07d8ac @ 8c07d8ac
+  8c07deb4 -> fn FUN_8c07dd36 @ 8c07dd36
+  8c07f506 -> fn FUN_8c07f3f0 @ 8c07f3f0
+  8c07f686 -> fn FUN_8c07f510 @ 8c07f510
+  8c082fc0 -> fn FUN_8c082cee @ 8c082cee
+  8c083780 -> fn FUN_8c083654 @ 8c083654
+  8c083908 -> fn FUN_8c0837e0 @ 8c0837e0
+  8c083d82 -> fn FUN_8c083d44 @ 8c083d44
+  8c084204 -> fn FUN_8c0840c0 @ 8c0840c0
+  8c0844c0 -> fn FUN_8c08440e @ 8c08440e
+  8c0852f4 -> fn FUN_8c085170 @ 8c085170
+  8c0860f2 -> fn FUN_8c085ec0 @ 8c085ec0
+  8c08831e -> fn FUN_8c087bf8 @ 8c087bf8
+  8c088908 -> fn FUN_8c088860 @ 8c088860
+  8c088a60 -> fn FUN_8c08897a @ 8c08897a
+  8c089b1c -> fn FUN_8c089aa0 @ 8c089aa0
+  8c08b13a -> fn FUN_8c08ae18 @ 8c08ae18
+  8c08b33a -> fn FUN_8c08b1e4 @ 8c08b1e4
+  8c08c474 -> fn FUN_8c08c300 @ 8c08c300
+  8c08c6a4 -> fn FUN_8c08c516 @ 8c08c516
+  8c08f0b4 -> fn FUN_8c08ef24 @ 8c08ef24
+  8c08f5a2 -> fn FUN_8c08f564 @ 8c08f564
+  8c08f842 -> fn FUN_8c08f6d8 @ 8c08f6d8
+  8c08fed0 -> fn FUN_8c08fdd8 @ 8c08fdd8
+  8c09007a -> fn FUN_8c08feec @ 8c08feec
+  8c0906e0 -> fn FUN_8c0906a4 @ 8c0906a4
+  8c090cb6 -> fn FUN_8c090bea @ 8c090bea
+  8c0919a2 -> fn FUN_8c091858 @ 8c091858
+  8c09d8f5 -> fn FUN_8c09d73a @ 8c09d73a
+  8c0d0f00 -> fn FUN_8c0d0dac @ 8c0d0dac
+  8c0d1444 -> fn FUN_8c0d1428 @ 8c0d1428
+  8c0d25f8 -> fn FUN_8c0d2572 @ 8c0d2572
+  8c0d385a -> fn FUN_8c0d3754 @ 8c0d3754
+  8c0ef129 -> fn FUN_8c0ef03c @ 8c0ef03c
+  8c0ef3cd -> fn FUN_8c0ef25c @ 8c0ef25c
+  8c0efced -> fn FUN_8c0efc50 @ 8c0efc50
+  8c0f2435 -> fn FUN_8c0f226c @ 8c0f226c
+  8c11bd09 -> fn FUN_8c11bcce @ 8c11bcce
+  8c13afa6 -> fn FUN_8c13aeb2 @ 8c13aeb2
+  8c13b0fc -> fn FUN_8c13b0b4 @ 8c13b0b4
+  8c13ba48 -> fn FUN_8c13ba40 @ 8c13ba40
+  8c13bb7c -> fn FUN_8c13ba68 @ 8c13ba68
+  8c13bdc8 -> fn FUN_8c13bcb4 @ 8c13bcb4
+  8c13c4aa -> fn FUN_8c13c3d4 @ 8c13c3d4
+  8c13c5a4 -> fn FUN_8c13c4e0 @ 8c13c4e0
+  8c13c944 -> fn FUN_8c13c7bc @ 8c13c7bc
+  8c22e661 -> fn _syIntChkDump @ 8c22e618
+
+# Phase 3: For each candidate function, find writes to +4 byte/word/long
+=== WRITER 8c011390 in FUN_8c011390 ===
+  R  8c0113d4  mov.l @(0x4,r4),r6
+  W  8c0113d8  mov.l r6,@(0x4,r15)
+  R  8c0113d8  mov.l r6,@(0x4,r15)
+  R  8c0114a4  mov.w @(0x4,r7),r0
+  R  8c0114b4  mov.w @(0x4,r2),r0
+  R  8c0114c6  mov.w @(0x4,r2),r0
+  R  8c0115c6  mov.l @(0x4,r4),r6
+  W  8c0115ca  mov.l r6,@(0x4,r15)
+  R  8c0115ca  mov.l r6,@(0x4,r15)
+  R  8c011698  mov.w @(0x4,r7),r0
+  R  8c0116a6  mov.w @(0x4,r2),r0
+  R  8c0116be  mov.w @(0x4,r2),r0
+  R  8c0117d2  mov.w @(0x4,r5),r0
+  R  8c0117fe  mov.w @(0x4,r7),r0
+  R  8c011832  mov.w @(0x4,r5),r0
+  R  8c011848  mov.w @(0x4,r5),r0
+  R  8c011860  mov.w @(0x4,r7),r0
+  R  8c011888  mov.w @(0x4,r7),r0
+  R  8c0118c2  mov.w @(0x4,r5),r0
+  R  8c0118e2  mov.w @(0x4,r5),r0
+  R  8c0118f6  mov.w @(0x4,r4),r0
+  R  8c011914  mov.w @(0x4,r5),r0
+  R  8c011942  mov.w @(0x4,r5),r0
+  R  8c011958  mov.w @(0x4,r5),r0
+=== WRITER 8c012878 in FUN_8c012878 ===
+  R  8c012942  mov.l @(0x4,r6),r2
+  W  8c01294c  mov.l r2,@(0x4,r15)
+  R  8c01294c  mov.l r2,@(0x4,r15)
+  R  8c012984  mov.l @(0x4,r5),r2
+  W  8c012988  mov.l r2,@(0x4,r4)
+  R  8c012988  mov.l r2,@(0x4,r4)
+  R  8c012c48  mov.w @(0x4,r5),r0
+  R  8c012c70  mov.w @(0x4,r7),r0
+  R  8c012cbc  mov.w @(0x4,r7),r0
+  R  8c012ccc  mov.w @(0x4,r2),r0
+  R  8c012cde  mov.w @(0x4,r2),r0
+  R  8c012d00  mov.w @(0x4,r5),r0
+  R  8c012d16  mov.w @(0x4,r5),r0
+  R  8c012d32  mov.w @(0x4,r7),r0
+  R  8c012d46  mov.w @(0x4,r7),r0
+=== WRITER 8c014a3c in FUN_8c014a3c ===
+  W  8c014a62  mov.w r0,@(0x4,r15)
+  R  8c014a62  mov.w r0,@(0x4,r15)
+  R  8c014ada  mov.l @(0x4,r5),r6
+  R  8c014b24  mov.l @(0x4,r5),r2
+  W  8c014b28  mov.l r2,@(0x4,r13)
+  R  8c014b28  mov.l r2,@(0x4,r13)
+  R  8c0153ec  mov.l @(0x4,r7),r2
+  W  8c0153f4  mov.l r2,@(0x4,r4)
+  R  8c0153f4  mov.l r2,@(0x4,r4)
+  R  8c015544  mov.l @(0x4,r4),r6
+  W  8c01554c  mov.l r6,@(0x4,r5)
+  R  8c01554c  mov.l r6,@(0x4,r5)
+  R  8c015564  mov.l @(0x4,r4),r2
+  W  8c01556a  mov.l r2,@(0x4,r5)
+  R  8c01556a  mov.l r2,@(0x4,r5)
+=== WRITER 8c0159cc in FUN_8c0159cc ===
+  W  8c0159f0  mov.l r4,@(0x4,r15)
+  R  8c0159f0  mov.l r4,@(0x4,r15)
+  R  8c015b08  mov.l @(0x4,r15),r3
+  R  8c015b5e  mov.l @(0x4,r15),r1
+  R  8c015b7c  mov.l @(0x4,r15),r3
+  R  8c015b88  mov.l @(0x4,r15),r3
+  R  8c015bb2  mov.l @(0x4,r15),r10
+  R  8c016136  mov.w @(0x4,r7),r0
+  R  8c0161d2  mov.l @(0x4,r15),r14
+  R  8c016470  mov.l @(0x4,r15),r1
+  R  8c01649c  mov.l @(0x4,r15),r3
+  R  8c0164ba  mov.l @(0x4,r15),r5
+  R  8c016548  mov.l @(0x4,r15),r1
+  R  8c016558  mov.l @(0x4,r15),r3
+=== WRITER 8c016c64 in FUN_8c016c64 ===
+  R  8c016d84  mov.l @(0x4,r5),r6
+  W  8c016d8c  mov.l r6,@(0x4,r4)
+  R  8c016d8c  mov.l r6,@(0x4,r4)
+=== WRITER 8c016e94 in FUN_8c016e94 ===
+  R  8c016ef4  mov.l @(0x4,r5),r6
+  R  8c016f96  mov.l @(0x4,r5),r2
+  W  8c016f9e  mov.l r2,@(0x4,r4)
+  R  8c016f9e  mov.l r2,@(0x4,r4)
+  R  8c0171c6  mov.l @(0x4,r5),r2
+  W  8c0171cc  mov.l r2,@(0x4,r4)
+  R  8c0171cc  mov.l r2,@(0x4,r4)
+=== reader (no write) 8c017310 in FUN_8c017310 ===
+=== WRITER 8c0174de in FUN_8c0174de ===
+  R  8c017640  mov.l @(0x4,r6),r2
+  W  8c017644  mov.l r2,@(0x4,r15)
+  R  8c017644  mov.l r2,@(0x4,r15)
+=== WRITER 8c0176a4 in FUN_8c0176a4 ===
+  R  8c0176e2  mov.l @(0x4,r6),r2
+  W  8c0176ea  mov.l r2,@(0x4,r15)
+  R  8c0176ea  mov.l r2,@(0x4,r15)
+  R  8c017722  mov.l @(0x4,r5),r6
+  W  8c017726  mov.l r6,@(0x4,r4)
+  R  8c017726  mov.l r6,@(0x4,r4)
+  R  8c0177f8  mov.w @(0x4,r7),r0
+  R  8c017808  mov.w @(0x4,r2),r0
+  R  8c01781a  mov.w @(0x4,r2),r0
+  R  8c017942  mov.l @(0x4,r5),r6
+  W  8c017946  mov.l r6,@(0x4,r4)
+  R  8c017946  mov.l r6,@(0x4,r4)
+  R  8c017a16  mov.w @(0x4,r7),r0
+  R  8c017a2a  mov.w @(0x4,r2),r0
+  R  8c017a40  mov.w @(0x4,r2),r0
+  R  8c017b74  mov.w @(0x4,r5),r0
+  R  8c017ba0  mov.w @(0x4,r7),r0
+  R  8c017bd4  mov.w @(0x4,r5),r0
+  R  8c017bfe  mov.w @(0x4,r5),r0
+  R  8c017c16  mov.w @(0x4,r7),r0
+  R  8c017c2a  mov.w @(0x4,r7),r0
+  R  8c017c64  mov.w @(0x4,r5),r0
+  R  8c017c84  mov.w @(0x4,r5),r0
+  R  8c017c98  mov.w @(0x4,r4),r0
+  R  8c017cb6  mov.w @(0x4,r5),r0
+  R  8c017ce4  mov.w @(0x4,r5),r0
+  R  8c017cfa  mov.w @(0x4,r5),r0
+=== WRITER 8c017d5a in FUN_8c017d5a ===
+  R  8c017d64  mov.l @(0x4,r4),r2
+  W  8c017d68  mov.l r2,@(0x4,r15)
+  R  8c017d68  mov.l r2,@(0x4,r15)
+  R  8c017e20  mov.w @(0x4,r7),r0
+  R  8c017e30  mov.w @(0x4,r2),r0
+  R  8c017e42  mov.w @(0x4,r2),r0
+  R  8c017eae  mov.w @(0x4,r5),r0
+  R  8c017ed6  mov.w @(0x4,r4),r0
+  R  8c017f04  mov.w @(0x4,r4),r0
+  R  8c017f18  mov.w @(0x4,r4),r0
+  R  8c017f32  mov.w @(0x4,r5),r0
+  R  8c017f48  mov.w @(0x4,r5),r0
+=== WRITER 8c0181dc in FUN_8c0181dc ===
+  W  8c01826e  mov.l r5,@(0x4,r15)
+  R  8c01826e  mov.l r5,@(0x4,r15)
+  R  8c01829c  mov.w @(0x4,r5),r0
+  R  8c0182ae  mov.w @(0x4,r2),r0
+  R  8c0182b8  mov.l @(0x4,r15),r2
+  R  8c0182c0  mov.w @(0x4,r2),r0
+  W  8c0182c2  mov.l r2,@(0x4,r15)
+  R  8c0182c2  mov.l r2,@(0x4,r15)
+  R  8c01836a  mov.w @(0x4,r5),r0
+  R  8c018394  mov.w @(0x4,r5),r0
+  R  8c0183d0  mov.w @(0x4,r5),r0
+  R  8c0183e4  mov.w @(0x4,r4),r0
+  R  8c0183fe  mov.w @(0x4,r5),r0
+  R  8c018414  mov.w @(0x4,r5),r0
+=== WRITER 8c018afc in FUN_8c018afc ===
+  R  8c018bfc  mov.l @(0x4,r7),r2
+  W  8c018c04  mov.l r2,@(0x4,r15)
+  R  8c018c04  mov.l r2,@(0x4,r15)
+=== reader (no write) 8c0191fa in FUN_8c0191fa ===
+=== WRITER 8c0193ac in FUN_8c0193ac ===
+  R  8c0193d0  mov.l @(0x4,r2),r4
+  R  8c019490  mov.l @(0x4,r6),r5
+  W  8c019498  mov.l r5,@(0x4,r7)
+  R  8c019498  mov.l r5,@(0x4,r7)
+  R  8c0194cc  mov.l @(0x4,r5),r6
+  W  8c0194d0  mov.l r6,@(0x4,r4)
+  R  8c0194d0  mov.l r6,@(0x4,r4)
+  R  8c019866  mov.w @(0x4,r5),r0
+  R  8c01989a  mov.w @(0x4,r7),r0
+  R  8c0199c0  mov.w @(0x4,r7),r0
+  R  8c0199d4  mov.w @(0x4,r2),r0
+  R  8c0199ea  mov.w @(0x4,r2),r0
+  R  8c019a0c  mov.w @(0x4,r7),r0
+  R  8c019a20  mov.w @(0x4,r7),r0
+  R  8c019a3a  mov.w @(0x4,r5),r0
+  R  8c019a50  mov.w @(0x4,r5),r0
+=== WRITER 8c019a72 in FUN_8c019a72 ===
+  R  8c019cf8  mov.l @(0x4,r7),r2
+  W  8c019cfe  mov.l r2,@(0x4,r15)
+  R  8c019cfe  mov.l r2,@(0x4,r15)
+  R  8c019e28  mov.l @(0x4,r5),r2
+  W  8c019e30  mov.l r2,@(0x4,r7)
+  R  8c019e30  mov.l r2,@(0x4,r7)
+  W  8c019e6a  mov.l r2,@(0x4,r15)
+  R  8c019e6a  mov.l r2,@(0x4,r15)
+  R  8c019ea4  mov.l @(0x4,r0),r6
+  W  8c019eb0  mov.l r6,@(0x4,r4)
+  R  8c019eb0  mov.l r6,@(0x4,r4)
+=== WRITER 8c019ef8 in FUN_8c019ef8 ===
+  R  8c01a076  mov.l @(0x4,r2),r4
+  R  8c01a0c0  mov.l @(0x4,r7),r6
+  W  8c01a0c8  mov.l r6,@(0x4,r15)
+  R  8c01a0c8  mov.l r6,@(0x4,r15)
+  R  8c01a1ac  mov.l @(0x4,r0),r6
+  W  8c01a224  mov.l r2,@(0x4,r15)
+  R  8c01a224  mov.l r2,@(0x4,r15)
+  R  8c01a25e  mov.l @(0x4,r0),r6
+  W  8c01a26a  mov.l r6,@(0x4,r4)
+  R  8c01a26a  mov.l r6,@(0x4,r4)
+=== WRITER 8c01a2b0 in FUN_8c01a2b0 ===
+  R  8c01a42e  mov.l @(0x4,r2),r4
+  R  8c01a478  mov.l @(0x4,r7),r6
+  W  8c01a480  mov.l r6,@(0x4,r15)
+  R  8c01a480  mov.l r6,@(0x4,r15)
+  R  8c01a564  mov.l @(0x4,r0),r6
+  W  8c01a5dc  mov.l r2,@(0x4,r15)
+  R  8c01a5dc  mov.l r2,@(0x4,r15)
+  R  8c01a616  mov.l @(0x4,r0),r6
+  W  8c01a622  mov.l r6,@(0x4,r4)
+  R  8c01a622  mov.l r6,@(0x4,r4)
+=== WRITER 8c01a66a in FUN_8c01a66a ===
+  R  8c01a69c  mov.l @(0x4,r2),r4
+  R  8c01a8fa  mov.l @(0x4,r7),r6
+  R  8c01aa3c  mov.l @(0x4,r5),r6
+  W  8c01aa74  mov.l r2,@(0x4,r15)
+  R  8c01aa74  mov.l r2,@(0x4,r15)
+  R  8c01aaa6  mov.l @(0x4,r0),r2
+  W  8c01aaae  mov.l r2,@(0x4,r4)
+  R  8c01aaae  mov.l r2,@(0x4,r4)
+=== WRITER 8c01ab04 in FUN_8c01ab04 ===
+  R  8c01ab30  mov.l @(0x4,r2),r4
+  R  8c01acc6  mov.l @(0x4,r7),r2
+  W  8c01accc  mov.l r2,@(0x4,r15)
+  R  8c01accc  mov.l r2,@(0x4,r15)
+  R  8c01adac  mov.l @(0x4,r0),r2
+  W  8c01adb4  mov.l r2,@(0x4,r5)
+  R  8c01adb4  mov.l r2,@(0x4,r5)
+  W  8c01ae2c  mov.l r2,@(0x4,r15)
+  R  8c01ae2c  mov.l r2,@(0x4,r15)
+  R  8c01ae60  mov.l @(0x4,r0),r2
+  W  8c01ae68  mov.l r2,@(0x4,r4)
+  R  8c01ae68  mov.l r2,@(0x4,r4)
+=== WRITER 8c01b020 in FUN_8c01b020 ===
+  R  8c01b042  mov.l @(0x4,r2),r4
+  R  8c01b170  mov.l @(0x4,r7),r6
+  R  8c01b280  mov.l @(0x4,r0),r2
+  W  8c01b288  mov.l r2,@(0x4,r5)
+  R  8c01b288  mov.l r2,@(0x4,r5)
+  W  8c01b2c0  mov.l r2,@(0x4,r15)
+  R  8c01b2c0  mov.l r2,@(0x4,r15)
+  R  8c01b2fa  mov.l @(0x4,r0),r6
+  W  8c01b306  mov.l r6,@(0x4,r4)
+  R  8c01b306  mov.l r6,@(0x4,r4)
+=== WRITER 8c01b734 in FUN_8c01b734 ===
+  R  8c01b794  mov.l @(0x4,r6),r5
+  W  8c01b79c  mov.l r5,@(0x4,r15)
+  R  8c01b79c  mov.l r5,@(0x4,r15)
+  R  8c01b7ca  mov.l @(0x4,r5),r2
+  W  8c01b7ce  mov.l r2,@(0x4,r4)
+  R  8c01b7ce  mov.l r2,@(0x4,r4)
+  R  8c01ba44  mov.w @(0x4,r5),r0
+  R  8c01ba6c  mov.w @(0x4,r7),r0
+  R  8c01bab0  mov.w @(0x4,r7),r0
+  R  8c01bac0  mov.w @(0x4,r2),r0
+  R  8c01bad2  mov.w @(0x4,r2),r0
+  R  8c01baf4  mov.w @(0x4,r5),r0
+  R  8c01bb0a  mov.w @(0x4,r5),r0
+  R  8c01bb2e  mov.w @(0x4,r7),r0
+  R  8c01bb42  mov.w @(0x4,r7),r0
+=== reader (no write) 8c01bb4c in FUN_8c01bb4c ===
+=== WRITER 8c01bc96 in FUN_8c01bc96 ===
+  R  8c01bcde  mov.l @(0x4,r15),r6
+  W  8c01bce4  mov.l r6,@(0x4,r4)
+  R  8c01bce4  mov.l r6,@(0x4,r4)
+  R  8c01bdc4  mov.l @(0x4,r5),r2
+  W  8c01bdce  mov.l r2,@(0x4,r7)
+  R  8c01bdce  mov.l r2,@(0x4,r7)
+  R  8c01be00  mov.l @(0x4,r5),r6
+  W  8c01be04  mov.l r6,@(0x4,r4)
+  R  8c01be04  mov.l r6,@(0x4,r4)
+  R  8c01bff0  mov.w @(0x4,r5),r0
+  R  8c01c028  mov.w @(0x4,r7),r0
+  R  8c01c144  mov.w @(0x4,r7),r0
+  R  8c01c158  mov.w @(0x4,r2),r0
+  R  8c01c16e  mov.w @(0x4,r2),r0
+  R  8c01c194  mov.w @(0x4,r7),r0
+  R  8c01c1bc  mov.w @(0x4,r7),r0
+  R  8c01c1d6  mov.w @(0x4,r5),r0
+  R  8c01c1f0  mov.w @(0x4,r5),r0
+=== WRITER 8c01c238 in FUN_8c01c238 ===
+  R  8c01c506  mov.l @(0x4,r5),r2
+  W  8c01c50c  mov.l r2,@(0x4,r4)
+  R  8c01c50c  mov.l r2,@(0x4,r4)
+  R  8c01c5a0  mov.l @(0x4,r5),r2
+  W  8c01c5a6  mov.l r2,@(0x4,r4)
+  R  8c01c5a6  mov.l r2,@(0x4,r4)
+  R  8c01c5e4  mov.l @(0x4,r12),r4
+=== WRITER 8c01c8c0 in FUN_8c01c8c0 ===
+  R  8c01cb8e  mov.l @(0x4,r5),r2
+  W  8c01cb94  mov.l r2,@(0x4,r4)
+  R  8c01cb94  mov.l r2,@(0x4,r4)
+  R  8c01cc28  mov.l @(0x4,r5),r2
+  W  8c01cc2e  mov.l r2,@(0x4,r4)
+  R  8c01cc2e  mov.l r2,@(0x4,r4)
+  R  8c01cc6c  mov.l @(0x4,r12),r4
+=== WRITER 8c01ccc8 in FUN_8c01ccc8 ===
+  R  8c01cf96  mov.l @(0x4,r5),r2
+  W  8c01cf9c  mov.l r2,@(0x4,r4)
+  R  8c01cf9c  mov.l r2,@(0x4,r4)
+  R  8c01d030  mov.l @(0x4,r5),r2
+  W  8c01d036  mov.l r2,@(0x4,r4)
+  R  8c01d036  mov.l r2,@(0x4,r4)
+  R  8c01d074  mov.l @(0x4,r12),r4
+=== WRITER 8c01d0d0 in FUN_8c01d0d0 ===
+  R  8c01d39e  mov.l @(0x4,r5),r2
+  W  8c01d3a4  mov.l r2,@(0x4,r4)
+  R  8c01d3a4  mov.l r2,@(0x4,r4)
+  R  8c01d438  mov.l @(0x4,r5),r2
+  W  8c01d43e  mov.l r2,@(0x4,r4)
+  R  8c01d43e  mov.l r2,@(0x4,r4)
+  R  8c01d47c  mov.l @(0x4,r12),r4
+=== WRITER 8c01d4d8 in FUN_8c01d4d8 ===
+  R  8c01d7a6  mov.l @(0x4,r5),r2
+  W  8c01d7ac  mov.l r2,@(0x4,r4)
+  R  8c01d7ac  mov.l r2,@(0x4,r4)
+  R  8c01d840  mov.l @(0x4,r5),r2
+  W  8c01d846  mov.l r2,@(0x4,r4)
+  R  8c01d846  mov.l r2,@(0x4,r4)
+  R  8c01d884  mov.l @(0x4,r12),r4
+=== WRITER 8c01d8e0 in FUN_8c01d8e0 ===
+  R  8c01dbae  mov.l @(0x4,r5),r2
+  W  8c01dbb4  mov.l r2,@(0x4,r4)
+  R  8c01dbb4  mov.l r2,@(0x4,r4)
+  R  8c01dc48  mov.l @(0x4,r5),r2
+  W  8c01dc4e  mov.l r2,@(0x4,r4)
+  R  8c01dc4e  mov.l r2,@(0x4,r4)
+  R  8c01dc8c  mov.l @(0x4,r12),r4
+=== WRITER 8c01dce8 in FUN_8c01dce8 ===
+  R  8c01dfb6  mov.l @(0x4,r5),r2
+  W  8c01dfbc  mov.l r2,@(0x4,r4)
+  R  8c01dfbc  mov.l r2,@(0x4,r4)
+  R  8c01e050  mov.l @(0x4,r5),r2
+  W  8c01e056  mov.l r2,@(0x4,r4)
+  R  8c01e056  mov.l r2,@(0x4,r4)
+  R  8c01e094  mov.l @(0x4,r12),r4
+=== WRITER 8c01e92a in FUN_8c01e92a ===
+  R  8c01e9fa  mov.l @(0x4,r5),r2
+  W  8c01ea02  mov.l r2,@(0x4,r7)
+  R  8c01ea02  mov.l r2,@(0x4,r7)
+=== WRITER 8c01f186 in FUN_8c01f186 ===
+  R  8c01f25e  mov.l @(0x4,r5),r2
+  W  8c01f262  mov.l r2,@(0x4,r12)
+  R  8c01f262  mov.l r2,@(0x4,r12)
+=== WRITER 8c025a30 in FUN_8c025a30 ===
+  W  8c025a44  mov.l r4,@(0x4,r15)
+  R  8c025a44  mov.l r4,@(0x4,r15)
+  R  8c025bcc  mov.l @(0x4,r15),r10
+  R  8c025ee4  mov.l @(0x4,r15),r14
+  R  8c025f16  mov.l @(0x4,r15),r3
+  R  8c025f60  mov.l @(0x4,r15),r3
+  R  8c025f8c  mov.l @(0x4,r15),r3
+  R  8c026026  mov.l @(0x4,r15),r3
+  R  8c026070  mov.l @(0x4,r15),r3
+  R  8c02609c  mov.l @(0x4,r15),r3
+=== WRITER 8c02722c in FUN_8c02722c ===
+  R  8c027caa  mov.l @(0x4,r4),r2
+  W  8c027cb6  mov.l r2,@(0x4,r5)
+  R  8c027cb6  mov.l r2,@(0x4,r5)
+  R  8c027d90  mov.l @(0x4,r9),r14
+  W  8c027d9e  mov.l r14,@(0x4,r11)
+  R  8c027d9e  mov.l r14,@(0x4,r11)
+  W  8c027e46  mov.l r14,@(0x4,r11)
+  R  8c027e46  mov.l r14,@(0x4,r11)
+  R  8c027e76  mov.l @(0x4,r4),r2
+  W  8c027e7c  mov.l r2,@(0x4,r7)
+  R  8c027e7c  mov.l r2,@(0x4,r7)
+  R  8c027e9a  mov.l @(0x4,r4),r6
+  W  8c027e9e  mov.l r6,@(0x4,r7)
+  R  8c027e9e  mov.l r6,@(0x4,r7)
+  R  8c027ecc  mov.l @(0x4,r4),r6
+  W  8c027ed2  mov.l r6,@(0x4,r7)
+  R  8c027ed2  mov.l r6,@(0x4,r7)
+  R  8c027eea  mov.l @(0x4,r14),r2
+  W  8c027ef0  mov.l r2,@(0x4,r5)
+  R  8c027ef0  mov.l r2,@(0x4,r5)
+  R  8c028166  mov.l @(0x4,r14),r6
+  W  8c02816c  mov.l r6,@(0x4,r5)
+  R  8c02816c  mov.l r6,@(0x4,r5)
+  R  8c028222  mov.l @(0x4,r9),r2
+  W  8c02822a  mov.l r2,@(0x4,r11)
+  R  8c02822a  mov.l r2,@(0x4,r11)
+  R  8c028254  mov.l @(0x4,r9),r6
+  W  8c02825c  mov.l r6,@(0x4,r11)
+  R  8c02825c  mov.l r6,@(0x4,r11)
+=== WRITER 8c0283d8 in FUN_8c0283d8 ===
+  W  8c0284a0  mov.l r0,@(0x4,r15)
+  R  8c0284a0  mov.l r0,@(0x4,r15)
+  R  8c0284ac  mov.l @(0x4,r15),r6
+  R  8c0285b4  mov.l @(0x4,r4),r6
+  W  8c0285be  mov.l r6,@(0x4,r5)
+  R  8c0285be  mov.l r6,@(0x4,r5)
+  R  8c028678  mov.l @(0x4,r15),r6
+  R  8c02888c  mov.l @(0x4,r4),r2
+  W  8c028890  mov.l r2,@(0x4,r13)
+  R  8c028890  mov.l r2,@(0x4,r13)
+  R  8c0288a0  mov.l @(0x4,r4),r2
+  W  8c0288a4  mov.l r2,@(0x4,r13)
+  R  8c0288a4  mov.l r2,@(0x4,r13)
+  R  8c028928  mov.l @(0x4,r4),r6
+  W  8c028932  mov.l r6,@(0x4,r5)
+  R  8c028932  mov.l r6,@(0x4,r5)
+  R  8c028944  mov.l @(0x4,r15),r6
+  R  8c028a44  mov.l @(0x4,r4),r6
+  W  8c028a4a  mov.l r6,@(0x4,r5)
+  R  8c028a4a  mov.l r6,@(0x4,r5)
+  R  8c028a9a  mov.l @(0x4,r4),r2
+  W  8c028a9e  mov.l r2,@(0x4,r5)
+  R  8c028a9e  mov.l r2,@(0x4,r5)
+=== WRITER 8c028f4c in FUN_8c028f4c ===
+  R  8c02931c  mov.l @(0x4,r15),r5
+  R  8c02932c  mov.l @(0x4,r15),r11
+  R  8c0293e6  mov.l @(0x4,r4),r6
+  W  8c0293f0  mov.l r6,@(0x4,r5)
+  R  8c0293f0  mov.l r6,@(0x4,r5)
+=== WRITER 8c029498 in FUN_8c029498 ===
+  W  8c0296a4  mov.l r11,@(0x4,r15)
+  R  8c0296a4  mov.l r11,@(0x4,r15)
+  R  8c0296a8  mov.l @(0x4,r15),r3
+  R  8c0298ee  mov.l @(0x4,r15),r3
+  R  8c0299aa  mov.l @(0x4,r4),r6
+  W  8c0299b4  mov.l r6,@(0x4,r5)
+  R  8c0299b4  mov.l r6,@(0x4,r5)
+  R  8c029a18  mov.l @(0x4,r15),r5
+  R  8c029b50  mov.l @(0x4,r15),r5
+  R  8c029b62  mov.l @(0x4,r15),r5
+  R  8c029b70  mov.l @(0x4,r15),r5
+  R  8c029b82  mov.l @(0x4,r15),r5
+=== WRITER 8c029bec in FUN_8c029bec ===
+  W  8c029e3a  mov.l r10,@(0x4,r15)
+  R  8c029e3a  mov.l r10,@(0x4,r15)
+  R  8c029e3e  mov.l @(0x4,r15),r3
+  R  8c02a0cc  mov.l @(0x4,r4),r2
+  W  8c02a0d6  mov.l r2,@(0x4,r5)
+  R  8c02a0d6  mov.l r2,@(0x4,r5)
+  R  8c02a144  mov.l @(0x4,r15),r5
+  R  8c02a156  mov.l @(0x4,r15),r5
+  R  8c02a164  mov.l @(0x4,r15),r5
+  R  8c02a176  mov.l @(0x4,r15),r5
+=== WRITER 8c02a220 in FUN_8c02a220 ===
+  W  8c02a46c  mov.l r13,@(0x4,r15)
+  R  8c02a46c  mov.l r13,@(0x4,r15)
+  R  8c02a470  mov.l @(0x4,r15),r3
+  R  8c02a70c  mov.l @(0x4,r4),r2
+  W  8c02a716  mov.l r2,@(0x4,r5)
+  R  8c02a716  mov.l r2,@(0x4,r5)
+  R  8c02a7be  mov.l @(0x4,r15),r5
+  R  8c02a7d0  mov.l @(0x4,r15),r5
+  R  8c02a7de  mov.l @(0x4,r15),r5
+  R  8c02a7f0  mov.l @(0x4,r15),r5
+=== WRITER 8c02a95c in FUN_8c02a95c ===
+  R  8c02aa0e  mov.l @(0x4,r15),r3
+  R  8c02ab40  mov.l @(0x4,r4),r2
+  W  8c02ab4a  mov.l r2,@(0x4,r5)
+  R  8c02ab4a  mov.l r2,@(0x4,r5)
+  R  8c02ae8e  mov.l @(0x4,r15),r5
+=== WRITER 8c02aee0 in FUN_8c02aee0 ===
+  R  8c02af8e  mov.l @(0x4,r15),r3
+  R  8c02b0c0  mov.l @(0x4,r4),r2
+  W  8c02b0ca  mov.l r2,@(0x4,r5)
+  R  8c02b0ca  mov.l r2,@(0x4,r5)
+  R  8c02b444  mov.l @(0x4,r15),r5
+=== WRITER 8c02b588 in FUN_8c02b588 ===
+  W  8c02b858  mov.l r13,@(0x4,r15)
+  R  8c02b858  mov.l r13,@(0x4,r15)
+  R  8c02b85c  mov.l @(0x4,r15),r3
+  R  8c02bb1c  mov.l @(0x4,r4),r2
+  W  8c02bb26  mov.l r2,@(0x4,r5)
+  R  8c02bb26  mov.l r2,@(0x4,r5)
+  R  8c02bbea  mov.l @(0x4,r15),r5
+  R  8c02bbfc  mov.l @(0x4,r15),r5
+  R  8c02bc0a  mov.l @(0x4,r15),r5
+  R  8c02bc1c  mov.l @(0x4,r15),r5
+=== WRITER 8c02bcbc in FUN_8c02bcbc ===
+  R  8c02bd5c  mov.l @(0x4,r4),r6
+  W  8c02bd66  mov.l r6,@(0x4,r5)
+  R  8c02bd66  mov.l r6,@(0x4,r5)
+=== WRITER 8c02bdd4 in FUN_8c02bdd4 ===
+  W  8c02c008  mov.l r10,@(0x4,r15)
+  R  8c02c008  mov.l r10,@(0x4,r15)
+  R  8c02c00c  mov.l @(0x4,r15),r3
+  R  8c02c2b2  mov.l @(0x4,r4),r6
+  W  8c02c2bc  mov.l r6,@(0x4,r5)
+  R  8c02c2bc  mov.l r6,@(0x4,r5)
+  R  8c02c35c  mov.l @(0x4,r15),r5
+  R  8c02c36e  mov.l @(0x4,r15),r5
+  R  8c02c37c  mov.l @(0x4,r15),r5
+  R  8c02c38e  mov.l @(0x4,r15),r5
+=== WRITER 8c02c49e in FUN_8c02c49e ===
+  R  8c02c52e  mov.l @(0x4,r4),r2
+  W  8c02c538  mov.l r2,@(0x4,r5)
+  R  8c02c538  mov.l r2,@(0x4,r5)
+=== WRITER 8c02c5ac in FUN_8c02c5ac ===
+  R  8c02c65a  mov.l @(0x4,r15),r3
+  R  8c02c78c  mov.l @(0x4,r4),r2
+  W  8c02c796  mov.l r2,@(0x4,r5)
+  R  8c02c796  mov.l r2,@(0x4,r5)
+  R  8c02cb10  mov.l @(0x4,r15),r5
+=== WRITER 8c02cc4c in FUN_8c02cc4c ===
+  R  8c02ccfe  mov.l @(0x4,r4),r2
+  W  8c02cd08  mov.l r2,@(0x4,r5)
+  R  8c02cd08  mov.l r2,@(0x4,r5)
+  W  8c02cdce  mov.l r4,@(0x4,r15)
+  R  8c02cdce  mov.l r4,@(0x4,r15)
+  R  8c02cde2  mov.l @(0x4,r15),r4
+  W  8c02cdf0  mov.l r4,@(0x4,r15)
+  R  8c02cdf0  mov.l r4,@(0x4,r15)
+=== WRITER 8c02ce3c in FUN_8c02ce3c ===
+  R  8c02ceea  mov.l @(0x4,r15),r3
+  R  8c02d01e  mov.l @(0x4,r4),r2
+  W  8c02d028  mov.l r2,@(0x4,r5)
+  R  8c02d028  mov.l r2,@(0x4,r5)
+  R  8c02d3a4  mov.l @(0x4,r15),r5
+=== WRITER 8c02d4ec in FUN_8c02d4ec ===
+  R  8c02d5a2  mov.l @(0x4,r4),r6
+  W  8c02d5a8  mov.l r6,@(0x4,r12)
+  R  8c02d5a8  mov.l r6,@(0x4,r12)
+=== WRITER 8c03447c in FUN_8c03447c ===
+  W  8c034684  mov.l r14,@(0x4,r15)
+  R  8c034684  mov.l r14,@(0x4,r15)
+  R  8c034688  mov.l @(0x4,r15),r3
+  R  8c0348e2  mov.l @(0x4,r15),r3
+  R  8c034a1c  mov.l @(0x4,r15),r5
+  R  8c034b58  mov.l @(0x4,r15),r5
+  R  8c034b6a  mov.l @(0x4,r15),r5
+  R  8c034b78  mov.l @(0x4,r15),r5
+  R  8c034b8a  mov.l @(0x4,r15),r5
+=== WRITER 8c034d10 in FUN_8c034d10 ===
+  W  8c034d2e  mov.l r3,@(0x4,r15)
+  R  8c034d2e  mov.l r3,@(0x4,r15)
+  R  8c034d50  mov.l @(0x4,r4),r2
+  W  8c034d66  mov.l r2,@(0x4,r5)
+  R  8c034d66  mov.l r2,@(0x4,r5)
+  R  8c0351b4  mov.l @(0x4,r15),r2
+  R  8c0351e8  mov.l @(0x4,r5),r6
+  W  8c0351f4  mov.l r6,@(0x4,r10)
+  R  8c0351f4  mov.l r6,@(0x4,r10)
+  R  8c035260  mov.l @(0x4,r5),r2
+  W  8c035268  mov.l r2,@(0x4,r10)
+  R  8c035268  mov.l r2,@(0x4,r10)
+  W  8c0357fa  mov.l r3,@(0x4,r15)
+  R  8c0357fa  mov.l r3,@(0x4,r15)
+=== reader (no write) 8c036222 in FUN_8c036222 ===
+=== WRITER 8c036754 in FUN_8c036754 ===
+  W  8c036ac8  mov.l r10,@(0x4,r15)
+  R  8c036ac8  mov.l r10,@(0x4,r15)
+  R  8c036be8  mov.l @(0x4,r15),r10
+  R  8c036ebc  mov.l @(0x4,r15),r10
+  R  8c036eee  mov.l @(0x4,r15),r10
+  R  8c036f2c  mov.l @(0x4,r15),r10
+=== reader (no write) 8c038bba in FUN_8c038bba ===
+=== WRITER 8c03a016 in FUN_8c03a016 ===
+  R  8c03a0e8  mov.l @(0x4,r5),r2
+  W  8c03a0f0  mov.l r2,@(0x4,r7)
+  R  8c03a0f0  mov.l r2,@(0x4,r7)
+=== WRITER 8c03a75e in FUN_8c03a75e ===
+  R  8c03a8a8  mov.l @(0x4,r4),r6
+  W  8c03a8b0  mov.l r6,@(0x4,r12)
+  R  8c03a8b0  mov.l r6,@(0x4,r12)
+  R  8c03a960  mov.l @(0x4,r4),r2
+  W  8c03a964  mov.l r2,@(0x4,r12)
+  R  8c03a964  mov.l r2,@(0x4,r12)
+=== WRITER 8c03aa84 in FUN_8c03aa84 ===
+  R  8c03aad8  mov.l @(0x4,r5),r6
+  W  8c03aadc  mov.l r6,@(0x4,r4)
+  R  8c03aadc  mov.l r6,@(0x4,r4)
+  W  8c03ab92  mov.l r10,@(0x4,r15)
+  R  8c03ab92  mov.l r10,@(0x4,r15)
+  R  8c03ad3a  mov.l @(0x4,r4),r2
+  W  8c03ad3e  mov.l r2,@(0x4,r5)
+  R  8c03ad3e  mov.l r2,@(0x4,r5)
+=== WRITER 8c03ae04 in FUN_8c03ae04 ===
+  R  8c03ae6e  mov.l @(0x4,r2),r4
+  R  8c03b186  mov.l @(0x4,r5),r6
+  R  8c03b19a  mov.l @(0x4,r5),r2
+  W  8c03b19c  mov.l r6,@(0x4,r4)
+  R  8c03b19c  mov.l r6,@(0x4,r4)
+  W  8c03b1a4  mov.l r2,@(0x4,r4)
+  R  8c03b1a4  mov.l r2,@(0x4,r4)
+  R  8c03b212  mov.l @(0x4,r4),r6
+  W  8c03b218  mov.l r6,@(0x4,r14)
+  R  8c03b218  mov.l r6,@(0x4,r14)
+=== WRITER 8c03b362 in FUN_8c03b362 ===
+  R  8c03b37c  mov.l @(0x4,r2),r10
+  R  8c03b3aa  mov.l @(0x4,r2),r4
+  R  8c03b412  mov.l @(0x4,r5),r2
+  W  8c03b418  mov.l r2,@(0x4,r7)
+  R  8c03b418  mov.l r2,@(0x4,r7)
+  R  8c03b462  mov.l @(0x4,r4),r6
+  W  8c03b468  mov.l r6,@(0x4,r5)
+  R  8c03b468  mov.l r6,@(0x4,r5)
+  R  8c03b5b0  mov.l @(0x4,r5),r2
+  W  8c03b5b6  mov.l r2,@(0x4,r4)
+  R  8c03b5b6  mov.l r2,@(0x4,r4)
+=== reader (no write) 8c03b5dc in FUN_8c03b5dc ===
+=== WRITER 8c03b670 in FUN_8c03b670 ===
+  R  8c03b67e  mov.l @(0x4,r2),r4
+  W  8c03b828  mov.l r2,@(0x4,r15)
+  R  8c03b828  mov.l r2,@(0x4,r15)
+=== WRITER 8c03ba30 in FUN_8c03ba30 ===
+  R  8c03ba7e  mov.l @(0x4,r5),r6
+  W  8c03ba82  mov.l r6,@(0x4,r4)
+  R  8c03ba82  mov.l r6,@(0x4,r4)
+  W  8c03bb2a  mov.l r10,@(0x4,r15)
+  R  8c03bb2a  mov.l r10,@(0x4,r15)
+=== WRITER 8c03bff8 in FUN_8c03bff8 ===
+  W  8c03c1a2  mov.l r2,@(0x4,r15)
+  R  8c03c1a2  mov.l r2,@(0x4,r15)
+=== WRITER 8c03c7e4 in FUN_8c03c7e4 ===
+  R  8c03c860  mov.l @(0x4,r2),r6
+  W  8c03c864  mov.l r6,@(0x4,r4)
+  R  8c03c864  mov.l r6,@(0x4,r4)
+  R  8c03ca36  mov.l @(0x4,r4),r2
+  W  8c03ca3a  mov.l r2,@(0x4,r14)
+  R  8c03ca3a  mov.l r2,@(0x4,r14)
+=== WRITER 8c03e1f0 in FUN_8c03e1f0 ===
+  R  8c03e2aa  mov.l @(0x4,r4),r6
+  W  8c03e2b8  mov.l r6,@(0x4,r5)
+  R  8c03e2b8  mov.l r6,@(0x4,r5)
+  R  8c03e2e0  mov.l @(0x4,r4),r6
+  W  8c03e2e8  mov.l r6,@(0x4,r5)
+  R  8c03e2e8  mov.l r6,@(0x4,r5)
+  R  8c03e308  mov.l @(0x4,r4),r6
+  W  8c03e310  mov.l r6,@(0x4,r5)
+  R  8c03e310  mov.l r6,@(0x4,r5)
+=== WRITER 8c03e536 in FUN_8c03e536 ===
+  W  8c03e5ee  mov.l r4,@(0x4,r15)
+  R  8c03e5ee  mov.l r4,@(0x4,r15)
+  R  8c03e602  mov.l @(0x4,r15),r4
+  R  8c03e686  mov.l @(0x4,r4),r6
+  W  8c03e68c  mov.l r6,@(0x4,r5)
+  R  8c03e68c  mov.l r6,@(0x4,r5)
+=== WRITER 8c03eb9a in FUN_8c03eb9a ===
+  W  8c03ec56  mov.l r4,@(0x4,r15)
+  R  8c03ec56  mov.l r4,@(0x4,r15)
+  R  8c03ec6a  mov.l @(0x4,r15),r4
+  R  8c03ecee  mov.l @(0x4,r4),r6
+  W  8c03ecf4  mov.l r6,@(0x4,r5)
+  R  8c03ecf4  mov.l r6,@(0x4,r5)
+=== WRITER 8c03f30c in FUN_8c03f30c ===
+  W  8c03f3de  mov.l r4,@(0x4,r15)
+  R  8c03f3de  mov.l r4,@(0x4,r15)
+  R  8c03f3f2  mov.l @(0x4,r15),r4
+  R  8c03f476  mov.l @(0x4,r4),r6
+  W  8c03f47c  mov.l r6,@(0x4,r5)
+  R  8c03f47c  mov.l r6,@(0x4,r5)
+=== WRITER 8c03f5dc in FUN_8c03f5dc ===
+  W  8c03f69e  mov.l r4,@(0x4,r15)
+  R  8c03f69e  mov.l r4,@(0x4,r15)
+  R  8c03f6b2  mov.l @(0x4,r15),r4
+  R  8c03f736  mov.l @(0x4,r4),r6
+  W  8c03f73c  mov.l r6,@(0x4,r5)
+  R  8c03f73c  mov.l r6,@(0x4,r5)
+=== WRITER 8c040582 in FUN_8c040582 ===
+  W  8c0405c6  mov.l r11,@(0x4,r10)
+  R  8c0405c6  mov.l r11,@(0x4,r10)
+  W  8c040628  mov.l r11,@(0x4,r3)
+  R  8c040628  mov.l r11,@(0x4,r3)
+  W  8c040648  mov.l r11,@(0x4,r1)
+  R  8c040648  mov.l r11,@(0x4,r1)
+=== WRITER 8c040ab8 in FUN_8c040ab8 ===
+  R  8c040b64  mov.l @(0x4,r4),r2
+  W  8c040b70  mov.l r2,@(0x4,r5)
+  R  8c040b70  mov.l r2,@(0x4,r5)
+=== WRITER 8c041370 in FUN_8c041370 ===
+  R  8c041452  mov.b @(0x4,r5),r0
+  W  8c041454  mov.b r0,@(0x4,r4)
+  R  8c041454  mov.b r0,@(0x4,r4)
+  R  8c041464  mov.l @(0x4,r4),r6
+  W  8c041488  mov.l r6,@(0x4,r5)
+  R  8c041488  mov.l r6,@(0x4,r5)
+  R  8c0417c2  mov.l @(0x4,r9),r4
+=== WRITER 8c041d54 in FUN_8c041d54 ===
+  R  8c041d98  mov.l @(0x4,r4),r6
+  W  8c041d9e  mov.l r6,@(0x4,r5)
+  R  8c041d9e  mov.l r6,@(0x4,r5)
+  W  8c041e2c  mov.l r10,@(0x4,r9)
+  R  8c041e2c  mov.l r10,@(0x4,r9)
+  W  8c041e5a  mov.l r10,@(0x4,r8)
+  R  8c041e5a  mov.l r10,@(0x4,r8)
+  W  8c041e7c  mov.l r10,@(0x4,r3)
+  R  8c041e7c  mov.l r10,@(0x4,r3)
+=== WRITER 8c0470f4 in FUN_8c0470f4 ===
+  W  8c047112  mov.l r5,@(0x4,r15)
+  R  8c047112  mov.l r5,@(0x4,r15)
+  R  8c047116  mov.l @(0x4,r4),r0
+  R  8c047184  mov.l @(0x4,r15),r3
+  R  8c047210  mov.l @(0x4,r1),r3
+  R  8c0473c2  mov.l @(0x4,r3),r0
+=== WRITER 8c06727c in FUN_8c06727c ===
+  R  8c067666  mov.l @(0x4,r5),r6
+  W  8c067674  mov.l r6,@(0x4,r4)
+  R  8c067674  mov.l r6,@(0x4,r4)
+=== WRITER 8c067f18 in FUN_8c067f18 ===
+  R  8c06800c  mov.l @(0x4,r5),r2
+  W  8c068010  mov.l r2,@(0x4,r7)
+  R  8c068010  mov.l r2,@(0x4,r7)
+=== reader (no write) 8c068c54 in FUN_8c068c54 ===
+=== reader (no write) 8c06932c in FUN_8c06932c ===
+=== WRITER 8c06bfe0 in FUN_8c06bfe0 ===
+  W  8c06c1a0  mov.l r11,@(0x4,r15)
+  R  8c06c1a0  mov.l r11,@(0x4,r15)
+=== WRITER 8c06c9a8 in FUN_8c06c9a8 ===
+  W  8c06c9b8  mov.l r4,@(0x4,r15)
+  R  8c06c9b8  mov.l r4,@(0x4,r15)
+  R  8c06cc2e  mov.l @(0x4,r7),r6
+  R  8c06cc30  mov.l @(0x4,r7),r4
+  R  8c06ccfa  mov.l @(0x4,r15),r14
+=== WRITER 8c06f0d4 in FUN_8c06f0d4 ===
+  R  8c06f3a8  mov.l @(0x4,r7),r6
+  R  8c06f3aa  mov.l @(0x4,r7),r4
+  W  8c06f3ae  mov.l r7,@(0x4,r15)
+  R  8c06f3ae  mov.l r7,@(0x4,r15)
+  R  8c06f3c2  mov.l @(0x4,r15),r7
+=== WRITER 8c06f8b8 in FUN_8c06f8b8 ===
+  W  8c06f962  mov.l r4,@(0x4,r15)
+  R  8c06f962  mov.l r4,@(0x4,r15)
+  R  8c06f974  mov.l @(0x4,r15),r4
+=== WRITER 8c0736bc in FUN_8c0736bc ===
+  W  8c073966  mov.l r9,@(0x4,r15)
+  R  8c073966  mov.l r9,@(0x4,r15)
+  R  8c0739b8  mov.l @(0x4,r15),r9
+=== WRITER 8c0743ec in FUN_8c0743ec ===
+  W  8c07461a  mov.l r7,@(0x4,r15)
+  R  8c07461a  mov.l r7,@(0x4,r15)
+  W  8c0747d2  mov.l r2,@(0x4,r15)
+  R  8c0747d2  mov.l r2,@(0x4,r15)
+  W  8c074890  mov.l r14,@(0x4,r15)
+  R  8c074890  mov.l r14,@(0x4,r15)
+  W  8c0748e2  mov.l r2,@(0x4,r15)
+  R  8c0748e2  mov.l r2,@(0x4,r15)
+  W  8c0749b2  mov.l r14,@(0x4,r15)
+  R  8c0749b2  mov.l r14,@(0x4,r15)
+  W  8c074a04  mov.l r0,@(0x4,r15)
+  R  8c074a04  mov.l r0,@(0x4,r15)
+=== WRITER 8c074b18 in FUN_8c074b18 ===
+  W  8c074c24  mov.l r7,@(0x4,r15)
+  R  8c074c24  mov.l r7,@(0x4,r15)
+  W  8c074dd6  mov.l r2,@(0x4,r15)
+  R  8c074dd6  mov.l r2,@(0x4,r15)
+  W  8c074e94  mov.l r14,@(0x4,r15)
+  R  8c074e94  mov.l r14,@(0x4,r15)
+  W  8c074ee6  mov.l r2,@(0x4,r15)
+  R  8c074ee6  mov.l r2,@(0x4,r15)
+  W  8c074fb6  mov.l r14,@(0x4,r15)
+  R  8c074fb6  mov.l r14,@(0x4,r15)
+  W  8c075008  mov.l r0,@(0x4,r15)
+  R  8c075008  mov.l r0,@(0x4,r15)
+=== WRITER 8c075108 in FUN_8c075108 ===
+  W  8c07520a  mov.l r7,@(0x4,r15)
+  R  8c07520a  mov.l r7,@(0x4,r15)
+  W  8c0753c8  mov.l r0,@(0x4,r15)
+  R  8c0753c8  mov.l r0,@(0x4,r15)
+  W  8c0754d2  mov.l r2,@(0x4,r15)
+  R  8c0754d2  mov.l r2,@(0x4,r15)
+  W  8c075590  mov.l r14,@(0x4,r15)
+  R  8c075590  mov.l r14,@(0x4,r15)
+  W  8c0755e2  mov.l r2,@(0x4,r15)
+  R  8c0755e2  mov.l r2,@(0x4,r15)
+  W  8c0756b2  mov.l r14,@(0x4,r15)
+  R  8c0756b2  mov.l r14,@(0x4,r15)
+=== WRITER 8c075a78 in FUN_8c075a78 ===
+  R  8c075d24  mov.b @(0x4,r15),r0
+  W  8c075d3e  mov.b r0,@(0x4,r15)
+  R  8c075d3e  mov.b r0,@(0x4,r15)
+=== WRITER 8c077ba8 in FUN_8c077ba8 ===
+  W  8c077bf8  mov.l r7,@(0x4,r15)
+  R  8c077bf8  mov.l r7,@(0x4,r15)
+  W  8c077e84  mov.l r6,@(0x4,r15)
+  R  8c077e84  mov.l r6,@(0x4,r15)
+=== reader (no write) 8c07bfd8 in FUN_8c07bfd8 ===
+=== WRITER 8c07cafa in FUN_8c07cafa ===
+  W  8c07cb3c  mov.l r14,@(0x4,r15)
+  R  8c07cb3c  mov.l r14,@(0x4,r15)
+  R  8c07cb44  mov.l @(0x4,r10),r2
+  R  8c07cbdc  mov.l @(0x4,r15),r6
+  R  8c07cbee  mov.l @(0x4,r15),r6
+  R  8c07cc00  mov.l @(0x4,r15),r6
+  W  8c07cc1a  mov.w r0,@(0x4,r13)
+  R  8c07cc1a  mov.w r0,@(0x4,r13)
+  W  8c07ccc0  mov.w r0,@(0x4,r5)
+  R  8c07ccc0  mov.w r0,@(0x4,r5)
+  W  8c07ccf8  mov.w r0,@(0x4,r5)
+  R  8c07ccf8  mov.w r0,@(0x4,r5)
+  W  8c07cd18  mov.w r0,@(0x4,r14)
+  R  8c07cd18  mov.w r0,@(0x4,r14)
+  W  8c07cd2a  mov.w r0,@(0x4,r6)
+  R  8c07cd2a  mov.w r0,@(0x4,r6)
+  W  8c07cd64  mov.w r0,@(0x4,r13)
+  R  8c07cd64  mov.w r0,@(0x4,r13)
+  W  8c07cd80  mov.w r0,@(0x4,r5)
+  R  8c07cd80  mov.w r0,@(0x4,r5)
+  W  8c07cd9e  mov.w r0,@(0x4,r6)
+  R  8c07cd9e  mov.w r0,@(0x4,r6)
+  R  8c07cdd8  mov.l @(0x4,r15),r1
+  W  8c07ce2c  mov.w r0,@(0x4,r13)
+  R  8c07ce2c  mov.w r0,@(0x4,r13)
+  W  8c07ce82  mov.l r9,@(0x4,r5)
+  R  8c07ce82  mov.l r9,@(0x4,r5)
+  R  8c07cffe  mov.l @(0x4,r15),r1
+  R  8c07d080  mov.l @(0x4,r15),r3
+  R  8c07d0c6  mov.l @(0x4,r15),r3
+  R  8c07d0d8  mov.l @(0x4,r15),r9
+  R  8c07d12c  mov.l @(0x4,r8),r6
+  R  8c07d1d6  mov.l @(0x4,r6),r2
+  W  8c07d244  mov.w r0,@(0x4,r12)
+  R  8c07d244  mov.w r0,@(0x4,r12)
+  W  8c07d2d2  mov.w r0,@(0x4,r14)
+  R  8c07d2d2  mov.w r0,@(0x4,r14)
+=== WRITER 8c07d38c in FUN_8c07d38c ===
+  R  8c07d3a6  mov.l @(0x4,r4),r6
+  W  8c07d3b2  mov.l r4,@(0x4,r15)
+  R  8c07d3b2  mov.l r4,@(0x4,r15)
+  R  8c07d3cc  mov.l @(0x4,r15),r3
+  R  8c07d3da  mov.l @(0x4,r15),r14
+  R  8c07d40e  mov.l @(0x4,r15),r3
+  R  8c07d41c  mov.l @(0x4,r15),r3
+  R  8c07d438  mov.l @(0x4,r15),r3
+  R  8c07d43e  mov.l @(0x4,r15),r3
+  R  8c07d446  mov.l @(0x4,r15),r3
+  R  8c07d452  mov.l @(0x4,r15),r3
+  R  8c07d456  mov.l @(0x4,r3),r2
+  R  8c07d47e  mov.l @(0x4,r15),r13
+  R  8c07d494  mov.l @(0x4,r15),r3
+  R  8c07d498  mov.l @(0x4,r3),r2
+  R  8c07d4ba  mov.l @(0x4,r15),r3
+  R  8c07d4cc  mov.l @(0x4,r15),r3
+  R  8c07d4d0  mov.l @(0x4,r3),r5
+  R  8c07d51e  mov.l @(0x4,r15),r3
+  R  8c07d546  mov.l @(0x4,r15),r12
+  R  8c07d566  mov.l @(0x4,r15),r3
+  R  8c07d5ac  mov.l @(0x4,r15),r3
+  R  8c07d5da  mov.l @(0x4,r15),r3
+  R  8c07d604  mov.l @(0x4,r15),r13
+  R  8c07d63c  mov.l @(0x4,r15),r3
+  R  8c07d67e  mov.l @(0x4,r15),r14
+  R  8c07d6c6  mov.l @(0x4,r15),r3
+  R  8c07d71e  mov.l @(0x4,r15),r14
+  R  8c07d76e  mov.l @(0x4,r15),r14
+  R  8c07d7f2  mov.l @(0x4,r15),r3
+  R  8c07d80a  mov.l @(0x4,r15),r3
+  R  8c07d822  mov.w @(0x4,r14),r0
+  R  8c07d824  mov.l @(0x4,r15),r3
+  R  8c07d846  mov.l @(0x4,r15),r3
+  R  8c07d870  mov.l @(0x4,r15),r3
+  R  8c07d882  mov.l @(0x4,r15),r3
+=== reader (no write) 8c07d8ac in FUN_8c07d8ac ===
+=== WRITER 8c07dd36 in FUN_8c07dd36 ===
+  W  8c07e120  mov.l r12,@(0x4,r15)
+  R  8c07e120  mov.l r12,@(0x4,r15)
+  R  8c07e16a  mov.l @(0x4,r15),r12
+=== reader (no write) 8c07f3f0 in FUN_8c07f3f0 ===
+=== WRITER 8c07f510 in FUN_8c07f510 ===
+  R  8c07f622  mov.l @(0x4,r6),r2
+  R  8c07f64a  mov.w @(0x4,r12),r0
+  R  8c07f7b6  mov.l @(0x4,r6),r2
+  R  8c07f7de  mov.w @(0x4,r14),r0
+  R  8c07f9ac  mov.w @(0x4,r6),r0
+  W  8c07f9ba  mov.l r6,@(0x4,r15)
+  R  8c07f9ba  mov.l r6,@(0x4,r15)
+  R  8c07f9ce  mov.w @(0x4,r6),r0
+  W  8c07f9d6  mov.l r2,@(0x4,r15)
+  R  8c07f9d6  mov.l r2,@(0x4,r15)
+  R  8c07faa4  mov.w @(0x4,r14),r0
+  W  8c07fab2  mov.l r6,@(0x4,r15)
+  R  8c07fab2  mov.l r6,@(0x4,r15)
+  R  8c07fb3c  mov.w @(0x4,r9),r0
+  R  8c07fba6  mov.w @(0x4,r9),r0
+  R  8c07fbd6  mov.w @(0x4,r14),r0
+  W  8c07fbe4  mov.l r6,@(0x4,r15)
+  R  8c07fbe4  mov.l r6,@(0x4,r15)
+  R  8c07fc7c  mov.w @(0x4,r14),r0
+  W  8c07fc84  mov.l r2,@(0x4,r15)
+  R  8c07fc84  mov.l r2,@(0x4,r15)
+  R  8c07fe4a  mov.w @(0x4,r6),r0
+  W  8c07fe58  mov.l r6,@(0x4,r15)
+  R  8c07fe58  mov.l r6,@(0x4,r15)
+  R  8c07fe6e  mov.w @(0x4,r6),r0
+  W  8c07fe76  mov.l r2,@(0x4,r15)
+  R  8c07fe76  mov.l r2,@(0x4,r15)
+  R  8c080032  mov.w @(0x4,r6),r0
+  W  8c08006e  mov.l r6,@(0x4,r15)
+  R  8c08006e  mov.l r6,@(0x4,r15)
+  R  8c080084  mov.w @(0x4,r6),r0
+  W  8c08008c  mov.l r2,@(0x4,r15)
+  R  8c08008c  mov.l r2,@(0x4,r15)
+  R  8c08025e  mov.w @(0x4,r6),r0
+  W  8c08026c  mov.l r6,@(0x4,r15)
+  R  8c08026c  mov.l r6,@(0x4,r15)
+  R  8c08027a  mov.w @(0x4,r6),r0
+  R  8c08028c  mov.w @(0x4,r12),r0
+  W  8c080298  mov.l r6,@(0x4,r15)
+  R  8c080298  mov.l r6,@(0x4,r15)
+  R  8c080506  mov.w @(0x4,r6),r0
+  R  8c08051c  mov.w @(0x4,r6),r0
+  R  8c080532  mov.w @(0x4,r6),r0
+  R  8c0805c2  mov.w @(0x4,r6),r0
+  R  8c0805dc  mov.w @(0x4,r6),r0
+  W  8c0805e4  mov.l r2,@(0x4,r15)
+  R  8c0805e4  mov.l r2,@(0x4,r15)
+  R  8c0805fa  mov.w @(0x4,r6),r0
+  W  8c080602  mov.l r2,@(0x4,r15)
+  R  8c080602  mov.l r2,@(0x4,r15)
+  R  8c08066a  mov.w @(0x4,r6),r0
+  R  8c080684  mov.w @(0x4,r6),r0
+  W  8c08068c  mov.l r2,@(0x4,r15)
+  R  8c08068c  mov.l r2,@(0x4,r15)
+  R  8c0806a2  mov.w @(0x4,r6),r0
+  W  8c0806aa  mov.l r2,@(0x4,r15)
+  R  8c0806aa  mov.l r2,@(0x4,r15)
+  R  8c080708  mov.w @(0x4,r6),r0
+  R  8c080720  mov.w @(0x4,r6),r0
+  W  8c080728  mov.l r2,@(0x4,r15)
+  R  8c080728  mov.l r2,@(0x4,r15)
+  R  8c08076c  mov.w @(0x4,r6),r0
+  W  8c080774  mov.l r2,@(0x4,r15)
+  R  8c080774  mov.l r2,@(0x4,r15)
+=== WRITER 8c082cee in FUN_8c082cee ===
+  W  8c082fa0  mov.l r0,@(0x4,r15)
+  R  8c082fa0  mov.l r0,@(0x4,r15)
+  W  8c082fe0  mov.l r0,@(0x4,r15)
+  R  8c082fe0  mov.l r0,@(0x4,r15)
+=== WRITER 8c083654 in FUN_8c083654 ===
+  W  8c083676  mov.b r0,@(0x4,r15)
+  R  8c083676  mov.b r0,@(0x4,r15)
+  R  8c08368c  mov.b @(0x4,r15),r0
+=== WRITER 8c0837e0 in FUN_8c0837e0 ===
+  W  8c0837fc  mov.l r3,@(0x4,r15)
+  R  8c0837fc  mov.l r3,@(0x4,r15)
+  R  8c0838d6  mov.l @(0x4,r15),r3
+  W  8c0838da  mov.l r3,@(0x4,r15)
+  R  8c0838da  mov.l r3,@(0x4,r15)
+  R  8c0838ec  mov.l @(0x4,r15),r0
+=== WRITER 8c0840c0 in FUN_8c0840c0 ===
+  W  8c0841d8  mov.l r4,@(0x4,r15)
+  R  8c0841d8  mov.l r4,@(0x4,r15)
+  R  8c0841e4  mov.l @(0x4,r15),r4
+=== WRITER 8c08440e in FUN_8c08440e ===
+  W  8c08445e  mov.l r6,@(0x4,r15)
+  R  8c08445e  mov.l r6,@(0x4,r15)
+  R  8c084480  mov.l @(0x4,r15),r4
+=== WRITER 8c085170 in FUN_8c085170 ===
+  W  8c085194  mov.l r4,@(0x4,r15)
+  R  8c085194  mov.l r4,@(0x4,r15)
+  R  8c085234  mov.l @(0x4,r11),r2
+  R  8c085344  mov.l @(0x4,r15),r12
+  R  8c08537c  mov.w @(0x4,r3),r0
+  R  8c085398  mov.l @(0x4,r11),r6
+  R  8c08541c  mov.w @(0x4,r12),r0
+  R  8c0855da  mov.w @(0x4,r12),r0
+=== WRITER 8c085ec0 in FUN_8c085ec0 ===
+  W  8c085ef0  mov.l r0,@(0x4,r15)
+  R  8c085ef0  mov.l r0,@(0x4,r15)
+  R  8c086006  mov.l @(0x4,r15),r3
+  R  8c08605a  mov.l @(0x4,r15),r3
+  R  8c086062  mov.l @(0x4,r15),r3
+  R  8c08606a  mov.l @(0x4,r15),r3
+  R  8c0860a2  mov.l @(0x4,r8),r6
+  R  8c0860d2  mov.l @(0x4,r15),r3
+=== reader (no write) 8c087bf8 in FUN_8c087bf8 ===
+=== WRITER 8c088340 in FUN_8c088340 ===
+  W  8c0884fc  mov.l r1,@(0x4,r15)
+  R  8c0884fc  mov.l r1,@(0x4,r15)
+  R  8c088530  mov.l @(0x4,r7),r6
+  W  8c088536  mov.l r6,@(0x4,r5)
+  R  8c088536  mov.l r6,@(0x4,r5)
+  R  8c088540  mov.l @(0x4,r15),r3
+  R  8c08854c  mov.l @(0x4,r3),r2
+  W  8c088550  mov.l r2,@(0x4,r7)
+  R  8c088550  mov.l r2,@(0x4,r7)
+  R  8c08855c  mov.l @(0x4,r15),r3
+  R  8c08856c  mov.l @(0x4,r4),r2
+  W  8c088574  mov.l r2,@(0x4,r5)
+  R  8c088574  mov.l r2,@(0x4,r5)
+  R  8c088588  mov.l @(0x4,r7),r6
+  W  8c08858c  mov.l r6,@(0x4,r4)
+  R  8c08858c  mov.l r6,@(0x4,r4)
+  R  8c0885a2  mov.l @(0x4,r7),r6
+  W  8c0885aa  mov.l r6,@(0x4,r5)
+  R  8c0885aa  mov.l r6,@(0x4,r5)
+  R  8c0885ba  mov.l @(0x4,r3),r6
+  W  8c0885be  mov.l r6,@(0x4,r7)
+  R  8c0885be  mov.l r6,@(0x4,r7)
+  R  8c0885f8  mov.l @(0x4,r4),r2
+  W  8c0885fc  mov.l r2,@(0x4,r5)
+  R  8c0885fc  mov.l r2,@(0x4,r5)
+  R  8c088694  mov.l @(0x4,r4),r6
+  W  8c08869a  mov.l r6,@(0x4,r5)
+  R  8c08869a  mov.l r6,@(0x4,r5)
+  R  8c0886a6  mov.l @(0x4,r15),r3
+  R  8c0886b0  mov.l @(0x4,r3),r2
+  W  8c0886b4  mov.l r2,@(0x4,r4)
+  R  8c0886b4  mov.l r2,@(0x4,r4)
+  R  8c0886ca  mov.l @(0x4,r4),r2
+  W  8c0886ce  mov.l r2,@(0x4,r8)
+  R  8c0886ce  mov.l r2,@(0x4,r8)
+  R  8c0886da  mov.l @(0x4,r15),r3
+  R  8c0886e2  mov.l @(0x4,r3),r2
+  W  8c0886e6  mov.l r2,@(0x4,r4)
+  R  8c0886e6  mov.l r2,@(0x4,r4)
+  R  8c08871c  mov.l @(0x4,r4),r6
+  W  8c088724  mov.l r6,@(0x4,r5)
+  R  8c088724  mov.l r6,@(0x4,r5)
+  R  8c088730  mov.l @(0x4,r15),r3
+  R  8c08873a  mov.l @(0x4,r3),r6
+  W  8c08873e  mov.l r6,@(0x4,r4)
+  R  8c08873e  mov.l r6,@(0x4,r4)
+=== reader (no write) 8c088860 in FUN_8c088860 ===
+=== WRITER 8c08897a in FUN_8c08897a ===
+  R  8c088986  mov.l @(0x4,r4),r13
+  R  8c0889fe  mov.l @(0x4,r3),r2
+  R  8c088b30  mov.l @(0x4,r3),r2
+  R  8c088b9a  mov.l @(0x4,r3),r2
+  R  8c088bc6  mov.l @(0x4,r2),r6
+  W  8c088bcc  mov.l r6,@(0x4,r4)
+  R  8c088bcc  mov.l r6,@(0x4,r4)
+  R  8c088c82  mov.l @(0x4,r3),r13
+  R  8c088d46  mov.l @(0x4,r2),r6
+  W  8c088d4c  mov.l r6,@(0x4,r1)
+  R  8c088d4c  mov.l r6,@(0x4,r1)
+=== reader (no write) 8c089aa0 in FUN_8c089aa0 ===
+=== WRITER 8c08ae18 in FUN_8c08ae18 ===
+  W  8c08ae36  mov.l r4,@(0x4,r15)
+  R  8c08ae36  mov.l r4,@(0x4,r15)
+  R  8c08ae44  mov.l @(0x4,r15),r3
+  R  8c08ae56  mov.l @(0x4,r15),r3
+  R  8c08ae66  mov.l @(0x4,r15),r1
+  R  8c08aeb2  mov.l @(0x4,r15),r3
+  R  8c08af5e  mov.l @(0x4,r15),r3
+  R  8c08af78  mov.l @(0x4,r15),r3
+  R  8c08af88  mov.l @(0x4,r15),r3
+  R  8c08afca  mov.l @(0x4,r15),r3
+  R  8c08afda  mov.l @(0x4,r15),r3
+  R  8c08afe8  mov.l @(0x4,r15),r3
+  R  8c08b020  mov.l @(0x4,r15),r3
+  R  8c08b024  mov.l @(0x4,r3),r6
+  R  8c08b090  mov.l @(0x4,r15),r14
+  R  8c08b102  mov.l @(0x4,r15),r13
+  R  8c08b11c  mov.l @(0x4,r15),r3
+  R  8c08b1a6  mov.l @(0x4,r15),r4
+=== WRITER 8c08b1e4 in FUN_8c08b1e4 ===
+  R  8c08b248  mov.l @(0x4,r7),r13
+  R  8c08b2aa  mov.l @(0x4,r15),r4
+  W  8c08b314  mov.l r4,@(0x4,r15)
+  R  8c08b314  mov.l r4,@(0x4,r15)
+=== WRITER 8c08c300 in FUN_8c08c300 ===
+  W  8c08c3d6  mov.l r8,@(0x4,r15)
+  R  8c08c3d6  mov.l r8,@(0x4,r15)
+  R  8c08c3f4  mov.l @(0x4,r15),r8
+=== WRITER 8c08c516 in FUN_8c08c516 ===
+  W  8c08c648  mov.l r8,@(0x4,r15)
+  R  8c08c648  mov.l r8,@(0x4,r15)
+  R  8c08c666  mov.l @(0x4,r15),r8
+=== reader (no write) 8c08da6c in FUN_8c08da6c ===
+=== reader (no write) 8c08ef24 in FUN_8c08ef24 ===
+=== WRITER 8c08f564 in FUN_8c08f564 ===
+  W  8c08f580  mov.l r5,@(0x4,r15)
+  R  8c08f580  mov.l r5,@(0x4,r15)
+  R  8c08f602  mov.l @(0x4,r15),r5
+  R  8c08f64e  mov.l @(0x4,r15),r5
+  R  8c08f682  mov.l @(0x4,r15),r5
+  R  8c08f6a4  mov.l @(0x4,r15),r5
+=== reader (no write) 8c08f6d8 in FUN_8c08f6d8 ===
+=== reader (no write) 8c08fdd8 in FUN_8c08fdd8 ===
+=== WRITER 8c08feec in FUN_8c08feec ===
+  W  8c08ff0e  mov.l r13,@(0x4,r15)
+  R  8c08ff0e  mov.l r13,@(0x4,r15)
+  R  8c090128  mov.l @(0x4,r15),r3
+=== WRITER 8c090bea in FUN_8c090bea ===
+  R  8c090bf8  mov.l @(0x4,r4),r12
+  R  8c090c52  mov.l @(0x4,r9),r2
+  R  8c090d2e  mov.l @(0x4,r9),r2
+  R  8c090d7a  mov.l @(0x4,r9),r2
+  R  8c090da6  mov.l @(0x4,r2),r6
+  W  8c090dac  mov.l r6,@(0x4,r4)
+  R  8c090dac  mov.l r6,@(0x4,r4)
+  R  8c090e14  mov.l @(0x4,r9),r2
+  R  8c090e82  mov.l @(0x4,r10),r13
+=== WRITER 8c091858 in FUN_8c091858 ===
+  W  8c0918f0  mov.w r0,@(0x4,r15)
+  R  8c0918f0  mov.w r0,@(0x4,r15)
+  R  8c091924  mov.w @(0x4,r15),r0
+  R  8c091946  mov.w @(0x4,r15),r0
+  R  8c091966  mov.w @(0x4,r15),r0
+  R  8c0919b8  mov.w @(0x4,r15),r0
+  R  8c0919da  mov.w @(0x4,r15),r0
+  R  8c0919fa  mov.w @(0x4,r15),r0
+=== WRITER 8c0d0dac in FUN_8c0d0dac ===
+  R  8c0d0e3a  mov.l @(0x4,r11),r14
+  R  8c0d0e66  mov.l @(0x4,r11),r2
+  R  8c0d0e8e  mov.l @(0x4,r2),r6
+  W  8c0d0e94  mov.l r6,@(0x4,r4)
+  R  8c0d0e94  mov.l r6,@(0x4,r4)
+  R  8c0d0eaa  mov.l @(0x4,r11),r2
+  R  8c0d0f32  mov.l @(0x4,r11),r2
+  R  8c0d0f5a  mov.l @(0x4,r2),r6
+  W  8c0d0f60  mov.l r6,@(0x4,r4)
+  R  8c0d0f60  mov.l r6,@(0x4,r4)
+  R  8c0d0fb4  mov.l @(0x4,r11),r2
+  R  8c0d1016  mov.l @(0x4,r11),r2
+  R  8c0d10d2  mov.l @(0x4,r11),r3
+  W  8c0d118e  mov.l r13,@(0x4,r15)
+  R  8c0d118e  mov.l r13,@(0x4,r15)
+  R  8c0d11d0  mov.w @(0x4,r0),r0
+  R  8c0d1264  mov.l @(0x4,r11),r14
+  R  8c0d12be  mov.l @(0x4,r11),r14
+  R  8c0d131e  mov.l @(0x4,r11),r14
+  R  8c0d13c4  mov.l @(0x4,r2),r6
+  R  8c0d13da  mov.l @(0x4,r2),r6
+  R  8c0d13f2  mov.l @(0x4,r2),r6
+=== reader (no write) 8c0d3754 in FUN_8c0d3754 ===
+=== WRITER 8c0d6ae4 in FUN_8c0d6ae4 ===
+  R  8c0d6b58  mov.l @(0x4,r4),r6
+  W  8c0d6b5e  mov.l r6,@(0x4,r15)
+  R  8c0d6b5e  mov.l r6,@(0x4,r15)
+  R  8c0d6ba4  mov.w @(0x4,r6),r0
+=== WRITER 8c10509e in FUN_8c10509e ===
+  R  8c1050c2  mov.w @(0x4,r5),r0
+  W  8c1050c6  mov.w r0,@(0x4,r15)
+  R  8c1050c6  mov.w r0,@(0x4,r15)
+  R  8c1050da  mov.l @(0x4,r6),r2
+=== WRITER 8c10523a in FUN_8c10523a ===
+  R  8c10525c  mov.w @(0x4,r5),r0
+  W  8c105260  mov.w r0,@(0x4,r15)
+  R  8c105260  mov.w r0,@(0x4,r15)
+=== WRITER 8c10537a in FUN_8c10537a ===
+  R  8c10539e  mov.w @(0x4,r5),r0
+  W  8c1053a2  mov.w r0,@(0x4,r15)
+  R  8c1053a2  mov.w r0,@(0x4,r15)
+  R  8c1053b6  mov.l @(0x4,r6),r2
+=== WRITER 8c105a58 in FUN_8c105a58 ===
+  R  8c105a84  mov.w @(0x4,r6),r0
+  W  8c105a88  mov.w r0,@(0x4,r4)
+  R  8c105a88  mov.w r0,@(0x4,r4)
+  R  8c105a9c  mov.l @(0x4,r4),r2
+  W  8c105aa0  mov.l r2,@(0x4,r11)
+  R  8c105aa0  mov.l r2,@(0x4,r11)
+  R  8c105ac4  mov.l @(0x4,r6),r2
+  W  8c105ba2  mov.l r3,@(0x4,r15)
+  R  8c105ba2  mov.l r3,@(0x4,r15)
+  R  8c105bac  mov.l @(0x4,r2),r4
+  R  8c105d14  mov.l @(0x4,r2),r6
+  W  8c105d88  mov.l r1,@(0x4,r15)
+  R  8c105d88  mov.l r1,@(0x4,r15)
+  R  8c105e26  mov.l @(0x4,r2),r6
+=== WRITER 8c137374 in FUN_8c137374 ===
+  W  8c13782c  mov.l r10,@(0x4,r15)
+  R  8c13782c  mov.l r10,@(0x4,r15)
+  W  8c1378ba  mov.l r10,@(0x4,r15)
+  R  8c1378ba  mov.l r10,@(0x4,r15)
+=== WRITER 8c139858 in FUN_8c139858 ===
+  W  8c139d0c  mov.l r10,@(0x4,r15)
+  R  8c139d0c  mov.l r10,@(0x4,r15)
+  W  8c139d9a  mov.l r10,@(0x4,r15)
+  R  8c139d9a  mov.l r10,@(0x4,r15)
+=== WRITER 8c1e2f34 in _njGenerateFogTable3 ===
+  W  8c1e2f80  mov.b r0,@(0x4,r15)
+  R  8c1e2f80  mov.b r0,@(0x4,r15)
+  R  8c1e2f84  mov.b @(0x4,r15),r0
+=== WRITER 8c1e5332 in _njInitVertexBuffer ===
+  W  8c1e5366  mov.l r5,@(0x4,r14)
+  R  8c1e5366  mov.l r5,@(0x4,r14)
+  W  8c1e5374  mov.l r5,@(0x4,r14)
+  R  8c1e5374  mov.l r5,@(0x4,r14)
+  W  8c1e5388  mov.l r5,@(0x4,r14)
+  R  8c1e5388  mov.l r5,@(0x4,r14)
+  W  8c1e53bc  mov.l r1,@(0x4,r14)
+  R  8c1e53bc  mov.l r1,@(0x4,r14)
+  W  8c1e53f2  mov.l r0,@(0x4,r15)
+  R  8c1e53f2  mov.l r0,@(0x4,r15)
+  R  8c1e53f8  mov.l @(0x4,r15),r4
+=== WRITER 8c05fbfa in FUN_8c05fbfa ===
+  R  8c05fcc0  mov.l @(0x4,r14),r6
+  R  8c05fcc2  mov.l @(0x4,r14),r4
+  R  8c05fcd0  mov.l @(0x4,r14),r5
+  W  8c05fe5e  mov.l r2,@(0x4,r15)
+  R  8c05fe5e  mov.l r2,@(0x4,r15)
+  R  8c05fe74  mov.l @(0x4,r2),r14
+=== WRITER 8c07c5c0 in FUN_8c07c5c0 ===
+  W  8c07c606  mov.l r5,@(0x4,r9)
+  R  8c07c606  mov.l r5,@(0x4,r9)
+=== WRITER 8c13ba68 in FUN_8c13ba68 ===
+  W  8c13bab4  mov.l r10,@(0x4,r15)
+  R  8c13bab4  mov.l r10,@(0x4,r15)
+  W  8c13bbd2  mov.l r10,@(0x4,r15)
+  R  8c13bbd2  mov.l r10,@(0x4,r15)
+=== WRITER 8c13c3d4 in FUN_8c13c3d4 ===
+  W  8c13c3f4  mov.l r10,@(0x4,r15)
+  R  8c13c3f4  mov.l r10,@(0x4,r15)
+=== WRITER 8c13c4e0 in FUN_8c13c4e0 ===
+  W  8c13c500  mov.l r10,@(0x4,r15)
+  R  8c13c500  mov.l r10,@(0x4,r15)
+=== WRITER 8c22e618 in _syIntChkDump ===
+  W  8c22e6ac  mov.l r2,@(0x4,r15)
+  R  8c22e6ac  mov.l r2,@(0x4,r15)
+  R  8c22e6b0  mov.l @(0x4,r3),r2
+  R  8c22e6ba  mov.l @(0x4,r15),r2
+
+# Total writers found: 117
+8c011390 FUN_8c011390
+8c012878 FUN_8c012878
+8c014a3c FUN_8c014a3c
+8c0159cc FUN_8c0159cc
+8c016c64 FUN_8c016c64
+8c016e94 FUN_8c016e94
+8c0174de FUN_8c0174de
+8c0176a4 FUN_8c0176a4
+8c017d5a FUN_8c017d5a
+8c0181dc FUN_8c0181dc
+8c018afc FUN_8c018afc
+8c0193ac FUN_8c0193ac
+8c019a72 FUN_8c019a72
+8c019ef8 FUN_8c019ef8
+8c01a2b0 FUN_8c01a2b0
+8c01a66a FUN_8c01a66a
+8c01ab04 FUN_8c01ab04
+8c01b020 FUN_8c01b020
+8c01b734 FUN_8c01b734
+8c01bc96 FUN_8c01bc96
+8c01c238 FUN_8c01c238
+8c01c8c0 FUN_8c01c8c0
+8c01ccc8 FUN_8c01ccc8
+8c01d0d0 FUN_8c01d0d0
+8c01d4d8 FUN_8c01d4d8
+8c01d8e0 FUN_8c01d8e0
+8c01dce8 FUN_8c01dce8
+8c01e92a FUN_8c01e92a
+8c01f186 FUN_8c01f186
+8c025a30 FUN_8c025a30
+8c02722c FUN_8c02722c
+8c0283d8 FUN_8c0283d8
+8c028f4c FUN_8c028f4c
+8c029498 FUN_8c029498
+8c029bec FUN_8c029bec
+8c02a220 FUN_8c02a220
+8c02a95c FUN_8c02a95c
+8c02aee0 FUN_8c02aee0
+8c02b588 FUN_8c02b588
+8c02bcbc FUN_8c02bcbc
+8c02bdd4 FUN_8c02bdd4
+8c02c49e FUN_8c02c49e
+8c02c5ac FUN_8c02c5ac
+8c02cc4c FUN_8c02cc4c
+8c02ce3c FUN_8c02ce3c
+8c02d4ec FUN_8c02d4ec
+8c03447c FUN_8c03447c
+8c034d10 FUN_8c034d10
+8c036754 FUN_8c036754
+8c03a016 FUN_8c03a016
+8c03a75e FUN_8c03a75e
+8c03aa84 FUN_8c03aa84
+8c03ae04 FUN_8c03ae04
+8c03b362 FUN_8c03b362
+8c03b670 FUN_8c03b670
+8c03ba30 FUN_8c03ba30
+8c03bff8 FUN_8c03bff8
+8c03c7e4 FUN_8c03c7e4
+8c03e1f0 FUN_8c03e1f0
+8c03e536 FUN_8c03e536
+8c03eb9a FUN_8c03eb9a
+8c03f30c FUN_8c03f30c
+8c03f5dc FUN_8c03f5dc
+8c040582 FUN_8c040582
+8c040ab8 FUN_8c040ab8
+8c041370 FUN_8c041370
+8c041d54 FUN_8c041d54
+8c0470f4 FUN_8c0470f4
+8c06727c FUN_8c06727c
+8c067f18 FUN_8c067f18
+8c06bfe0 FUN_8c06bfe0
+8c06c9a8 FUN_8c06c9a8
+8c06f0d4 FUN_8c06f0d4
+8c06f8b8 FUN_8c06f8b8
+8c0736bc FUN_8c0736bc
+8c0743ec FUN_8c0743ec
+8c074b18 FUN_8c074b18
+8c075108 FUN_8c075108
+8c075a78 FUN_8c075a78
+8c077ba8 FUN_8c077ba8
+8c07cafa FUN_8c07cafa
+8c07d38c FUN_8c07d38c
+8c07dd36 FUN_8c07dd36
+8c07f510 FUN_8c07f510
+8c082cee FUN_8c082cee
+8c083654 FUN_8c083654
+8c0837e0 FUN_8c0837e0
+8c0840c0 FUN_8c0840c0
+8c08440e FUN_8c08440e
+8c085170 FUN_8c085170
+8c085ec0 FUN_8c085ec0
+8c088340 FUN_8c088340
+8c08897a FUN_8c08897a
+8c08ae18 FUN_8c08ae18
+8c08b1e4 FUN_8c08b1e4
+8c08c300 FUN_8c08c300
+8c08c516 FUN_8c08c516
+8c08f564 FUN_8c08f564
+8c08feec FUN_8c08feec
+8c090bea FUN_8c090bea
+8c091858 FUN_8c091858
+8c0d0dac FUN_8c0d0dac
+8c0d6ae4 FUN_8c0d6ae4
+8c10509e FUN_8c10509e
+8c10523a FUN_8c10523a
+8c10537a FUN_8c10537a
+8c105a58 FUN_8c105a58
+8c137374 FUN_8c137374
+8c139858 FUN_8c139858
+8c1e2f34 _njGenerateFogTable3
+8c1e5332 _njInitVertexBuffer
+8c05fbfa FUN_8c05fbfa
+8c07c5c0 FUN_8c07c5c0
+8c13ba68 FUN_8c13ba68
+8c13c3d4 FUN_8c13c3d4
+8c13c4e0 FUN_8c13c4e0
+8c22e618 _syIntChkDump

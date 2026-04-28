@@ -1,0 +1,21 @@
+# High-nibble writers to base+0x9 in 1ST_READ.BIN
+# Looks for: read base+0x9, AND with 0xf or shr/shl, OR with shifted value, write back
+
+=== HIT @ 8c16b42c in FUN_8c16b40c (8c16b40c) ===
+  8c16b40e  sts.l PR,@-r15
+  8c16b410  add #-0x4,r15
+  8c16b412  stc SR,r0
+  8c16b414  mov.w 0x8c16b4e2,r3
+  8c16b416  shlr2 r0
+  8c16b418  shlr2 r0
+  8c16b41a  and #0xf,r0
+  8c16b41c  mov.w r0,@r15
+  8c16b41e  stc SR,r0
+  8c16b420  and r3,r0
+  8c16b422  or #0xf0,r0
+  8c16b424  ldc r0,SR
+  8c16b426  mov.l 0x8c16b4f8,r14
+  8c16b428  mov #0x0,r0
+  8c16b42a  mov.w 0x8c16b4e4,r3
+  8c16b42c  mov.b r0,@(0x9,r14)
+

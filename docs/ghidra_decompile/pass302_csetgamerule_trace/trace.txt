@@ -1,0 +1,12 @@
+# string='CSetGameRule' addr=8c18ff84
+
+## References to 8c18ff84 via Reference Manager:
+  total: 0
+
+## Instruction operands containing 8c18ff84:
+  total: 0
+
+## 4-byte words equal to 8c18ff84:
+  8c1c1a5c  word=8c18ff84 fn=(none) entry=(none)
+  total: 1
+

@@ -1,0 +1,4 @@
+# Reads at offset 0x26 with mov.b instructions
+
+
+# Functions with hits: 0

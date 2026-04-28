@@ -1,0 +1,25 @@
+Bomberman revival pass v2
+program: 1ST_READ.BIN
+scan-created: 4303
+anchors: 21
+  8c073f36 FUN_8c073f36 body=[[8c073f36, 8c073f73] [8c073f7c, 8c0740e3] [8c07410c, 8c07415f] [8c074168, 8c0742e7] [8c074310, 8c0743cb]]
+  8c075a78 FUN_8c075a78 body=[[8c075a78, 8c075bcb] [8c075be0, 8c075c5d] [8c075c68, 8c075e13] [8c075e2c, 8c075f43] [8c075f5c, 8c0760f7] [8c076118, 8c076123]]
+  8c079198 FUN_8c079198 body=[[8c079198, 8c079249]]
+  8c079298 FUN_8c079298 body=[[8c079298, 8c079323]]
+  8c079324 FUN_8c079324 body=[[8c079324, 8c0793c7]]
+  8c0793e0 FUN_8c0793e0 body=[[8c0793e0, 8c079443]]
+  8c0844d4 FUN_8c0844d4 body=[[8c0844d4, 8c084665] [8c0846a4, 8c0846d9]]
+  8c07b50c FUN_8c07b50c body=[[8c07b50c, 8c07b55f]]
+  8c07cafa FUN_8c07cafa body=[[8c07cafa, 8c07cc6d] [8c07ccb8, 8c07cdfb] [8c07ce1c, 8c07cfb1] [8c07cfd0, 8c07d111] [8c07d12c, 8c07d299] [8c07d2bc, 8c07d35f]]
+  8c0730a8 FUN_8c0730a8 body=[[8c0730a8, 8c0731f7] [8c07323c, 8c073369] [8c073388, 8c073477] [8c073494, 8c0735e9] [8c073608, 8c0736b3]]
+  8c0dd74e FUN_8c0dd74e body=[[8c0dd74e, 8c0dd829]]
+  8c0906f4 FUN_8c0906f4 body=[[8c0906f4, 8c09086f] [8c090894, 8c090a05] [8c090a38, 8c090b3b]]
+  8c0dd698 FUN_8c0dd698 body=[[8c0dd698, 8c0dd74d]]
+  8c0dd850 FUN_8c0dd850 body=[[8c0dd850, 8c0dd91b]]
+  8c0470f4 FUN_8c0470f4 body=[[8c0470f4, 8c047285] [8c04729c, 8c0473ef] [8c047402, 8c04755f] [8c047568, 8c0476ff] [8c047712, 8c04786d] [8c047876, 8c04793f]]
+  8c0479d2 FUN_8c0479d2 body=[[8c0479d2, 8c0479f1]]
+  8c079ac0 FUN_8c079ac0 body=[[8c079ac0, 8c079acd]]
+  8c079ace FUN_8c079ace body=[[8c079ace, 8c079adb]]
+  8c09e790 __bfswu body=[[8c09e790, 8c09e7c7]]
+  8c09e7c8 FUN_8c09e7c8 body=[[8c09e7c8, 8c09e7e1]]
+  8c010efc FUN_8c010efc body=[[8c010efc, 8c01100d]]

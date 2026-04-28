@@ -4,7 +4,7 @@ setlocal
 set "ROOT=%~dp0"
 for %%I in ("%ROOT%") do set "ROOT=%%~fI"
 set "TOOLS_DIR=%ROOT%tools"
-set "GUI_URL=http://127.0.0.1:8765/"
+set "GUI_URL=http://127.0.0.1:8766/"
 
 call :find_python || exit /b 1
 

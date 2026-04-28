@@ -1,0 +1,8 @@
+; range: 8c098a84 - 8c098a8e
+
+8c098a84  ea 89        bt 0x8c098a5c
+8c098a86  24 d2        mov.l 0x8c098b18,r2
+8c098a88  0b 42        jsr @r2
+8c098a8a  e3 64        _mov r14,r4
+8c098a8c  36 90        mov.w 0x8c098afc,r0
+8c098a8e  01 e2        mov #0x1,r2
