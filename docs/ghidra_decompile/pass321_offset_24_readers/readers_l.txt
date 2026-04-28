@@ -1,0 +1,1740 @@
+# Reads at offset 0x24 with mov.l instructions
+
+8c0118c6  mov.l @(0x24,r15),r6  fn=FUN_8c011390@8c011390
+8c011b4e  mov.l @(0x24,r2),r5  fn=FUN_8c011ab4@8c011ab4
+8c011b78  mov.l @(0x24,r3),r5  fn=FUN_8c011ab4@8c011ab4
+8c011bda  mov.l @(0x24,r3),r2  fn=FUN_8c011ab4@8c011ab4
+8c011cd4  mov.l @(0x24,r6),r2  fn=FUN_8c011c5a@8c011c5a
+8c011d06  mov.l @(0x24,r12),r2  fn=FUN_8c011c5a@8c011c5a
+8c011d38  mov.l @(0x24,r12),r2  fn=FUN_8c011c5a@8c011c5a
+8c0126d6  mov.l @(0x24,r5),r0  fn=FUN_8c01265e@8c01265e
+8c01426c  mov.l @(0x24,r4),r0  fn=FUN_8c014194@8c014194
+8c01461e  mov.l @(0x24,r15),r6  fn=FUN_8c0144bc@8c0144bc
+8c0146aa  mov.l @(0x24,r15),r3  fn=FUN_8c0144bc@8c0144bc
+8c014d1a  mov.l @(0x24,r11),r0  fn=FUN_8c014a3c@8c014a3c
+8c014d4c  mov.l @(0x24,r6),r2  fn=FUN_8c014a3c@8c014a3c
+8c014d56  mov.l @(0x24,r6),r2  fn=FUN_8c014a3c@8c014a3c
+8c0156a6  mov.l @(0x24,r2),r0  fn=FUN_8c014a3c@8c014a3c
+8c0156ae  mov.l @(0x24,r6),r2  fn=FUN_8c014a3c@8c014a3c
+8c015b82  mov.l @(0x24,r2),r0  fn=FUN_8c0159cc@8c0159cc
+8c015b8a  mov.l @(0x24,r3),r2  fn=FUN_8c0159cc@8c0159cc
+8c015d60  mov.l @(0x24,r2),r0  fn=FUN_8c0159cc@8c0159cc
+8c015d66  mov.l @(0x24,r10),r2  fn=FUN_8c0159cc@8c0159cc
+8c015dd0  mov.l @(0x24,r6),r0  fn=FUN_8c0159cc@8c0159cc
+8c015dda  mov.l @(0x24,r13),r2  fn=FUN_8c0159cc@8c0159cc
+8c016060  mov.l @(0x24,r6),r0  fn=FUN_8c0159cc@8c0159cc
+8c01606a  mov.l @(0x24,r13),r2  fn=FUN_8c0159cc@8c0159cc
+8c01654e  mov.l @(0x24,r2),r0  fn=FUN_8c0159cc@8c0159cc
+8c01655a  mov.l @(0x24,r3),r2  fn=FUN_8c0159cc@8c0159cc
+8c016628  mov.l @(0x24,r15),r0  fn=FUN_8c0159cc@8c0159cc
+8c016a56  mov.l @(0x24,r5),r2  fn=FUN_8c01669e@8c01669e
+8c016ab2  mov.l @(0x24,r5),r2  fn=FUN_8c01669e@8c01669e
+8c016af2  mov.l @(0x24,r2),r6  fn=FUN_8c01669e@8c01669e
+8c016bae  mov.l @(0x24,r4),r2  fn=FUN_8c01669e@8c01669e
+8c016c08  mov.l @(0x24,r4),r2  fn=FUN_8c01669e@8c01669e
+8c016c3a  mov.l @(0x24,r2),r5  fn=FUN_8c01669e@8c01669e
+8c016fec  mov.l @(0x24,r6),r2  fn=FUN_8c016e94@8c016e94
+8c01701e  mov.l @(0x24,r12),r2  fn=FUN_8c016e94@8c016e94
+8c017050  mov.l @(0x24,r12),r2  fn=FUN_8c016e94@8c016e94
+8c01736e  mov.l @(0x24,r11),r0  fn=FUN_8c017310@8c017310
+8c017416  mov.l @(0x24,r11),r0  fn=FUN_8c017310@8c017310
+8c017464  mov.l @(0x24,r11),r0  fn=FUN_8c017310@8c017310
+8c0174a6  mov.l @(0x24,r11),r0  fn=FUN_8c017310@8c017310
+8c01782a  mov.l @(0x24,r15),r6  fn=FUN_8c0176a4@8c0176a4
+8c018d0e  mov.l @(0x24,r6),r0  fn=FUN_8c018afc@8c018afc
+8c018d28  mov.l @(0x24,r12),r0  fn=FUN_8c018afc@8c018afc
+8c019df2  mov.l @(0x24,r5),r0  fn=FUN_8c019a72@8c019a72
+8c01a170  mov.l @(0x24,r5),r0  fn=FUN_8c019ef8@8c019ef8
+8c01a528  mov.l @(0x24,r5),r0  fn=FUN_8c01a2b0@8c01a2b0
+8c01a9fa  mov.l @(0x24,r5),r0  fn=FUN_8c01a66a@8c01a66a
+8c01ad76  mov.l @(0x24,r5),r0  fn=FUN_8c01ab04@8c01ab04
+8c01b24a  mov.l @(0x24,r5),r0  fn=FUN_8c01b020@8c01b020
+8c01c7ba  mov.l @(0x24,r4),r2  fn=FUN_8c01c6d4@8c01c6d4
+8c01f1bc  mov.l @(0x24,r5),r2  fn=FUN_8c01f186@8c01f186
+8c01f674  mov.l @(0x24,r2),r13  fn=FUN_8c01f644@8c01f644
+8c0211e6  mov.l @(0x24,r4),r2  fn=FUN_8c0210b0@8c0210b0
+8c0215f0  mov.l @(0x24,r4),r6  fn=FUN_8c021594@8c021594
+8c021b7e  mov.l @(0x24,r4),r2  fn=FUN_8c021b50@8c021b50
+8c0261dc  mov.l @(0x24,r15),r3  fn=FUN_8c025a30@8c025a30
+8c026916  mov.l @(0x24,r15),r1  fn=FUN_8c02676c@8c02676c
+8c0269d8  mov.l @(0x24,r15),r3  fn=FUN_8c02676c@8c02676c
+8c026aa8  mov.l @(0x24,r15),r3  fn=FUN_8c02676c@8c02676c
+8c026b5c  mov.l @(0x24,r15),r3  fn=FUN_8c02676c@8c02676c
+8c026c04  mov.l @(0x24,r15),r3  fn=FUN_8c02676c@8c02676c
+8c026c10  mov.l @(0x24,r15),r3  fn=FUN_8c02676c@8c02676c
+8c026c44  mov.l @(0x24,r15),r3  fn=FUN_8c02676c@8c02676c
+8c026c50  mov.l @(0x24,r15),r3  fn=FUN_8c02676c@8c02676c
+8c026c88  mov.l @(0x24,r15),r3  fn=FUN_8c02676c@8c02676c
+8c026c94  mov.l @(0x24,r15),r3  fn=FUN_8c02676c@8c02676c
+8c026cc8  mov.l @(0x24,r15),r3  fn=FUN_8c02676c@8c02676c
+8c026cd4  mov.l @(0x24,r15),r3  fn=FUN_8c02676c@8c02676c
+8c026ff4  mov.l @(0x24,r15),r3  fn=FUN_8c026d24@8c026d24
+8c027e88  mov.l @(0x24,r15),r2  fn=FUN_8c02722c@8c02722c
+8c029330  mov.l @(0x24,r15),r9  fn=FUN_8c028f4c@8c028f4c
+8c029712  mov.l @(0x24,r15),r6  fn=FUN_8c029498@8c029498
+8c02a7b0  mov.l @(0x24,r15),r7  fn=FUN_8c02a220@8c02a220
+8c02a8b2  mov.l @(0x24,r15),r1  fn=FUN_8c02a220@8c02a220
+8c02b3ea  mov.l @(0x24,r15),r7  fn=FUN_8c02aee0@8c02aee0
+8c02b4da  mov.l @(0x24,r15),r1  fn=FUN_8c02aee0@8c02aee0
+8c02b7cc  mov.l @(0x24,r15),r1  fn=FUN_8c02b588@8c02b588
+8c02c34e  mov.l @(0x24,r15),r7  fn=FUN_8c02bdd4@8c02bdd4
+8c02c40a  mov.l @(0x24,r15),r7  fn=FUN_8c02bdd4@8c02bdd4
+8c02cab6  mov.l @(0x24,r15),r7  fn=FUN_8c02c5ac@8c02c5ac
+8c02cba2  mov.l @(0x24,r15),r1  fn=FUN_8c02c5ac@8c02c5ac
+8c02d34a  mov.l @(0x24,r15),r7  fn=FUN_8c02ce3c@8c02ce3c
+8c02d448  mov.l @(0x24,r15),r1  fn=FUN_8c02ce3c@8c02ce3c
+8c02d6aa  mov.l @(0x24,r15),r3  fn=FUN_8c02d630@8c02d630
+8c02d6be  mov.l @(0x24,r15),r3  fn=FUN_8c02d630@8c02d630
+8c02ebd2  mov.l @(0x24,r15),r7  fn=FUN_8c02e6f8@8c02e6f8
+8c02ec64  mov.l @(0x24,r15),r7  fn=FUN_8c02e6f8@8c02e6f8
+8c0305c6  mov.l @(0x24,r15),r1  fn=FUN_8c0305a0@8c0305a0
+8c030620  mov.l @(0x24,r15),r1  fn=FUN_8c0305a0@8c0305a0
+8c0306a8  mov.l @(0x24,r15),r13  fn=FUN_8c0305a0@8c0305a0
+8c0308ec  mov.l @(0x24,r15),r3  fn=FUN_8c0305a0@8c0305a0
+8c030a24  mov.l @(0x24,r15),r3  fn=FUN_8c0305a0@8c0305a0
+8c030a66  mov.l @(0x24,r15),r3  fn=FUN_8c0305a0@8c0305a0
+8c030dca  mov.l @(0x24,r15),r6  fn=FUN_8c030bbe@8c030bbe
+8c0313dc  mov.l @(0x24,r15),r3  fn=FUN_8c0311fc@8c0311fc
+8c031cac  mov.l @(0x24,r15),r3  fn=FUN_8c031800@8c031800
+8c032b64  mov.l @(0x24,r15),r9  fn=FUN_8c03267c@8c03267c
+8c032bf0  mov.l @(0x24,r15),r9  fn=FUN_8c03267c@8c03267c
+8c033172  mov.l @(0x24,r15),r5  fn=FUN_8c032f78@8c032f78
+8c033184  mov.l @(0x24,r15),r2  fn=FUN_8c032f78@8c032f78
+8c033fb4  mov.l @(0x24,r15),r1  fn=FUN_8c033b14@8c033b14
+8c033fd0  mov.l @(0x24,r15),r10  fn=FUN_8c033b14@8c033b14
+8c034062  mov.l @(0x24,r15),r1  fn=FUN_8c033b14@8c033b14
+8c034118  mov.l @(0x24,r15),r3  fn=FUN_8c033b14@8c033b14
+8c034124  mov.l @(0x24,r15),r1  fn=FUN_8c033b14@8c033b14
+8c03413e  mov.l @(0x24,r15),r10  fn=FUN_8c033b14@8c033b14
+8c0341cc  mov.l @(0x24,r15),r1  fn=FUN_8c033b14@8c033b14
+8c034260  mov.l @(0x24,r15),r3  fn=FUN_8c033b14@8c033b14
+8c0346d0  mov.l @(0x24,r15),r2  fn=FUN_8c03447c@8c03447c
+8c0346e0  mov.l @(0x24,r15),r2  fn=FUN_8c03447c@8c03447c
+8c0353d0  mov.l @(0x24,r15),r2  fn=FUN_8c034d10@8c034d10
+8c0353ea  mov.l @(0x24,r15),r3  fn=FUN_8c034d10@8c034d10
+8c035532  mov.l @(0x24,r15),r2  fn=FUN_8c034d10@8c034d10
+8c03554c  mov.l @(0x24,r15),r3  fn=FUN_8c034d10@8c034d10
+8c035656  mov.l @(0x24,r15),r2  fn=FUN_8c034d10@8c034d10
+8c036106  mov.l @(0x24,r15),r1  fn=FUN_8c035d94@8c035d94
+8c036972  mov.l @(0x24,r15),r3  fn=FUN_8c036754@8c036754
+8c036e16  mov.l @(0x24,r15),r0  fn=FUN_8c036754@8c036754
+8c036e72  mov.l @(0x24,r15),r3  fn=FUN_8c036754@8c036754
+8c036e8c  mov.l @(0x24,r15),r3  fn=FUN_8c036754@8c036754
+8c036ea4  mov.l @(0x24,r15),r3  fn=FUN_8c036754@8c036754
+8c036eac  mov.l @(0x24,r15),r3  fn=FUN_8c036754@8c036754
+8c036eba  mov.l @(0x24,r15),r3  fn=FUN_8c036754@8c036754
+8c036ec6  mov.l @(0x24,r15),r3  fn=FUN_8c036754@8c036754
+8c036ece  mov.l @(0x24,r15),r3  fn=FUN_8c036754@8c036754
+8c037016  mov.l @(0x24,r15),r3  fn=FUN_8c036f3a@8c036f3a
+8c03710c  mov.l @(0x24,r15),r3  fn=FUN_8c036f3a@8c036f3a
+8c037148  mov.l @(0x24,r15),r3  fn=FUN_8c036f3a@8c036f3a
+8c03720e  mov.l @(0x24,r15),r2  fn=FUN_8c036f3a@8c036f3a
+8c037222  mov.l @(0x24,r15),r3  fn=FUN_8c036f3a@8c036f3a
+8c0372a0  mov.l @(0x24,r15),r3  fn=FUN_8c036f3a@8c036f3a
+8c037380  mov.l @(0x24,r15),r2  fn=FUN_8c036f3a@8c036f3a
+8c0373b0  mov.l @(0x24,r15),r3  fn=FUN_8c036f3a@8c036f3a
+8c0373e8  mov.l @(0x24,r15),r3  fn=FUN_8c036f3a@8c036f3a
+8c0374cc  mov.l @(0x24,r15),r2  fn=FUN_8c036f3a@8c036f3a
+8c0374de  mov.l @(0x24,r15),r3  fn=FUN_8c036f3a@8c036f3a
+8c037ccc  mov.l @(0x24,r15),r3  fn=FUN_8c037678@8c037678
+8c039fb8  mov.l @(0x24,r6),r2  fn=FUN_8c039f92@8c039f92
+8c03b81a  mov.l @(0x24,r15),r13  fn=FUN_8c03b670@8c03b670
+8c03b862  mov.l @(0x24,r15),r2  fn=FUN_8c03b670@8c03b670
+8c03b9b8  mov.l @(0x24,r15),r6  fn=FUN_8c03b670@8c03b670
+8c03ba00  mov.l @(0x24,r15),r5  fn=FUN_8c03b670@8c03b670
+8c03c1ae  mov.l @(0x24,r15),r13  fn=FUN_8c03bff8@8c03bff8
+8c03c1dc  mov.l @(0x24,r15),r2  fn=FUN_8c03bff8@8c03bff8
+8c03c2b4  mov.l @(0x24,r15),r5  fn=FUN_8c03bff8@8c03bff8
+8c03c330  mov.l @(0x24,r15),r6  fn=FUN_8c03bff8@8c03bff8
+8c03c88a  mov.l @(0x24,r2),r6  fn=FUN_8c03c7e4@8c03c7e4
+8c03d1aa  mov.l @(0x24,r12),r4  fn=FUN_8c03cf5c@8c03cf5c
+8c03d322  mov.l @(0x24,r14),r2  fn=FUN_8c03d2fa@8c03d2fa
+8c03e7f2  mov.l @(0x24,r15),r7  fn=FUN_8c03e766@8c03e766
+8c03ee8a  mov.l @(0x24,r15),r4  fn=FUN_8c03edcc@8c03edcc
+8c03eece  mov.l @(0x24,r15),r4  fn=FUN_8c03edcc@8c03edcc
+8c03efe4  mov.l @(0x24,r15),r4  fn=FUN_8c03edcc@8c03edcc
+8c03f0a4  mov.l @(0x24,r15),r4  fn=FUN_8c03edcc@8c03edcc
+8c03f99a  mov.l @(0x24,r15),r3  fn=FUN_8c03f8cc@8c03f8cc
+8c0400c0  mov.l @(0x24,r15),r6  fn=FUN_8c03fe8c@8c03fe8c
+8c0400ce  mov.l @(0x24,r15),r6  fn=FUN_8c03fe8c@8c03fe8c
+8c040124  mov.l @(0x24,r15),r5  fn=FUN_8c03fe8c@8c03fe8c
+8c040d26  mov.l @(0x24,r15),r4  fn=FUN_8c040bca@8c040bca
+8c044b0e  mov.l @(0x24,r15),r6  fn=FUN_8c0448ac@8c0448ac
+8c044b26  mov.l @(0x24,r15),r2  fn=FUN_8c0448ac@8c0448ac
+8c044b34  mov.l @(0x24,r15),r2  fn=FUN_8c0448ac@8c0448ac
+8c0454b4  mov.l @(0x24,r15),r2  fn=FUN_8c04520c@8c04520c
+8c0462e6  mov.l @(0x24,r14),r3  fn=FUN_8c04628c@8c04628c
+8c046398  mov.l @(0x24,r4),r2  fn=FUN_8c04628c@8c04628c
+8c0463b8  mov.l @(0x24,r14),r1  fn=FUN_8c04628c@8c04628c
+8c046922  mov.l @(0x24,r2),r12  fn=FUN_8c046730@8c046730
+8c046cfa  mov.l @(0x24,r2),r14  fn=FUN_8c046c28@8c046c28
+8c046f46  mov.l @(0x24,r5),r2  fn=FUN_8c046f0c@8c046f0c
+8c047150  mov.l @(0x24,r15),r0  fn=FUN_8c0470f4@8c0470f4
+8c04720a  mov.l @(0x24,r1),r3  fn=FUN_8c0470f4@8c0470f4
+8c047a08  mov.l @(0x24,r4),r2  fn=FUN_8c047a08@8c047a08
+8c047d26  mov.l @(0x24,r6),r5  fn=FUN_8c047aa8@8c047aa8
+8c047f9e  mov.l @(0x24,r4),r6  fn=FUN_8c047f64@8c047f64
+8c0480ce  mov.l @(0x24,r4),r2  fn=FUN_8c0480a4@8c0480a4
+8c04899a  mov.l @(0x24,r5),r6  fn=FUN_8c048938@8c048938
+8c048bb6  mov.l @(0x24,r5),r2  fn=FUN_8c048938@8c048938
+8c048d20  mov.l @(0x24,r2),r6  fn=FUN_8c048938@8c048938
+8c048e0e  mov.l @(0x24,r4),r6  fn=FUN_8c048938@8c048938
+8c048f86  mov.l @(0x24,r5),r6  fn=FUN_8c048938@8c048938
+8c049226  mov.l @(0x24,r5),r2  fn=FUN_8c0491c4@8c0491c4
+8c049442  mov.l @(0x24,r5),r2  fn=FUN_8c0491c4@8c0491c4
+8c0495ee  mov.l @(0x24,r5),r2  fn=FUN_8c0491c4@8c0491c4
+8c04979c  mov.l @(0x24,r4),r2  fn=FUN_8c0491c4@8c0491c4
+8c0498f8  mov.l @(0x24,r2),r6  fn=FUN_8c0491c4@8c0491c4
+8c04a7a0  mov.l @(0x24,r15),r3  fn=FUN_8c04a768@8c04a768
+8c04a924  mov.l @(0x24,r15),r3  fn=FUN_8c04a768@8c04a768
+8c04a938  mov.l @(0x24,r15),r3  fn=FUN_8c04a768@8c04a768
+8c04a962  mov.l @(0x24,r15),r4  fn=FUN_8c04a768@8c04a768
+8c04ab08  mov.l @(0x24,r15),r4  fn=FUN_8c04a998@8c04a998
+8c04d980  mov.l @(0x24,r15),r7  fn=FUN_8c04d8c8@8c04d8c8
+8c04db22  mov.l @(0x24,r15),r7  fn=FUN_8c04d8c8@8c04d8c8
+8c04db36  mov.l @(0x24,r15),r7  fn=FUN_8c04d8c8@8c04d8c8
+8c04e7f4  mov.l @(0x24,r13),r6  fn=FUN_8c04e7b4@8c04e7b4
+8c04f10a  mov.l @(0x24,r14),r2  fn=FUN_8c04f0e8@8c04f0e8
+8c04f3c8  mov.l @(0x24,r15),r2  fn=FUN_8c04f158@8c04f158
+8c04f3e8  mov.l @(0x24,r15),r4  fn=FUN_8c04f158@8c04f158
+8c04f402  mov.l @(0x24,r15),r7  fn=FUN_8c04f158@8c04f158
+8c04f41a  mov.l @(0x24,r15),r7  fn=FUN_8c04f158@8c04f158
+8c04f432  mov.l @(0x24,r15),r7  fn=FUN_8c04f158@8c04f158
+8c04f442  mov.l @(0x24,r15),r2  fn=FUN_8c04f158@8c04f158
+8c04f44e  mov.l @(0x24,r15),r6  fn=FUN_8c04f158@8c04f158
+8c04f67e  mov.l @(0x24,r15),r7  fn=FUN_8c04f158@8c04f158
+8c04f68c  mov.l @(0x24,r15),r2  fn=FUN_8c04f158@8c04f158
+8c04f6a2  mov.l @(0x24,r15),r7  fn=FUN_8c04f158@8c04f158
+8c04f6a8  mov.l @(0x24,r15),r2  fn=FUN_8c04f158@8c04f158
+8c04fa80  mov.l @(0x24,r3),r6  fn=FUN_8c04f934@8c04f934
+8c04fe74  mov.l @(0x24,r5),r2  fn=FUN_8c04fe50@8c04fe50
+8c054e68  mov.l @(0x24,r15),r2  fn=FUN_8c054e24@8c054e24
+8c0567e8  mov.l @(0x24,r4),r2  fn=FUN_8c0567be@8c0567be
+8c0568fe  mov.l @(0x24,r5),r7  fn=FUN_8c0568ea@8c0568ea
+8c0569dc  mov.l @(0x24,r14),r2  fn=FUN_8c0568ea@8c0568ea
+8c057fba  mov.l @(0x24,r15),r3  fn=FUN_8c057994@8c057994
+8c057fce  mov.l @(0x24,r15),r5  fn=FUN_8c057994@8c057994
+8c057fda  mov.l @(0x24,r15),r1  fn=FUN_8c057994@8c057994
+8c058036  mov.l @(0x24,r15),r3  fn=FUN_8c057994@8c057994
+8c058048  mov.l @(0x24,r15),r1  fn=FUN_8c057994@8c057994
+8c058e14  mov.l @(0x24,r14),r2  fn=FUN_8c058ae2@8c058ae2
+8c05923e  mov.l @(0x24,r5),r2  fn=FUN_8c0590de@8c0590de
+8c059330  mov.l @(0x24,r7),r5  fn=FUN_8c0592e6@8c0592e6
+8c05a102  mov.l @(0x24,r15),r11  fn=FUN_8c059fa8@8c059fa8
+8c05a19a  mov.l @(0x24,r10),r2  fn=FUN_8c059fa8@8c059fa8
+8c05a59a  mov.l @(0x24,r5),r2  fn=FUN_8c05a478@8c05a478
+8c05a8c6  mov.l @(0x24,r15),r0  fn=FUN_8c05a7e4@8c05a7e4
+8c05aac8  mov.l @(0x24,r4),r6  fn=FUN_8c05a7e4@8c05a7e4
+8c05ac2c  mov.l @(0x24,r5),r6  fn=FUN_8c05aaf4@8c05aaf4
+8c05b5e0  mov.l @(0x24,r15),r3  fn=FUN_8c05b432@8c05b432
+8c05b8c2  mov.l @(0x24,r5),r2  fn=FUN_8c05b432@8c05b432
+8c05b9e6  mov.l @(0x24,r7),r2  fn=FUN_8c05b996@8c05b996
+8c05c7d6  mov.l @(0x24,r15),r8  fn=FUN_8c05c764@8c05c764
+8c05eb7e  mov.l @(0x24,r15),r2  fn=FUN_8c05eb30@8c05eb30
+8c060026  mov.l @(0x24,r2),r6  fn=FUN_8c05ff44@8c05ff44
+8c063616  mov.l @(0x24,r15),r4  fn=FUN_8c063580@8c063580
+8c0650ae  mov.l @(0x24,r15),r5  fn=FUN_8c064f04@8c064f04
+8c0652da  mov.l @(0x24,r15),r5  fn=FUN_8c065148@8c065148
+8c065bfa  mov.l @(0x24,r15),r6  fn=FUN_8c065588@8c065588
+8c067a8c  mov.l @(0x24,r4),r6  fn=FUN_8c067a3c@8c067a3c
+8c069842  mov.l @(0x24,r6),r2  fn=FUN_8c0695d0@8c0695d0
+8c069a9a  mov.l @(0x24,r6),r7  fn=FUN_8c069a58@8c069a58
+8c069c4c  mov.l @(0x24,r6),r5  fn=FUN_8c069a58@8c069a58
+8c069e4a  mov.l @(0x24,r12),r0  fn=FUN_8c069cd4@8c069cd4
+8c069eb8  mov.l @(0x24,r12),r2  fn=FUN_8c069cd4@8c069cd4
+8c06a28c  mov.l @(0x24,r10),r2  fn=FUN_8c069cd4@8c069cd4
+8c06a2da  mov.l @(0x24,r10),r6  fn=FUN_8c069cd4@8c069cd4
+8c06a2ec  mov.l @(0x24,r10),r2  fn=FUN_8c069cd4@8c069cd4
+8c06a65a  mov.l @(0x24,r2),r6  fn=FUN_8c06a624@8c06a624
+8c06a7c6  mov.l @(0x24,r6),r7  fn=FUN_8c06a624@8c06a624
+8c06a918  mov.l @(0x24,r15),r14  fn=FUN_8c06a83c@8c06a83c
+8c06a95c  mov.l @(0x24,r15),r3  fn=FUN_8c06a91e@8c06a91e
+8c06a96a  mov.l @(0x24,r15),r3  fn=FUN_8c06a91e@8c06a91e
+8c06a98c  mov.l @(0x24,r15),r9  fn=FUN_8c06a91e@8c06a91e
+8c06ac0c  mov.l @(0x24,r9),r0  fn=FUN_8c06a91e@8c06a91e
+8c06b1ae  mov.l @(0x24,r12),r0  fn=FUN_8c06b170@8c06b170
+8c06bb4c  mov.l @(0x24,r15),r0  fn=FUN_8c06bb02@8c06bb02
+8c06c0c0  mov.l @(0x24,r15),r13  fn=FUN_8c06bfe0@8c06bfe0
+8c06c1b8  mov.l @(0x24,r15),r4  fn=FUN_8c06bfe0@8c06bfe0
+8c06c50e  mov.l @(0x24,r15),r7  fn=FUN_8c06c4ac@8c06c4ac
+8c06c55e  mov.l @(0x24,r15),r2  fn=FUN_8c06c4ac@8c06c4ac
+8c06c564  mov.l @(0x24,r15),r8  fn=FUN_8c06c4ac@8c06c4ac
+8c06c5e2  mov.l @(0x24,r15),r14  fn=FUN_8c06c4ac@8c06c4ac
+8c06c6cc  mov.l @(0x24,r15),r2  fn=FUN_8c06c4ac@8c06c4ac
+8c06c6d2  mov.l @(0x24,r15),r4  fn=FUN_8c06c4ac@8c06c4ac
+8c06c6e2  mov.l @(0x24,r15),r7  fn=FUN_8c06c4ac@8c06c4ac
+8c06c710  mov.l @(0x24,r15),r4  fn=FUN_8c06c4ac@8c06c4ac
+8c06c736  mov.l @(0x24,r15),r7  fn=FUN_8c06c4ac@8c06c4ac
+8c06f658  mov.l @(0x24,r15),r4  fn=FUN_8c06f0d4@8c06f0d4
+8c06f82a  mov.l @(0x24,r15),r4  fn=FUN_8c06f0d4@8c06f0d4
+8c071936  mov.l @(0x24,r15),r2  fn=FUN_8c071750@8c071750
+8c071a20  mov.l @(0x24,r15),r2  fn=FUN_8c07197c@8c07197c
+8c071d5e  mov.l @(0x24,r15),r2  fn=FUN_8c071b78@8c071b78
+8c071e74  mov.l @(0x24,r5),r2  fn=FUN_8c071e2c@8c071e2c
+8c0725f4  mov.l @(0x24,r15),r2  fn=FUN_8c072550@8c072550
+8c0727c6  mov.l @(0x24,r12),r0  fn=FUN_8c07277c@8c07277c
+8c0728fa  mov.l @(0x24,r12),r0  fn=FUN_8c07277c@8c07277c
+8c072aec  mov.l @(0x24,r15),r1  fn=FUN_8c072aa2@8c072aa2
+8c072c78  mov.l @(0x24,r4),r2  fn=FUN_8c072c28@8c072c28
+8c073028  mov.l @(0x24,r6),r14  fn=FUN_8c072fb8@8c072fb8
+8c073588  mov.l @(0x24,r2),r0  fn=FUN_8c0730a8@8c0730a8
+8c073936  mov.l @(0x24,r6),r2  fn=FUN_8c0736bc@8c0736bc
+8c073ac6  mov.l @(0x24,r15),r4  fn=FUN_8c0736bc@8c0736bc
+8c0742c4  mov.l @(0x24,r15),r7  fn=FUN_8c073f36@8c073f36
+8c074580  mov.l @(0x24,r15),r6  fn=FUN_8c0743ec@8c0743ec
+8c0745c4  mov.l @(0x24,r2),r6  fn=FUN_8c0743ec@8c0743ec
+8c074bce  mov.l @(0x24,r2),r5  fn=FUN_8c074b18@8c074b18
+8c0751b4  mov.l @(0x24,r2),r5  fn=FUN_8c075108@8c075108
+8c0759fc  mov.l @(0x24,r15),r7  fn=FUN_8c0756fc@8c0756fc
+8c075dd6  mov.l @(0x24,r15),r7  fn=FUN_8c075a78@8c075a78
+8c075dec  mov.l @(0x24,r15),r7  fn=FUN_8c075a78@8c075a78
+8c0767a4  mov.l @(0x24,r2),r0  fn=FUN_8c0766c0@8c0766c0
+8c076dd4  mov.l @(0x24,r15),r4  fn=FUN_8c076cde@8c076cde
+8c076fb0  mov.l @(0x24,r15),r4  fn=FUN_8c076f12@8c076f12
+8c0771e8  mov.l @(0x24,r6),r5  fn=FUN_8c077160@8c077160
+8c07728e  mov.l @(0x24,r6),r0  fn=FUN_8c077160@8c077160
+8c077328  mov.l @(0x24,r2),r5  fn=FUN_8c0772f8@8c0772f8
+8c0774d8  mov.l @(0x24,r6),r14  fn=FUN_8c077468@8c077468
+8c0775f2  mov.l @(0x24,r6),r14  fn=FUN_8c077580@8c077580
+8c0776d6  mov.l @(0x24,r15),r0  fn=FUN_8c077580@8c077580
+8c077724  mov.l @(0x24,r12),r0  fn=FUN_8c077580@8c077580
+8c077858  mov.l @(0x24,r12),r0  fn=FUN_8c077580@8c077580
+8c077a8c  mov.l @(0x24,r6),r5  fn=FUN_8c077a1c@8c077a1c
+8c077c1e  mov.l @(0x24,r2),r6  fn=FUN_8c077ba8@8c077ba8
+8c077dca  mov.l @(0x24,r5),r14  fn=FUN_8c077ba8@8c077ba8
+8c078080  mov.l @(0x24,r4),r6  fn=FUN_8c077fce@8c077fce
+8c079106  mov.l @(0x24,r14),r2  fn=FUN_8c0790f4@8c0790f4
+8c07b78c  mov.l @(0x24,r15),r0  fn=FUN_8c07b570@8c07b570
+8c07b7d2  mov.l @(0x24,r10),r2  fn=FUN_8c07b7a0@8c07b7a0
+8c07b8be  mov.l @(0x24,r15),r3  fn=FUN_8c07b7a0@8c07b7a0
+8c07b990  mov.l @(0x24,r10),r2  fn=FUN_8c07b7a0@8c07b7a0
+8c07bd40  mov.l @(0x24,r10),r2  fn=FUN_8c07b7a0@8c07b7a0
+8c07bda6  mov.l @(0x24,r10),r2  fn=FUN_8c07b7a0@8c07b7a0
+8c07be46  mov.l @(0x24,r3),r2  fn=FUN_8c07b7a0@8c07b7a0
+8c07c076  mov.l @(0x24,r15),r8  fn=FUN_8c07bfd8@8c07bfd8
+8c07c10c  mov.l @(0x24,r15),r8  fn=FUN_8c07bfd8@8c07bfd8
+8c07c1de  mov.l @(0x24,r15),r8  fn=FUN_8c07bfd8@8c07bfd8
+8c07c5e0  mov.l @(0x24,r15),r14  fn=FUN_8c07c5c0@8c07c5c0
+8c07cb14  mov.l @(0x24,r4),r2  fn=FUN_8c07cafa@8c07cafa
+8c07ccd8  mov.l @(0x24,r10),r2  fn=FUN_8c07cafa@8c07cafa
+8c07d686  mov.l @(0x24,r14),r2  fn=FUN_8c07d38c@8c07d38c
+8c07d97c  mov.l @(0x24,r15),r8  fn=FUN_8c07d8ac@8c07d8ac
+8c07dbb0  mov.l @(0x24,r15),r8  fn=FUN_8c07d8ac@8c07d8ac
+8c07dc8e  mov.l @(0x24,r15),r8  fn=FUN_8c07d8ac@8c07d8ac
+8c07dda4  mov.l @(0x24,r15),r2  fn=FUN_8c07dd36@8c07dd36
+8c07de1c  mov.l @(0x24,r15),r2  fn=FUN_8c07dd36@8c07dd36
+8c07de7a  mov.l @(0x24,r15),r2  fn=FUN_8c07dd36@8c07dd36
+8c07dedc  mov.l @(0x24,r15),r6  fn=FUN_8c07dd36@8c07dd36
+8c07def6  mov.l @(0x24,r15),r6  fn=FUN_8c07dd36@8c07dd36
+8c07df02  mov.l @(0x24,r15),r6  fn=FUN_8c07dd36@8c07dd36
+8c07df04  mov.l @(0x24,r6),r2  fn=FUN_8c07dd36@8c07dd36
+8c07df42  mov.l @(0x24,r15),r11  fn=FUN_8c07dd36@8c07dd36
+8c07df76  mov.l @(0x24,r15),r6  fn=FUN_8c07dd36@8c07dd36
+8c07df80  mov.l @(0x24,r15),r6  fn=FUN_8c07dd36@8c07dd36
+8c07df9e  mov.l @(0x24,r15),r11  fn=FUN_8c07dd36@8c07dd36
+8c07dfd6  mov.l @(0x24,r15),r11  fn=FUN_8c07dd36@8c07dd36
+8c07e026  mov.l @(0x24,r15),r4  fn=FUN_8c07dd36@8c07dd36
+8c07e092  mov.l @(0x24,r15),r4  fn=FUN_8c07dd36@8c07dd36
+8c07e0ec  mov.l @(0x24,r15),r4  fn=FUN_8c07dd36@8c07dd36
+8c07e148  mov.l @(0x24,r15),r4  fn=FUN_8c07dd36@8c07dd36
+8c07e170  mov.l @(0x24,r15),r4  fn=FUN_8c07dd36@8c07dd36
+8c07e1e6  mov.l @(0x24,r15),r2  fn=FUN_8c07dd36@8c07dd36
+8c07e20c  mov.l @(0x24,r15),r13  fn=FUN_8c07dd36@8c07dd36
+8c07e244  mov.l @(0x24,r15),r6  fn=FUN_8c07dd36@8c07dd36
+8c07e276  mov.l @(0x24,r15),r2  fn=FUN_8c07dd36@8c07dd36
+8c07e2a8  mov.l @(0x24,r15),r11  fn=FUN_8c07dd36@8c07dd36
+8c07e7ae  mov.l @(0x24,r5),r2  fn=FUN_8c07e2fc@8c07e2fc
+8c07edaa  mov.l @(0x24,r6),r2  fn=FUN_8c07e2fc@8c07e2fc
+8c07ef78  mov.l @(0x24,r2),r5  fn=FUN_8c07e2fc@8c07e2fc
+8c07f3fa  mov.l @(0x24,r4),r2  fn=FUN_8c07f3f0@8c07f3f0
+8c0800ae  mov.l @(0x24,r15),r5  fn=FUN_8c07f510@8c07f510
+8c0808a0  mov.l @(0x24,r9),r2  fn=FUN_8c080790@8c080790
+8c080998  mov.l @(0x24,r15),r2  fn=FUN_8c080790@8c080790
+8c080d16  mov.l @(0x24,r9),r3  fn=FUN_8c080c7c@8c080c7c
+8c081300  mov.l @(0x24,r4),r2  fn=FUN_8c0812e4@8c0812e4
+8c0813a2  mov.l @(0x24,r9),r2  fn=FUN_8c0812e4@8c0812e4
+8c0813d4  mov.l @(0x24,r9),r2  fn=FUN_8c0812e4@8c0812e4
+8c08193c  mov.l @(0x24,r14),r9  fn=FUN_8c0818c0@8c0818c0
+8c081a94  mov.l @(0x24,r14),r5  fn=FUN_8c0818c0@8c0818c0
+8c081b4c  mov.l @(0x24,r3),r6  fn=FUN_8c0818c0@8c0818c0
+8c081c76  mov.l @(0x24,r14),r4  fn=FUN_8c0818c0@8c0818c0
+8c081f7e  mov.l @(0x24,r15),r10  fn=FUN_8c0818c0@8c0818c0
+8c0824ae  mov.l @(0x24,r14),r4  fn=FUN_8c0818c0@8c0818c0
+8c0827cc  mov.l @(0x24,r4),r6  fn=FUN_8c0827b4@8c0827b4
+8c082884  mov.l @(0x24,r4),r6  fn=FUN_8c082868@8c082868
+8c082ac2  mov.l @(0x24,r3),r2  fn=FUN_8c0829e8@8c0829e8
+8c082d96  mov.l @(0x24,r11),r1  fn=FUN_8c082cee@8c082cee
+8c0836d0  mov.l @(0x24,r12),r1  fn=FUN_8c083654@8c083654
+8c0837f2  mov.l @(0x24,r4),r14  fn=FUN_8c0837e0@8c0837e0
+8c083c92  mov.l @(0x24,r14),r2  fn=FUN_8c083c3a@8c083c3a
+8c083cdc  mov.l @(0x24,r14),r7  fn=FUN_8c083c3a@8c083c3a
+8c0846ec  mov.l @(0x24,r15),r8  fn=FUN_8c0846e6@8c0846e6
+8c0849d2  mov.l @(0x24,r4),r2  fn=FUN_8c0849bc@8c0849bc
+8c084a04  mov.l @(0x24,r4),r2  fn=FUN_8c0849ee@8c0849ee
+8c084c3c  mov.l @(0x24,r15),r2  fn=FUN_8c084c00@8c084c00
+8c08555c  mov.l @(0x24,r15),r0  fn=FUN_8c085170@8c085170
+8c085578  mov.l @(0x24,r15),r0  fn=FUN_8c085170@8c085170
+8c085892  mov.l @(0x24,r12),r2  fn=FUN_8c0856f0@8c0856f0
+8c085946  mov.l @(0x24,r12),r2  fn=FUN_8c0856f0@8c0856f0
+8c08597a  mov.l @(0x24,r12),r4  fn=FUN_8c0856f0@8c0856f0
+8c085c64  mov.l @(0x24,r12),r2  fn=FUN_8c0856f0@8c0856f0
+8c086060  mov.l @(0x24,r8),r2  fn=FUN_8c085ec0@8c085ec0
+8c086220  mov.l @(0x24,r12),r2  fn=FUN_8c0861a0@8c0861a0
+8c08623c  mov.l @(0x24,r12),r2  fn=FUN_8c0861a0@8c0861a0
+8c08646a  mov.l @(0x24,r12),r2  fn=FUN_8c0861a0@8c0861a0
+8c086486  mov.l @(0x24,r12),r2  fn=FUN_8c0861a0@8c0861a0
+8c0864a6  mov.l @(0x24,r12),r6  fn=FUN_8c0861a0@8c0861a0
+8c086540  mov.l @(0x24,r15),r3  fn=FUN_8c0861a0@8c0861a0
+8c08656c  mov.l @(0x24,r15),r5  fn=FUN_8c0861a0@8c0861a0
+8c086704  mov.l @(0x24,r12),r2  fn=FUN_8c0861a0@8c0861a0
+8c08671c  mov.l @(0x24,r12),r2  fn=FUN_8c0861a0@8c0861a0
+8c08688c  mov.l @(0x24,r12),r2  fn=FUN_8c0861a0@8c0861a0
+8c0868ae  mov.l @(0x24,r12),r2  fn=FUN_8c0861a0@8c0861a0
+8c0868cc  mov.l @(0x24,r12),r2  fn=FUN_8c0861a0@8c0861a0
+8c0868ee  mov.l @(0x24,r12),r2  fn=FUN_8c0861a0@8c0861a0
+8c086924  mov.l @(0x24,r12),r2  fn=FUN_8c0861a0@8c0861a0
+8c086942  mov.l @(0x24,r12),r2  fn=FUN_8c0861a0@8c0861a0
+8c086a24  mov.l @(0x24,r11),r2  fn=FUN_8c0869ac@8c0869ac
+8c086a40  mov.l @(0x24,r11),r2  fn=FUN_8c0869ac@8c0869ac
+8c086a60  mov.l @(0x24,r11),r4  fn=FUN_8c0869ac@8c0869ac
+8c086c64  mov.l @(0x24,r11),r2  fn=FUN_8c0869ac@8c0869ac
+8c086c80  mov.l @(0x24,r11),r2  fn=FUN_8c0869ac@8c0869ac
+8c086ca0  mov.l @(0x24,r11),r6  fn=FUN_8c0869ac@8c0869ac
+8c086e76  mov.l @(0x24,r11),r2  fn=FUN_8c0869ac@8c0869ac
+8c086e98  mov.l @(0x24,r11),r2  fn=FUN_8c0869ac@8c0869ac
+8c086ec8  mov.l @(0x24,r11),r2  fn=FUN_8c0869ac@8c0869ac
+8c086eea  mov.l @(0x24,r11),r2  fn=FUN_8c0869ac@8c0869ac
+8c086fd6  mov.l @(0x24,r14),r2  fn=FUN_8c086f64@8c086f64
+8c086ff2  mov.l @(0x24,r14),r2  fn=FUN_8c086f64@8c086f64
+8c087012  mov.l @(0x24,r14),r5  fn=FUN_8c086f64@8c086f64
+8c0871c8  mov.l @(0x24,r14),r2  fn=FUN_8c086f64@8c086f64
+8c0871e0  mov.l @(0x24,r14),r2  fn=FUN_8c086f64@8c086f64
+8c087200  mov.l @(0x24,r14),r5  fn=FUN_8c086f64@8c086f64
+8c0873d4  mov.l @(0x24,r14),r2  fn=FUN_8c086f64@8c086f64
+8c0873f6  mov.l @(0x24,r14),r2  fn=FUN_8c086f64@8c086f64
+8c087414  mov.l @(0x24,r14),r2  fn=FUN_8c086f64@8c086f64
+8c087436  mov.l @(0x24,r14),r2  fn=FUN_8c086f64@8c086f64
+8c087534  mov.l @(0x24,r13),r2  fn=FUN_8c0874b8@8c0874b8
+8c087550  mov.l @(0x24,r13),r2  fn=FUN_8c0874b8@8c0874b8
+8c087570  mov.l @(0x24,r13),r5  fn=FUN_8c0874b8@8c0874b8
+8c0878f6  mov.l @(0x24,r13),r2  fn=FUN_8c0874b8@8c0874b8
+8c08790e  mov.l @(0x24,r13),r2  fn=FUN_8c0874b8@8c0874b8
+8c087928  mov.l @(0x24,r13),r5  fn=FUN_8c0874b8@8c0874b8
+8c087afa  mov.l @(0x24,r13),r2  fn=FUN_8c0874b8@8c0874b8
+8c087b1c  mov.l @(0x24,r13),r2  fn=FUN_8c0874b8@8c0874b8
+8c087b4c  mov.l @(0x24,r13),r2  fn=FUN_8c0874b8@8c0874b8
+8c087b6a  mov.l @(0x24,r13),r2  fn=FUN_8c0874b8@8c0874b8
+8c087c6a  mov.l @(0x24,r12),r2  fn=FUN_8c087bf8@8c087bf8
+8c087c86  mov.l @(0x24,r12),r2  fn=FUN_8c087bf8@8c087bf8
+8c087d6c  mov.l @(0x24,r12),r2  fn=FUN_8c087bf8@8c087bf8
+8c087d84  mov.l @(0x24,r12),r2  fn=FUN_8c087bf8@8c087bf8
+8c087ee0  mov.l @(0x24,r12),r2  fn=FUN_8c087bf8@8c087bf8
+8c087f02  mov.l @(0x24,r12),r2  fn=FUN_8c087bf8@8c087bf8
+8c087f20  mov.l @(0x24,r12),r2  fn=FUN_8c087bf8@8c087bf8
+8c087f42  mov.l @(0x24,r12),r2  fn=FUN_8c087bf8@8c087bf8
+8c089004  mov.l @(0x24,r15),r3  fn=FUN_8c088ecc@8c088ecc
+8c089cd2  mov.l @(0x24,r15),r3  fn=FUN_8c089b84@8c089b84
+8c089ce6  mov.l @(0x24,r15),r6  fn=FUN_8c089b84@8c089b84
+8c089e04  mov.l @(0x24,r15),r3  fn=FUN_8c089b84@8c089b84
+8c089e16  mov.l @(0x24,r15),r3  fn=FUN_8c089b84@8c089b84
+8c08a346  mov.l @(0x24,r15),r1  fn=FUN_8c08a28c@8c08a28c
+8c08a48a  mov.l @(0x24,r3),r2  fn=FUN_8c08a28c@8c08a28c
+8c08a4f8  mov.l @(0x24,r3),r2  fn=FUN_8c08a28c@8c08a28c
+8c08a560  mov.l @(0x24,r3),r2  fn=FUN_8c08a28c@8c08a28c
+8c08a5da  mov.l @(0x24,r3),r2  fn=FUN_8c08a28c@8c08a28c
+8c08a6fc  mov.l @(0x24,r4),r2  fn=FUN_8c08a6d8@8c08a6d8
+8c08a752  mov.l @(0x24,r6),r5  fn=FUN_8c08a734@8c08a734
+8c08a8e8  mov.l @(0x24,r4),r2  fn=FUN_8c08a8ae@8c08a8ae
+8c08a904  mov.l @(0x24,r4),r2  fn=FUN_8c08a8ae@8c08a8ae
+8c08a954  mov.l @(0x24,r4),r2  fn=FUN_8c08a8ae@8c08a8ae
+8c08a972  mov.l @(0x24,r4),r2  fn=FUN_8c08a8ae@8c08a8ae
+8c08af8a  mov.l @(0x24,r3),r2  fn=FUN_8c08ae18@8c08ae18
+8c08afdc  mov.l @(0x24,r3),r2  fn=FUN_8c08ae18@8c08ae18
+8c08b832  mov.l @(0x24,r10),r2  fn=FUN_8c08b77e@8c08b77e
+8c08b882  mov.l @(0x24,r15),r3  fn=FUN_8c08b77e@8c08b77e
+8c08ba20  mov.l @(0x24,r11),r2  fn=FUN_8c08b948@8c08b948
+8c08bcc2  mov.l @(0x24,r13),r2  fn=FUN_8c08bc88@8c08bc88
+8c08beba  mov.l @(0x24,r13),r2  fn=FUN_8c08be84@8c08be84
+8c08c08e  mov.l @(0x24,r11),r2  fn=FUN_8c08c054@8c08c054
+8c08c1d4  mov.l @(0x24,r10),r2  fn=FUN_8c08c1aa@8c08c1aa
+8c08c1fe  mov.l @(0x24,r10),r2  fn=FUN_8c08c1aa@8c08c1aa
+8c08c34a  mov.l @(0x24,r15),r3  fn=FUN_8c08c300@8c08c300
+8c08c4d4  mov.l @(0x24,r15),r3  fn=FUN_8c08c300@8c08c300
+8c08c712  mov.l @(0x24,r15),r1  fn=FUN_8c08c516@8c08c516
+8c08c9bc  mov.l @(0x24,r4),r2  fn=FUN_8c08c9a6@8c08c9a6
+8c08ca12  mov.l @(0x24,r4),r2  fn=FUN_8c08c9fc@8c08c9fc
+8c08ca9c  mov.l @(0x24,r4),r2  fn=FUN_8c08ca8e@8c08ca8e
+8c08cb32  mov.l @(0x24,r4),r2  fn=FUN_8c08cb1c@8c08cb1c
+8c08ce10  mov.l @(0x24,r14),r2  fn=FUN_8c08cd8c@8c08cd8c
+8c08d02e  mov.l @(0x24,r4),r2  fn=FUN_8c08d018@8c08d018
+8c08d080  mov.l @(0x24,r4),r2  fn=FUN_8c08d064@8c08d064
+8c08d0f2  mov.l @(0x24,r4),r2  fn=FUN_8c08d0d4@8c08d0d4
+8c08d2d6  mov.l @(0x24,r15),r6  fn=FUN_8c08d214@8c08d214
+8c08d60a  mov.l @(0x24,r15),r2  fn=FUN_8c08d534@8c08d534
+8c08db50  mov.l @(0x24,r12),r2  fn=FUN_8c08da6c@8c08da6c
+8c08db6c  mov.l @(0x24,r12),r2  fn=FUN_8c08da6c@8c08da6c
+8c08dc9c  mov.l @(0x24,r12),r2  fn=FUN_8c08da6c@8c08da6c
+8c08dd20  mov.l @(0x24,r12),r2  fn=FUN_8c08da6c@8c08da6c
+8c08dd38  mov.l @(0x24,r12),r2  fn=FUN_8c08da6c@8c08da6c
+8c08dfc2  mov.l @(0x24,r12),r2  fn=FUN_8c08da6c@8c08da6c
+8c08dfe4  mov.l @(0x24,r12),r2  fn=FUN_8c08da6c@8c08da6c
+8c08e042  mov.l @(0x24,r12),r2  fn=FUN_8c08da6c@8c08da6c
+8c08e064  mov.l @(0x24,r12),r2  fn=FUN_8c08da6c@8c08da6c
+8c08e452  mov.l @(0x24,r12),r2  fn=FUN_8c08e350@8c08e350
+8c08e48a  mov.l @(0x24,r12),r5  fn=FUN_8c08e350@8c08e350
+8c08e6a8  mov.l @(0x24,r12),r2  fn=FUN_8c08e350@8c08e350
+8c08ea5a  mov.l @(0x24,r10),r2  fn=FUN_8c08e990@8c08e990
+8c08eae2  mov.l @(0x24,r10),r2  fn=FUN_8c08e990@8c08e990
+8c08eb3a  mov.l @(0x24,r10),r6  fn=FUN_8c08e990@8c08e990
+8c08ed98  mov.l @(0x24,r10),r2  fn=FUN_8c08e990@8c08e990
+8c08f02c  mov.l @(0x24,r11),r2  fn=FUN_8c08ef24@8c08ef24
+8c08f064  mov.l @(0x24,r11),r5  fn=FUN_8c08ef24@8c08ef24
+8c08f288  mov.l @(0x24,r11),r2  fn=FUN_8c08ef24@8c08ef24
+8c08f6fc  mov.l @(0x24,r4),r13  fn=FUN_8c08f6d8@8c08f6d8
+8c090024  mov.l @(0x24,r15),r11  fn=FUN_8c08feec@8c08feec
+8c0900b6  mov.l @(0x24,r15),r3  fn=FUN_8c08feec@8c08feec
+8c0900c0  mov.l @(0x24,r15),r3  fn=FUN_8c08feec@8c08feec
+8c090274  mov.l @(0x24,r13),r2  fn=FUN_8c09023a@8c09023a
+8c0905b6  mov.l @(0x24,r15),r3  fn=FUN_8c09023a@8c09023a
+8c090602  mov.l @(0x24,r15),r3  fn=FUN_8c09023a@8c09023a
+8c09064c  mov.l @(0x24,r15),r6  fn=FUN_8c09023a@8c09023a
+8c090738  mov.l @(0x24,r11),r2  fn=FUN_8c0906f4@8c0906f4
+8c090918  mov.l @(0x24,r15),r2  fn=FUN_8c0906f4@8c0906f4
+8c091262  mov.l @(0x24,r12),r2  fn=FUN_8c09109c@8c09109c
+8c091316  mov.l @(0x24,r12),r2  fn=FUN_8c09109c@8c09109c
+8c09134a  mov.l @(0x24,r12),r4  fn=FUN_8c09109c@8c09109c
+8c091634  mov.l @(0x24,r12),r2  fn=FUN_8c09109c@8c09109c
+8c096418  mov.l @(0x24,r15),r4  fn=FUN_8c0962a4@8c0962a4
+8c096428  mov.l @(0x24,r15),r4  fn=FUN_8c0962a4@8c0962a4
+8c096c3e  mov.l @(0x24,r15),r3  fn=FUN_8c096928@8c096928
+8c096d10  mov.l @(0x24,r15),r1  fn=FUN_8c096928@8c096928
+8c09732a  mov.l @(0x24,r15),r6  fn=FUN_8c097266@8c097266
+8c09aa0c  mov.l @(0x24,r10),r2  fn=FUN_8c09a994@8c09a994
+8c09dcc2  mov.l @(0x24,r15),r7  fn=FUN_8c09da18@8c09da18
+8c09e9aa  mov.l @(0x24,r2),r0  fn=(none)
+8c09f87e  mov.l @(0x24,r15),r3  fn=FUN_8c09f86a@8c09f86a
+8c0a0664  mov.l @(0x24,r7),r6  fn=FUN_8c0a0636@8c0a0636
+8c0a0c20  mov.l @(0x24,r5),r7  fn=FUN_8c0a0c0c@8c0a0c0c
+8c0a5ae6  mov.l @(0x24,r2),r7  fn=FUN_8c0a5acc@8c0a5acc
+8c0a70e6  mov.l @(0x24,r6),r3  fn=FUN_8c0a7070@8c0a7070
+8c0a7604  mov.l @(0x24,r15),r2  fn=FUN_8c0a74f4@8c0a74f4
+8c0a8098  mov.l @(0x24,r4),r2  fn=FUN_8c0a7ff4@8c0a7ff4
+8c0a82da  mov.l @(0x24,r4),r2  fn=FUN_8c0a8198@8c0a8198
+8c0a8cd2  mov.l @(0x24,r15),r14  fn=FUN_8c0a8c94@8c0a8c94
+8c0aa59c  mov.l @(0x24,r15),r2  fn=FUN_8c0aa398@8c0aa398
+8c0ad568  mov.l @(0x24,r2),r4  fn=FUN_8c0ad4b2@8c0ad4b2
+8c0ad744  mov.l @(0x24,r2),r4  fn=FUN_8c0ad68e@8c0ad68e
+8c0adf98  mov.l @(0x24,r2),r4  fn=FUN_8c0adee2@8c0adee2
+8c0ae7e4  mov.l @(0x24,r4),r6  fn=FUN_8c0ae718@8c0ae718
+8c0af164  mov.l @(0x24,r4),r6  fn=FUN_8c0af0b8@8c0af0b8
+8c0af95a  mov.l @(0x24,r4),r2  fn=FUN_8c0af8ac@8c0af8ac
+8c0b0298  mov.l @(0x24,r4),r6  fn=FUN_8c0b01dc@8c0b01dc
+8c0b0b92  mov.l @(0x24,r4),r6  fn=FUN_8c0b0ac8@8c0b0ac8
+8c0b15fa  mov.l @(0x24,r4),r2  fn=FUN_8c0b153c@8c0b153c
+8c0b18f4  mov.l @(0x24,r2),r6  fn=FUN_8c0b18bc@8c0b18bc
+8c0b217e  mov.l @(0x24,r4),r6  fn=FUN_8c0b20b4@8c0b20b4
+8c0b23ec  mov.l @(0x24,r4),r6  fn=FUN_8c0b233c@8c0b233c
+8c0b2c04  mov.l @(0x24,r4),r2  fn=FUN_8c0b2b58@8c0b2b58
+8c0b2d82  mov.l @(0x24,r14),r2  fn=FUN_8c0b2d36@8c0b2d36
+8c0b2dee  mov.l @(0x24,r5),r6  fn=FUN_8c0b2dc4@8c0b2dc4
+8c0b3210  mov.l @(0x24,r14),r2  fn=FUN_8c0b31b8@8c0b31b8
+8c0b342c  mov.l @(0x24,r5),r6  fn=FUN_8c0b33fc@8c0b33fc
+8c0b35de  mov.l @(0x24,r14),r2  fn=FUN_8c0b3586@8c0b3586
+8c0b39ee  mov.l @(0x24,r4),r2  fn=FUN_8c0b39b6@8c0b39b6
+8c0b3d36  mov.l @(0x24,r14),r2  fn=FUN_8c0b3cde@8c0b3cde
+8c0b4066  mov.l @(0x24,r5),r6  fn=FUN_8c0b4036@8c0b4036
+8c0b4ce0  mov.l @(0x24,r4),r2  fn=FUN_8c0b4cb0@8c0b4cb0
+8c0b4d3c  mov.l @(0x24,r4),r2  fn=FUN_8c0b4d0c@8c0b4d0c
+8c0b4e08  mov.l @(0x24,r4),r2  fn=FUN_8c0b4dd4@8c0b4dd4
+8c0b582c  mov.l @(0x24,r4),r2  fn=FUN_8c0b57fc@8c0b57fc
+8c0b5884  mov.l @(0x24,r4),r2  fn=FUN_8c0b5854@8c0b5854
+8c0b5dd8  mov.l @(0x24,r4),r2  fn=FUN_8c0b5da8@8c0b5da8
+8c0b62ea  mov.l @(0x24,r4),r2  fn=FUN_8c0b62ba@8c0b62ba
+8c0b7d88  mov.l @(0x24,r2),r5  fn=FUN_8c0b78e4@8c0b78e4
+8c0b899c  mov.l @(0x24,r2),r5  fn=FUN_8c0b8420@8c0b8420
+8c0bb2ac  mov.l @(0x24,r0),r13  fn=FUN_8c0bb1ce@8c0bb1ce
+8c0bcb42  mov.l @(0x24,r15),r10  fn=FUN_8c0bc914@8c0bc914
+8c0bcbca  mov.l @(0x24,r15),r3  fn=FUN_8c0bc914@8c0bc914
+8c0bdb3e  mov.l @(0x24,r0),r13  fn=FUN_8c0bd578@8c0bd578
+8c0c73f8  mov.l @(0x24,r15),r2  fn=FUN_8c0c71a0@8c0c71a0
+8c0c745a  mov.l @(0x24,r15),r2  fn=FUN_8c0c71a0@8c0c71a0
+8c0c75b4  mov.l @(0x24,r15),r2  fn=FUN_8c0c71a0@8c0c71a0
+8c0c75e6  mov.l @(0x24,r15),r2  fn=FUN_8c0c71a0@8c0c71a0
+8c0c75f2  mov.l @(0x24,r15),r2  fn=FUN_8c0c71a0@8c0c71a0
+8c0c7610  mov.l @(0x24,r15),r4  fn=FUN_8c0c71a0@8c0c71a0
+8c0ca138  mov.l @(0x24,r15),r2  fn=FUN_8c0c9ecc@8c0c9ecc
+8c0ca142  mov.l @(0x24,r15),r6  fn=FUN_8c0c9ecc@8c0c9ecc
+8c0ca174  mov.l @(0x24,r15),r6  fn=FUN_8c0c9ecc@8c0c9ecc
+8c0ca412  mov.l @(0x24,r15),r2  fn=FUN_8c0ca1a8@8c0ca1a8
+8c0ca41e  mov.l @(0x24,r15),r5  fn=FUN_8c0ca1a8@8c0ca1a8
+8c0ca452  mov.l @(0x24,r15),r5  fn=FUN_8c0ca1a8@8c0ca1a8
+8c0ca724  mov.l @(0x24,r15),r2  fn=FUN_8c0ca4b8@8c0ca4b8
+8c0ca72e  mov.l @(0x24,r15),r6  fn=FUN_8c0ca4b8@8c0ca4b8
+8c0ca760  mov.l @(0x24,r15),r6  fn=FUN_8c0ca4b8@8c0ca4b8
+8c0ca9f4  mov.l @(0x24,r15),r2  fn=FUN_8c0ca794@8c0ca794
+8c0ca9fe  mov.l @(0x24,r15),r6  fn=FUN_8c0ca794@8c0ca794
+8c0caa30  mov.l @(0x24,r15),r6  fn=FUN_8c0ca794@8c0ca794
+8c0cc40a  mov.l @(0x24,r4),r6  fn=FUN_8c0cc3ce@8c0cc3ce
+8c0ccb9e  mov.l @(0x24,r5),r6  fn=FUN_8c0cca9c@8c0cca9c
+8c0ccbee  mov.l @(0x24,r2),r6  fn=FUN_8c0cca9c@8c0cca9c
+8c0cd356  mov.l @(0x24,r5),r6  fn=FUN_8c0cd2c8@8c0cd2c8
+8c0cd386  mov.l @(0x24,r5),r6  fn=FUN_8c0cd2c8@8c0cd2c8
+8c0cd508  mov.l @(0x24,r10),r2  fn=FUN_8c0cd4bc@8c0cd4bc
+8c0cd536  mov.l @(0x24,r11),r6  fn=FUN_8c0cd4bc@8c0cd4bc
+8c0cd6c2  mov.l @(0x24,r10),r2  fn=FUN_8c0cd674@8c0cd674
+8c0cd6f0  mov.l @(0x24,r11),r6  fn=FUN_8c0cd674@8c0cd674
+8c0cda3c  mov.l @(0x24,r5),r6  fn=FUN_8c0cd9b8@8c0cd9b8
+8c0cda88  mov.l @(0x24,r2),r11  fn=FUN_8c0cd9b8@8c0cd9b8
+8c0cddae  mov.l @(0x24,r2),r11  fn=FUN_8c0cd9b8@8c0cd9b8
+8c0ce04c  mov.l @(0x24,r5),r2  fn=FUN_8c0ce00c@8c0ce00c
+8c0ce09c  mov.l @(0x24,r2),r9  fn=FUN_8c0ce00c@8c0ce00c
+8c0ce38a  mov.l @(0x24,r2),r10  fn=FUN_8c0ce318@8c0ce318
+8c0ce672  mov.l @(0x24,r15),r0  fn=FUN_8c0ce624@8c0ce624
+8c0ce8b2  mov.l @(0x24,r7),r2  fn=FUN_8c0ce87e@8c0ce87e
+8c0ce8e2  mov.l @(0x24,r4),r2  fn=FUN_8c0ce87e@8c0ce87e
+8c0cf010  mov.l @(0x24,r4),r6  fn=FUN_8c0cef04@8c0cef04
+8c0cf63e  mov.l @(0x24,r1),r2  fn=FUN_8c0cf544@8c0cf544
+8c0cfb52  mov.l @(0x24,r4),r2  fn=FUN_8c0cfa82@8c0cfa82
+8c0cfcf0  mov.l @(0x24,r4),r6  fn=FUN_8c0cfcba@8c0cfcba
+8c0cfe38  mov.l @(0x24,r4),r2  fn=FUN_8c0cfdf8@8c0cfdf8
+8c0d0052  mov.l @(0x24,r15),r0  fn=FUN_8c0d0008@8c0d0008
+8c0d0596  mov.l @(0x24,r4),r6  fn=FUN_8c0d0550@8c0d0550
+8c0d08dc  mov.l @(0x24,r4),r14  fn=FUN_8c0d08d4@8c0d08d4
+8c0d0e02  mov.l @(0x24,r11),r2  fn=FUN_8c0d0dac@8c0d0dac
+8c0d0e4e  mov.l @(0x24,r15),r2  fn=FUN_8c0d0dac@8c0d0dac
+8c0d0e9c  mov.l @(0x24,r15),r3  fn=FUN_8c0d0dac@8c0d0dac
+8c0d0ea2  mov.l @(0x24,r15),r3  fn=FUN_8c0d0dac@8c0d0dac
+8c0d0eac  mov.l @(0x24,r15),r0  fn=FUN_8c0d0dac@8c0d0dac
+8c0d0eb8  mov.l @(0x24,r15),r7  fn=FUN_8c0d0dac@8c0d0dac
+8c0d0ef2  mov.l @(0x24,r15),r3  fn=FUN_8c0d0dac@8c0d0dac
+8c0d0f1e  mov.l @(0x24,r15),r3  fn=FUN_8c0d0dac@8c0d0dac
+8c0d1240  mov.l @(0x24,r15),r6  fn=FUN_8c0d0dac@8c0d0dac
+8c0d12b0  mov.l @(0x24,r15),r3  fn=FUN_8c0d0dac@8c0d0dac
+8c0d12b6  mov.l @(0x24,r15),r3  fn=FUN_8c0d0dac@8c0d0dac
+8c0d12c0  mov.l @(0x24,r15),r0  fn=FUN_8c0d0dac@8c0d0dac
+8c0d12d0  mov.l @(0x24,r15),r0  fn=FUN_8c0d0dac@8c0d0dac
+8c0d12e2  mov.l @(0x24,r15),r3  fn=FUN_8c0d0dac@8c0d0dac
+8c0d12fe  mov.l @(0x24,r15),r3  fn=FUN_8c0d0dac@8c0d0dac
+8c0d1308  mov.l @(0x24,r15),r3  fn=FUN_8c0d0dac@8c0d0dac
+8c0d13e4  mov.l @(0x24,r15),r3  fn=FUN_8c0d0dac@8c0d0dac
+8c0d14f0  mov.l @(0x24,r4),r2  fn=FUN_8c0d14e4@8c0d14e4
+8c0d1542  mov.l @(0x24,r12),r2  fn=FUN_8c0d14e4@8c0d14e4
+8c0d15ee  mov.l @(0x24,r12),r2  fn=FUN_8c0d14e4@8c0d14e4
+8c0d16b8  mov.l @(0x24,r4),r2  fn=FUN_8c0d16ac@8c0d16ac
+8c0d1726  mov.l @(0x24,r11),r2  fn=FUN_8c0d16ac@8c0d16ac
+8c0d1778  mov.l @(0x24,r11),r2  fn=FUN_8c0d16ac@8c0d16ac
+8c0d183e  mov.l @(0x24,r11),r2  fn=FUN_8c0d16ac@8c0d16ac
+8c0d1894  mov.l @(0x24,r4),r2  fn=FUN_8c0d1888@8c0d1888
+8c0d18e6  mov.l @(0x24,r12),r2  fn=FUN_8c0d1888@8c0d1888
+8c0d1992  mov.l @(0x24,r12),r2  fn=FUN_8c0d1888@8c0d1888
+8c0d1cc4  mov.l @(0x24,r13),r2  fn=FUN_8c0d1cbe@8c0d1cbe
+8c0d21de  mov.l @(0x24,r15),r3  fn=FUN_8c0d2172@8c0d2172
+8c0d2500  mov.l @(0x24,r12),r2  fn=FUN_8c0d24dc@8c0d24dc
+8c0d257c  mov.l @(0x24,r4),r2  fn=FUN_8c0d2572@8c0d2572
+8c0d2724  mov.l @(0x24,r4),r2  fn=FUN_8c0d271a@8c0d271a
+8c0d27ae  mov.l @(0x24,r14),r2  fn=FUN_8c0d271a@8c0d271a
+8c0d287e  mov.l @(0x24,r4),r2  fn=FUN_8c0d2878@8c0d2878
+8c0d2938  mov.l @(0x24,r4),r2  fn=FUN_8c0d2932@8c0d2932
+8c0d2e28  mov.l @(0x24,r15),r3  fn=FUN_8c0d2dbc@8c0d2dbc
+8c0d3130  mov.l @(0x24,r4),r2  fn=FUN_8c0d3126@8c0d3126
+8c0d34a0  mov.l @(0x24,r3),r2  fn=FUN_8c0d334c@8c0d334c
+8c0d35e6  mov.l @(0x24,r15),r4  fn=FUN_8c0d334c@8c0d334c
+8c0d361c  mov.l @(0x24,r15),r4  fn=FUN_8c0d334c@8c0d334c
+8c0d365c  mov.l @(0x24,r15),r4  fn=FUN_8c0d334c@8c0d334c
+8c0d5276  mov.l @(0x24,r15),r2  fn=FUN_8c0d521a@8c0d521a
+8c0d76b4  mov.l @(0x24,r4),r2  fn=FUN_8c0d7418@8c0d7418
+8c0d791e  mov.l @(0x24,r4),r2  fn=FUN_8c0d7418@8c0d7418
+8c0d7d48  mov.l @(0x24,r4),r2  fn=FUN_8c0d7d14@8c0d7d14
+8c0d7d74  mov.l @(0x24,r5),r2  fn=FUN_8c0d7d14@8c0d7d14
+8c0d7fd4  mov.l @(0x24,r2),r14  fn=FUN_8c0d7f14@8c0d7f14
+8c0d82ec  mov.l @(0x24,r7),r6  fn=FUN_8c0d82b4@8c0d82b4
+8c0d84cc  mov.l @(0x24,r4),r2  fn=FUN_8c0d849e@8c0d849e
+8c0d861a  mov.l @(0x24,r5),r2  fn=FUN_8c0d85dc@8c0d85dc
+8c0daa0e  mov.l @(0x24,r2),r6  fn=FUN_8c0da8d8@8c0da8d8
+8c0db0dc  mov.l @(0x24,r4),r2  fn=FUN_8c0db0a4@8c0db0a4
+8c0db0ec  mov.l @(0x24,r2),r14  fn=FUN_8c0db0a4@8c0db0a4
+8c0dca66  mov.l @(0x24,r6),r2  fn=FUN_8c0dca36@8c0dca36
+8c0dcbec  mov.l @(0x24,r4),r2  fn=FUN_8c0dcbbe@8c0dcbbe
+8c0dcbfc  mov.l @(0x24,r2),r13  fn=FUN_8c0dcbbe@8c0dcbbe
+8c0e2b00  mov.l @(0x24,r15),r7  fn=FUN_8c0e2a9c@8c0e2a9c
+8c0e52e8  mov.l @(0x24,r15),r6  fn=FUN_8c0e5056@8c0e5056
+8c0e5eec  mov.l @(0x24,r6),r2  fn=FUN_8c0e5eae@8c0e5eae
+8c0e5fe8  mov.l @(0x24,r2),r6  fn=FUN_8c0e5f5e@8c0e5f5e
+8c0e5ff6  mov.l @(0x24,r6),r2  fn=FUN_8c0e5f5e@8c0e5f5e
+8c0e601c  mov.l @(0x24,r2),r6  fn=FUN_8c0e5f5e@8c0e5f5e
+8c0e602c  mov.l @(0x24,r6),r2  fn=FUN_8c0e5f5e@8c0e5f5e
+8c0e61d2  mov.l @(0x24,r5),r2  fn=FUN_8c0e618c@8c0e618c
+8c0e63ac  mov.l @(0x24,r5),r2  fn=FUN_8c0e6366@8c0e6366
+8c0e66e0  mov.l @(0x24,r15),r6  fn=FUN_8c0e6640@8c0e6640
+8c0e671e  mov.l @(0x24,r15),r4  fn=FUN_8c0e6640@8c0e6640
+8c0e6844  mov.l @(0x24,r4),r6  fn=FUN_8c0e680e@8c0e680e
+8c0e6852  mov.l @(0x24,r6),r2  fn=FUN_8c0e680e@8c0e680e
+8c0e6868  mov.l @(0x24,r4),r2  fn=FUN_8c0e680e@8c0e680e
+8c0e687a  mov.l @(0x24,r6),r2  fn=FUN_8c0e680e@8c0e680e
+8c0e694e  mov.l @(0x24,r6),r2  fn=FUN_8c0e6926@8c0e6926
+8c0e75f0  mov.l @(0x24,r4),r6  fn=FUN_8c0e75de@8c0e75de
+8c0e75fe  mov.l @(0x24,r6),r2  fn=FUN_8c0e75de@8c0e75de
+8c0e7610  mov.l @(0x24,r4),r2  fn=FUN_8c0e75de@8c0e75de
+8c0e7622  mov.l @(0x24,r6),r2  fn=FUN_8c0e75de@8c0e75de
+8c0e76e6  mov.l @(0x24,r2),r6  fn=FUN_8c0e76bc@8c0e76bc
+8c0e76ea  mov.l @(0x24,r6),r2  fn=FUN_8c0e76bc@8c0e76bc
+8c0e76f6  mov.l @(0x24,r6),r2  fn=FUN_8c0e76bc@8c0e76bc
+8c0e7928  mov.l @(0x24,r6),r2  fn=FUN_8c0e7924@8c0e7924
+8c0e7a20  mov.l @(0x24,r6),r2  fn=FUN_8c0e79ea@8c0e79ea
+8c0e7a7e  mov.l @(0x24,r2),r6  fn=FUN_8c0e79ea@8c0e79ea
+8c0e7a8c  mov.l @(0x24,r6),r2  fn=FUN_8c0e79ea@8c0e79ea
+8c0e7ab6  mov.l @(0x24,r2),r6  fn=FUN_8c0e79ea@8c0e79ea
+8c0e7ac6  mov.l @(0x24,r6),r2  fn=FUN_8c0e79ea@8c0e79ea
+8c0e7b68  mov.l @(0x24,r2),r6  fn=FUN_8c0e7ae4@8c0e7ae4
+8c0e7b76  mov.l @(0x24,r6),r2  fn=FUN_8c0e7ae4@8c0e7ae4
+8c0e7ba0  mov.l @(0x24,r2),r6  fn=FUN_8c0e7ae4@8c0e7ae4
+8c0e7bb0  mov.l @(0x24,r6),r2  fn=FUN_8c0e7ae4@8c0e7ae4
+8c0e7e5a  mov.l @(0x24,r6),r2  fn=FUN_8c0e7e16@8c0e7e16
+8c0e807c  mov.l @(0x24,r15),r4  fn=FUN_8c0e7fc8@8c0e7fc8
+8c0e8092  mov.l @(0x24,r15),r6  fn=FUN_8c0e7fc8@8c0e7fc8
+8c0e8138  mov.l @(0x24,r6),r2  fn=FUN_8c0e80f0@8c0e80f0
+8c0e836c  mov.l @(0x24,r4),r6  fn=FUN_8c0e8340@8c0e8340
+8c0e837a  mov.l @(0x24,r6),r2  fn=FUN_8c0e8340@8c0e8340
+8c0e8390  mov.l @(0x24,r4),r2  fn=FUN_8c0e8340@8c0e8340
+8c0e83c8  mov.l @(0x24,r6),r2  fn=FUN_8c0e8340@8c0e8340
+8c0e8468  mov.l @(0x24,r6),r2  fn=FUN_8c0e8446@8c0e8446
+8c0e885c  mov.l @(0x24,r15),r1  fn=FUN_8c0e880c@8c0e880c
+8c0ea4b0  mov.l @(0x24,r15),r1  fn=FUN_8c0ea464@8c0ea464
+8c0ec1ec  mov.l @(0x24,r4),r6  fn=FUN_8c0ec1b0@8c0ec1b0
+8c0ecbfa  mov.l @(0x24,r4),r6  fn=FUN_8c0eca42@8c0eca42
+8c0ece1c  mov.l @(0x24,r4),r2  fn=FUN_8c0ecde4@8c0ecde4
+8c0ece4c  mov.l @(0x24,r5),r6  fn=FUN_8c0ecde4@8c0ecde4
+8c0ece7e  mov.l @(0x24,r5),r6  fn=FUN_8c0ecde4@8c0ecde4
+8c0ee290  mov.l @(0x24,r15),r7  fn=FUN_8c0edc44@8c0edc44
+8c0ee5b4  mov.l @(0x24,r15),r4  fn=FUN_8c0ee404@8c0ee404
+8c0ee63e  mov.l @(0x24,r15),r4  fn=FUN_8c0ee404@8c0ee404
+8c0ee74c  mov.l @(0x24,r15),r4  fn=FUN_8c0ee404@8c0ee404
+8c0ee840  mov.l @(0x24,r15),r4  fn=FUN_8c0ee404@8c0ee404
+8c0ee908  mov.l @(0x24,r15),r4  fn=FUN_8c0ee404@8c0ee404
+8c0ee9bc  mov.l @(0x24,r15),r4  fn=FUN_8c0ee404@8c0ee404
+8c0eea82  mov.l @(0x24,r15),r4  fn=FUN_8c0ee404@8c0ee404
+8c0f2eb6  mov.l @(0x24,r15),r7  fn=FUN_8c0f2bf4@8c0f2bf4
+8c0f81ec  mov.l @(0x24,r4),r7  fn=_longjmp@8c0f81a4
+8c0f846a  mov.l @(0x24,r2),r0  fn=(none)
+8c0f8c20  mov.l @(0x24,r14),r2  fn=__fmtout@8c0f8604
+8c0f8cb4  mov.l @(0x24,r14),r2  fn=__fmtout@8c0f8604
+8c0f8cba  mov.l @(0x24,r14),r3  fn=__fmtout@8c0f8604
+8c0fced6  mov.l @(0x24,r2),r5  fn=FUN_8c0fce64@8c0fce64
+8c0fd02a  mov.l @(0x24,r15),r2  fn=FUN_8c0fcf6a@8c0fcf6a
+8c1018c8  mov.l @(0x24,r2),r6  fn=FUN_8c101894@8c101894
+8c1018f4  mov.l @(0x24,r2),r6  fn=FUN_8c101894@8c101894
+8c101db0  mov.l @(0x24,r2),r6  fn=FUN_8c101d7c@8c101d7c
+8c101ddc  mov.l @(0x24,r2),r6  fn=FUN_8c101d7c@8c101d7c
+8c10395e  mov.l @(0x24,r2),r6  fn=FUN_8c103924@8c103924
+8c10398a  mov.l @(0x24,r2),r6  fn=FUN_8c103924@8c103924
+8c104aba  mov.l @(0x24,r4),r6  fn=FUN_8c104a8c@8c104a8c
+8c1055fc  mov.l @(0x24,r4),r2  fn=FUN_8c10555a@8c10555a
+8c105abc  mov.l @(0x24,r4),r6  fn=FUN_8c105a58@8c105a58
+8c105ee0  mov.l @(0x24,r4),r6  fn=FUN_8c105e84@8c105e84
+8c10a160  mov.l @(0x24,r4),r2  fn=FUN_8c10a130@8c10a130
+8c10a1b6  mov.l @(0x24,r4),r2  fn=FUN_8c10a186@8c10a186
+8c114372  mov.l @(0x24,r2),r6  fn=FUN_8c114334@8c114334
+8c114592  mov.l @(0x24,r15),r2  fn=FUN_8c1144ec@8c1144ec
+8c114b94  mov.l @(0x24,r4),r2  fn=FUN_8c11487c@8c11487c
+8c1156c4  mov.l @(0x24,r4),r6  fn=FUN_8c115498@8c115498
+8c115842  mov.l @(0x24,r4),r2  fn=FUN_8c115498@8c115498
+8c115aea  mov.l @(0x24,r4),r2  fn=FUN_8c115498@8c115498
+8c116288  mov.l @(0x24,r4),r2  fn=FUN_8c116256@8c116256
+8c116c72  mov.l @(0x24,r6),r7  fn=FUN_8c116c30@8c116c30
+8c116e84  mov.l @(0x24,r15),r2  fn=FUN_8c116dca@8c116dca
+8c118594  mov.l @(0x24,r5),r6  fn=FUN_8c118552@8c118552
+8c11a6f6  mov.l @(0x24,r4),r2  fn=FUN_8c11a6a8@8c11a6a8
+8c11d68a  mov.l @(0x24,r15),r7  fn=FUN_8c11d614@8c11d614
+8c11d7cc  mov.l @(0x24,r15),r2  fn=FUN_8c11d614@8c11d614
+8c11d86c  mov.l @(0x24,r15),r7  fn=FUN_8c11d614@8c11d614
+8c11d8ce  mov.l @(0x24,r15),r7  fn=FUN_8c11d614@8c11d614
+8c11d9d0  mov.l @(0x24,r15),r8  fn=FUN_8c11d614@8c11d614
+8c11dad4  mov.l @(0x24,r15),r2  fn=FUN_8c11d614@8c11d614
+8c11daf6  mov.l @(0x24,r15),r7  fn=FUN_8c11d614@8c11d614
+8c11db38  mov.l @(0x24,r15),r7  fn=FUN_8c11d614@8c11d614
+8c11e59a  mov.l @(0x24,r14),r5  fn=FUN_8c11e392@8c11e392
+8c11f16c  mov.l @(0x24,r15),r5  fn=FUN_8c11e5f8@8c11e5f8
+8c120746  mov.l @(0x24,r15),r6  fn=FUN_8c120650@8c120650
+8c121ba2  mov.l @(0x24,r15),r6  fn=FUN_8c121ae4@8c121ae4
+8c12481c  mov.l @(0x24,r4),r2  fn=FUN_8c1247ba@8c1247ba
+8c12484e  mov.l @(0x24,r4),r6  fn=FUN_8c1247ba@8c1247ba
+8c124880  mov.l @(0x24,r4),r6  fn=FUN_8c1247ba@8c1247ba
+8c127bd4  mov.l @(0x24,r4),r2  fn=FUN_8c127b64@8c127b64
+8c127c06  mov.l @(0x24,r4),r6  fn=FUN_8c127b64@8c127b64
+8c127dbc  mov.l @(0x24,r5),r6  fn=FUN_8c127b64@8c127b64
+8c127e3c  mov.l @(0x24,r5),r6  fn=FUN_8c127b64@8c127b64
+8c1285c2  mov.l @(0x24,r4),r2  fn=FUN_8c128578@8c128578
+8c129028  mov.l @(0x24,r15),r6  fn=FUN_8c128c08@8c128c08
+8c129dc4  mov.l @(0x24,r14),r14  fn=FUN_8c129da4@8c129da4
+8c129dd4  mov.l @(0x24,r14),r14  fn=FUN_8c129da4@8c129da4
+8c129e08  mov.l @(0x24,r14),r14  fn=FUN_8c129da4@8c129da4
+8c12a2da  mov.l @(0x24,r2),r2  fn=FUN_8c12a248@8c12a248
+8c12a2ea  mov.l @(0x24,r2),r2  fn=FUN_8c12a248@8c12a248
+8c12a32e  mov.l @(0x24,r13),r13  fn=FUN_8c12a248@8c12a248
+8c12a420  mov.l @(0x24,r2),r2  fn=FUN_8c12a248@8c12a248
+8c12a430  mov.l @(0x24,r2),r2  fn=FUN_8c12a248@8c12a248
+8c12a476  mov.l @(0x24,r13),r13  fn=FUN_8c12a248@8c12a248
+8c12a784  mov.l @(0x24,r15),r7  fn=FUN_8c12a248@8c12a248
+8c12aa10  mov.l @(0x24,r14),r14  fn=FUN_8c12a9c8@8c12a9c8
+8c12aa20  mov.l @(0x24,r14),r14  fn=FUN_8c12a9c8@8c12a9c8
+8c12aa54  mov.l @(0x24,r14),r14  fn=FUN_8c12a9c8@8c12a9c8
+8c12ab6a  mov.l @(0x24,r5),r5  fn=FUN_8c12ab18@8c12ab18
+8c12ab78  mov.l @(0x24,r5),r5  fn=FUN_8c12ab18@8c12ab18
+8c12abf2  mov.l @(0x24,r2),r2  fn=FUN_8c12abe2@8c12abe2
+8c12ac00  mov.l @(0x24,r2),r2  fn=FUN_8c12abe2@8c12abe2
+8c12b4fa  mov.l @(0x24,r15),r7  fn=FUN_8c12b0bc@8c12b0bc
+8c12bed0  mov.l @(0x24,r15),r7  fn=FUN_8c12bbf0@8c12bbf0
+8c12d058  mov.l @(0x24,r15),r7  fn=FUN_8c12cc6c@8c12cc6c
+8c12df78  mov.l @(0x24,r15),r4  fn=FUN_8c12db30@8c12db30
+8c12fa0c  mov.l @(0x24,r4),r6  fn=FUN_8c12f9bc@8c12f9bc
+8c12fa40  mov.l @(0x24,r4),r2  fn=FUN_8c12f9bc@8c12f9bc
+8c12fa76  mov.l @(0x24,r4),r2  fn=FUN_8c12f9bc@8c12f9bc
+8c12fac4  mov.l @(0x24,r7),r2  fn=FUN_8c12f9bc@8c12f9bc
+8c12fb04  mov.l @(0x24,r7),r6  fn=FUN_8c12f9bc@8c12f9bc
+8c12fbba  mov.l @(0x24,r7),r2  fn=FUN_8c12f9bc@8c12f9bc
+8c12fbee  mov.l @(0x24,r7),r2  fn=FUN_8c12f9bc@8c12f9bc
+8c12fc40  mov.l @(0x24,r14),r2  fn=FUN_8c12f9bc@8c12f9bc
+8c134052  mov.l @(0x24,r14),r3  fn=__xtostr@8c133b70
+8c134062  mov.l @(0x24,r14),r1  fn=__xtostr@8c133b70
+8c134e40  mov.l @(0x24,r15),r3  fn=FUN_8c134dc0@8c134dc0
+8c135200  mov.l @(0x24,r15),r2  fn=FUN_8c134ff2@8c134ff2
+8c135298  mov.l @(0x24,r15),r3  fn=FUN_8c13525a@8c13525a
+8c1352a4  mov.l @(0x24,r15),r3  fn=FUN_8c13525a@8c13525a
+8c1368d2  mov.l @(0x24,r2),r6  fn=FUN_8c1368a4@8c1368a4
+8c1368fc  mov.l @(0x24,r2),r6  fn=FUN_8c1368a4@8c1368a4
+8c136d7a  mov.l @(0x24,r2),r6  fn=FUN_8c136d4c@8c136d4c
+8c136da4  mov.l @(0x24,r2),r6  fn=FUN_8c136d4c@8c136d4c
+8c13845e  mov.l @(0x24,r2),r6  fn=FUN_8c13842c@8c13842c
+8c138488  mov.l @(0x24,r2),r6  fn=FUN_8c13842c@8c13842c
+8c138dc2  mov.l @(0x24,r2),r6  fn=FUN_8c138d94@8c138d94
+8c138dec  mov.l @(0x24,r2),r6  fn=FUN_8c138d94@8c138d94
+8c139262  mov.l @(0x24,r2),r6  fn=FUN_8c139234@8c139234
+8c13928c  mov.l @(0x24,r2),r6  fn=FUN_8c139234@8c139234
+8c13a92e  mov.l @(0x24,r2),r6  fn=FUN_8c13a8fc@8c13a8fc
+8c13a958  mov.l @(0x24,r2),r6  fn=FUN_8c13a8fc@8c13a8fc
+8c13c7f4  mov.l @(0x24,r2),r6  fn=FUN_8c13c7bc@8c13c7bc
+8c13c81e  mov.l @(0x24,r2),r6  fn=FUN_8c13c7bc@8c13c7bc
+8c13ca78  mov.l @(0x24,r15),r13  fn=FUN_8c13c7bc@8c13c7bc
+8c13e37c  mov.l @(0x24,r15),r2  fn=FUN_8c13e2e6@8c13e2e6
+8c13e6e4  mov.l @(0x24,r2),r6  fn=FUN_8c13e6a4@8c13e6a4
+8c13f734  mov.l @(0x24,r2),r6  fn=FUN_8c13f6f4@8c13f6f4
+8c140ee4  mov.l @(0x24,r7),r2  fn=FUN_8c140eaa@8c140eaa
+8c1420b6  mov.l @(0x24,r4),r2  fn=FUN_8c142044@8c142044
+8c1426c2  mov.l @(0x24,r4),r6  fn=FUN_8c142670@8c142670
+8c144cee  mov.l @(0x24,r4),r6  fn=FUN_8c144c90@8c144c90
+8c144d1e  mov.l @(0x24,r4),r6  fn=FUN_8c144c90@8c144c90
+8c144d4e  mov.l @(0x24,r4),r2  fn=FUN_8c144c90@8c144c90
+8c1458e6  mov.l @(0x24,r15),r14  fn=FUN_8c145770@8c145770
+8c1458fa  mov.l @(0x24,r15),r2  fn=FUN_8c145770@8c145770
+8c145b9a  mov.l @(0x24,r15),r2  fn=FUN_8c145aca@8c145aca
+8c1467b4  mov.l @(0x24,r7),r2  fn=FUN_8c14675c@8c14675c
+8c147a4c  mov.l @(0x24,r15),r0  fn=FUN_8c1478fe@8c1478fe
+8c14917a  mov.l @(0x24,r15),r11  fn=FUN_8c149030@8c149030
+8c149854  mov.l @(0x24,r15),r10  fn=FUN_8c149730@8c149730
+8c14c200  mov.l @(0x24,r4),r6  fn=FUN_8c14c1b8@8c14c1b8
+8c14c3cc  mov.l @(0x24,r4),r2  fn=FUN_8c14c384@8c14c384
+8c14c962  mov.l @(0x24,r5),r2  fn=FUN_8c14c8fc@8c14c8fc
+8c14cb82  mov.l @(0x24,r4),r2  fn=FUN_8c14c8fc@8c14c8fc
+8c14d3c6  mov.l @(0x24,r4),r6  fn=FUN_8c14d350@8c14d350
+8c14e034  mov.l @(0x24,r4),r2  fn=FUN_8c14dfb4@8c14dfb4
+8c14f628  mov.l @(0x24,r4),r2  fn=FUN_8c14f5c8@8c14f5c8
+8c150e72  mov.l @(0x24,r4),r2  fn=FUN_8c150e10@8c150e10
+8c150ea2  mov.l @(0x24,r4),r6  fn=FUN_8c150e10@8c150e10
+8c150ee2  mov.l @(0x24,r4),r6  fn=FUN_8c150e10@8c150e10
+8c152dc8  mov.l @(0x24,r4),r6  fn=FUN_8c152d58@8c152d58
+8c152e1c  mov.l @(0x24,r4),r2  fn=FUN_8c152d58@8c152d58
+8c152e4e  mov.l @(0x24,r4),r6  fn=FUN_8c152d58@8c152d58
+8c152e86  mov.l @(0x24,r4),r2  fn=FUN_8c152d58@8c152d58
+8c1560e4  mov.l @(0x24,r4),r2  fn=FUN_8c15608c@8c15608c
+8c1561b0  mov.l @(0x24,r4),r2  fn=FUN_8c15608c@8c15608c
+8c156240  mov.l @(0x24,r4),r2  fn=FUN_8c15608c@8c15608c
+8c156af0  mov.l @(0x24,r4),r2  fn=FUN_8c156abe@8c156abe
+8c156b62  mov.l @(0x24,r4),r6  fn=FUN_8c156b2c@8c156b2c
+8c156c52  mov.l @(0x24,r5),r6  fn=FUN_8c156c20@8c156c20
+8c156d9c  mov.l @(0x24,r4),r6  fn=FUN_8c156d66@8c156d66
+8c157946  mov.l @(0x24,r4),r6  fn=FUN_8c1578c6@8c1578c6
+8c1579a8  mov.l @(0x24,r4),r6  fn=FUN_8c1578c6@8c1578c6
+8c157a68  mov.l @(0x24,r4),r2  fn=FUN_8c1578c6@8c1578c6
+8c157aca  mov.l @(0x24,r4),r2  fn=FUN_8c1578c6@8c1578c6
+8c157b28  mov.l @(0x24,r5),r6  fn=FUN_8c1578c6@8c1578c6
+8c157c06  mov.l @(0x24,r4),r6  fn=FUN_8c1578c6@8c1578c6
+8c157c6c  mov.l @(0x24,r4),r6  fn=FUN_8c1578c6@8c1578c6
+8c157cce  mov.l @(0x24,r5),r6  fn=FUN_8c1578c6@8c1578c6
+8c158322  mov.l @(0x24,r4),r2  fn=FUN_8c1582f0@8c1582f0
+8c15852e  mov.l @(0x24,r4),r2  fn=FUN_8c1584fc@8c1584fc
+8c158596  mov.l @(0x24,r4),r2  fn=FUN_8c158566@8c158566
+8c15a5b8  mov.l @(0x24,r15),r7  fn=FUN_8c15a47e@8c15a47e
+8c15a65e  mov.l @(0x24,r15),r7  fn=FUN_8c15a47e@8c15a47e
+8c15a6cc  mov.l @(0x24,r15),r7  fn=FUN_8c15a47e@8c15a47e
+8c15a6e4  mov.l @(0x24,r15),r7  fn=FUN_8c15a47e@8c15a47e
+8c15c378  mov.l @(0x24,r4),r6  fn=FUN_8c15c314@8c15c314
+8c15c54a  mov.l @(0x24,r4),r2  fn=FUN_8c15c314@8c15c314
+8c15c6ea  mov.l @(0x24,r5),r2  fn=FUN_8c15c6a2@8c15c6a2
+8c15dd00  mov.l @(0x24,r4),r6  fn=FUN_8c15dc94@8c15dc94
+8c15dd32  mov.l @(0x24,r4),r6  fn=FUN_8c15dc94@8c15dc94
+8c160646  mov.l @(0x24,r7),r2  fn=FUN_8c1605e0@8c1605e0
+8c16081e  mov.l @(0x24,r4),r2  fn=FUN_8c1605e0@8c1605e0
+8c1609f6  mov.l @(0x24,r5),r2  fn=FUN_8c16099c@8c16099c
+8c16143c  mov.l @(0x24,r4),r2  fn=FUN_8c1613d8@8c1613d8
+8c161612  mov.l @(0x24,r4),r2  fn=FUN_8c1613d8@8c1613d8
+8c1617c6  mov.l @(0x24,r5),r2  fn=FUN_8c161774@8c161774
+8c163f96  mov.l @(0x24,r14),r2  fn=FUN_8c163e8c@8c163e8c
+8c163fa4  mov.l @(0x24,r14),r0  fn=FUN_8c163e8c@8c163e8c
+8c163fac  mov.l @(0x24,r14),r1  fn=FUN_8c163e8c@8c163e8c
+8c163fc6  mov.l @(0x24,r14),r3  fn=FUN_8c163e8c@8c163e8c
+8c1641e6  mov.l @(0x24,r14),r2  fn=FUN_8c16418c@8c16418c
+8c1641f0  mov.l @(0x24,r14),r2  fn=FUN_8c16418c@8c16418c
+8c164586  mov.l @(0x24,r14),r2  fn=FUN_8c164362@8c164362
+8c16459e  mov.l @(0x24,r14),r3  fn=FUN_8c164362@8c164362
+8c1649b8  mov.l @(0x24,r14),r2  fn=FUN_8c164362@8c164362
+8c1649d2  mov.l @(0x24,r14),r1  fn=FUN_8c164362@8c164362
+8c164c32  mov.l @(0x24,r14),r2  fn=FUN_8c164362@8c164362
+8c165cfc  mov.l @(0x24,r3),r2  fn=FUN_8c1656a4@8c1656a4
+8c166440  mov.l @(0x24,r15),r2  fn=FUN_8c166418@8c166418
+8c16645c  mov.l @(0x24,r15),r1  fn=FUN_8c166418@8c166418
+8c166b9e  mov.l @(0x24,r13),r12  fn=FUN_8c166b84@8c166b84
+8c166ba4  mov.l @(0x24,r12),r2  fn=FUN_8c166b84@8c166b84
+8c166bc2  mov.l @(0x24,r13),r2  fn=FUN_8c166b84@8c166b84
+8c166cce  mov.l @(0x24,r13),r1  fn=FUN_8c166c30@8c166c30
+8c166cd4  mov.l @(0x24,r13),r1  fn=FUN_8c166c30@8c166c30
+8c167098  mov.l @(0x24,r14),r3  fn=FUN_8c167046@8c167046
+8c1670e6  mov.l @(0x24,r14),r0  fn=FUN_8c167046@8c167046
+8c16711a  mov.l @(0x24,r14),r2  fn=FUN_8c167046@8c167046
+8c16771e  mov.l @(0x24,r3),r2  fn=FUN_8c167274@8c167274
+8c167724  mov.l @(0x24,r3),r2  fn=FUN_8c167274@8c167274
+8c168a60  mov.l @(0x24,r15),r1  fn=FUN_8c167274@8c167274
+8c168b30  mov.l @(0x24,r1),r3  fn=FUN_8c167274@8c167274
+8c168b3a  mov.l @(0x24,r2),r1  fn=FUN_8c167274@8c167274
+8c168b46  mov.l @(0x24,r2),r1  fn=FUN_8c167274@8c167274
+8c168b50  mov.l @(0x24,r3),r2  fn=FUN_8c167274@8c167274
+8c168b60  mov.l @(0x24,r3),r1  fn=FUN_8c167274@8c167274
+8c169c28  mov.l @(0x24,r14),r5  fn=FUN_8c169be4@8c169be4
+8c16a020  mov.l @(0x24,r15),r3  fn=FUN_8c169ed8@8c169ed8
+8c16a034  mov.l @(0x24,r15),r3  fn=FUN_8c169ed8@8c169ed8
+8c16a1ba  mov.l @(0x24,r8),r2  fn=FUN_8c169ed8@8c169ed8
+8c16a288  mov.l @(0x24,r8),r3  fn=FUN_8c169ed8@8c169ed8
+8c16a34e  mov.l @(0x24,r15),r2  fn=FUN_8c169ed8@8c169ed8
+8c16bd22  mov.l @(0x24,r14),r13  fn=FUN_8c16bc80@8c16bc80
+8c16bd52  mov.l @(0x24,r14),r2  fn=FUN_8c16bc80@8c16bc80
+8c16bd9a  mov.l @(0x24,r14),r3  fn=FUN_8c16bc80@8c16bc80
+8c16bda2  mov.l @(0x24,r14),r1  fn=FUN_8c16bc80@8c16bc80
+8c16bdb4  mov.l @(0x24,r14),r6  fn=FUN_8c16bc80@8c16bc80
+8c16bdc0  mov.l @(0x24,r14),r3  fn=FUN_8c16bc80@8c16bc80
+8c16bdc8  mov.l @(0x24,r14),r3  fn=FUN_8c16bc80@8c16bc80
+8c1711f2  mov.l @(0x24,r15),r7  fn=FUN_8c171120@8c171120
+8c171a20  mov.l @(0x24,r15),r3  fn=FUN_8c17147c@8c17147c
+8c171a46  mov.l @(0x24,r15),r1  fn=FUN_8c17147c@8c17147c
+8c1737da  mov.l @(0x24,r9),r3  fn=FUN_8c173720@8c173720
+8c173c46  mov.l @(0x24,r7),r3  fn=FUN_8c173bd4@8c173bd4
+8c173c54  mov.l @(0x24,r7),r3  fn=FUN_8c173bd4@8c173bd4
+8c173c5a  mov.l @(0x24,r7),r14  fn=FUN_8c173bd4@8c173bd4
+8c173d32  mov.l @(0x24,r4),r3  fn=FUN_8c173cf0@8c173cf0
+8c173d9a  mov.l @(0x24,r4),r3  fn=FUN_8c173cf0@8c173cf0
+8c17419a  mov.l @(0x24,r5),r5  fn=FUN_8c174184@8c174184
+8c17419c  mov.l @(0x24,r5),r6  fn=FUN_8c174184@8c174184
+8c1741a6  mov.l @(0x24,r5),r3  fn=FUN_8c174184@8c174184
+8c1741ac  mov.l @(0x24,r5),r3  fn=FUN_8c174184@8c174184
+8c1741ae  mov.l @(0x24,r3),r2  fn=FUN_8c174184@8c174184
+8c1741e2  mov.l @(0x24,r5),r5  fn=FUN_8c1741d8@8c1741d8
+8c1741e4  mov.l @(0x24,r5),r6  fn=FUN_8c1741d8@8c1741d8
+8c17421a  mov.l @(0x24,r5),r3  fn=FUN_8c1741d8@8c1741d8
+8c174228  mov.l @(0x24,r4),r3  fn=FUN_8c1741d8@8c1741d8
+8c174828  mov.l @(0x24,r2),r1  fn=FUN_8c1742cc@8c1742cc
+8c174830  mov.l @(0x24,r0),r0  fn=FUN_8c1742cc@8c1742cc
+8c175038  mov.l @(0x24,r4),r2  fn=FUN_8c175028@8c175028
+8c17505c  mov.l @(0x24,r4),r2  fn=FUN_8c175028@8c175028
+8c175064  mov.l @(0x24,r4),r0  fn=FUN_8c175028@8c175028
+8c1772d8  mov.l @(0x24,r15),r2  fn=FUN_8c177038@8c177038
+8c179130  mov.l @(0x24,r14),r0  fn=FUN_8c1790e8@8c1790e8
+8c179138  mov.l @(0x24,r14),r3  fn=FUN_8c1790e8@8c1790e8
+8c1791fe  mov.l @(0x24,r14),r0  fn=FUN_8c1791b2@8c1791b2
+8c179206  mov.l @(0x24,r14),r3  fn=FUN_8c1791b2@8c1791b2
+8c1792a0  mov.l @(0x24,r14),r2  fn=FUN_8c179248@8c179248
+8c1792e8  mov.l @(0x24,r14),r1  fn=FUN_8c179248@8c179248
+8c1792f2  mov.l @(0x24,r14),r3  fn=FUN_8c179248@8c179248
+8c1794ce  mov.l @(0x24,r14),r2  fn=FUN_8c17931e@8c17931e
+8c1794d6  mov.l @(0x24,r14),r3  fn=FUN_8c17931e@8c17931e
+8c1794fc  mov.l @(0x24,r14),r1  fn=FUN_8c17931e@8c17931e
+8c179504  mov.l @(0x24,r14),r10  fn=FUN_8c17931e@8c17931e
+8c179544  mov.l @(0x24,r14),r2  fn=FUN_8c17931e@8c17931e
+8c17954c  mov.l @(0x24,r14),r1  fn=FUN_8c17931e@8c17931e
+8c1795b2  mov.l @(0x24,r13),r2  fn=FUN_8c179582@8c179582
+8c1795ba  mov.l @(0x24,r13),r3  fn=FUN_8c179582@8c179582
+8c179634  mov.l @(0x24,r13),r2  fn=FUN_8c179582@8c179582
+8c17963c  mov.l @(0x24,r13),r3  fn=FUN_8c179582@8c179582
+8c1796e4  mov.l @(0x24,r14),r3  fn=FUN_8c1796b0@8c1796b0
+8c1796ee  mov.l @(0x24,r14),r2  fn=FUN_8c1796b0@8c1796b0
+8c17975c  mov.l @(0x24,r14),r2  fn=FUN_8c1796b0@8c1796b0
+8c179764  mov.l @(0x24,r14),r3  fn=FUN_8c1796b0@8c1796b0
+8c179770  mov.l @(0x24,r14),r2  fn=FUN_8c1796b0@8c1796b0
+8c179778  mov.l @(0x24,r14),r3  fn=FUN_8c1796b0@8c1796b0
+8c179802  mov.l @(0x24,r14),r10  fn=FUN_8c1797ce@8c1797ce
+8c179808  mov.l @(0x24,r14),r10  fn=FUN_8c1797ce@8c1797ce
+8c179880  mov.l @(0x24,r14),r3  fn=FUN_8c1797ce@8c1797ce
+8c179888  mov.l @(0x24,r14),r2  fn=FUN_8c1797ce@8c1797ce
+8c1798fe  mov.l @(0x24,r14),r1  fn=FUN_8c1798d4@8c1798d4
+8c179906  mov.l @(0x24,r14),r3  fn=FUN_8c1798d4@8c1798d4
+8c17996a  mov.l @(0x24,r14),r3  fn=FUN_8c179934@8c179934
+8c17998e  mov.l @(0x24,r14),r2  fn=FUN_8c179934@8c179934
+8c179996  mov.l @(0x24,r14),r3  fn=FUN_8c179934@8c179934
+8c1799a8  mov.l @(0x24,r14),r1  fn=FUN_8c179934@8c179934
+8c1799b0  mov.l @(0x24,r14),r3  fn=FUN_8c179934@8c179934
+8c179e12  mov.l @(0x24,r15),r0  fn=FUN_8c179dc8@8c179dc8
+8c179e22  mov.l @(0x24,r15),r3  fn=FUN_8c179dc8@8c179dc8
+8c17b15c  mov.l @(0x24,r4),r3  fn=FUN_8c17b058@8c17b058
+8c17b162  mov.l @(0x24,r4),r3  fn=FUN_8c17b058@8c17b058
+8c17b174  mov.l @(0x24,r4),r3  fn=FUN_8c17b058@8c17b058
+8c17b1a4  mov.l @(0x24,r4),r3  fn=FUN_8c17b058@8c17b058
+8c17b72a  mov.l @(0x24,r15),r2  fn=FUN_8c17b398@8c17b398
+8c17c794  mov.l @(0x24,r15),r3  fn=FUN_8c17c430@8c17c430
+8c17cb84  mov.l @(0x24,r14),r0  fn=FUN_8c17c9fc@8c17c9fc
+8c17ccc8  mov.l @(0x24,r15),r2  fn=FUN_8c17c9fc@8c17c9fc
+8c17d072  mov.l @(0x24,r15),r2  fn=FUN_8c17c9fc@8c17c9fc
+8c17d2e4  mov.l @(0x24,r15),r1  fn=FUN_8c17c9fc@8c17c9fc
+8c1d7800  mov.l @(0x24,r15),r3  fn=FUN_8c1d749e@8c1d749e
+8c1d92a2  mov.l @(0x24,r14),r0  fn=FUN_8c1d929a@8c1d929a
+8c1dc7c0  mov.l @(0x24,r14),r5  fn=_ADXT_Create@8c1dc728
+8c1dc870  mov.l @(0x24,r14),r2  fn=_ADXT_Create@8c1dc728
+8c1de7de  mov.l @(0x24,r14),r2  fn=FID_conflict:_sdMidiSetVol@8c1de788
+8c1de7ec  mov.l @(0x24,r14),r5  fn=FID_conflict:_sdMidiSetVol@8c1de788
+8c1df33e  mov.l @(0x24,r14),r2  fn=FID_conflict:_sdMidiSetVol@8c1df2e8
+8c1df34c  mov.l @(0x24,r14),r5  fn=FID_conflict:_sdMidiSetVol@8c1df2e8
+8c1dffa2  mov.l @(0x24,r15),r2  fn=_njCnkToonPlist@8c1dfd2c
+8c1dffea  mov.l @(0x24,r15),r1  fn=_njCnkToonPlist@8c1dfd2c
+8c1e00fc  mov.l @(0x24,r15),r2  fn=_njCnkToonPlist@8c1dfd2c
+8c1e0148  mov.l @(0x24,r15),r1  fn=_njCnkToonPlist@8c1dfd2c
+8c1e0c04  mov.l @(0x24,r15),r2  fn=_njCnkEasyPlist@8c1e07f2
+8c1e11b8  mov.l @(0x24,r15),r13  fn=_njCnkSimplePlist@8c1e113a
+8c1e1562  mov.l @(0x24,r15),r2  fn=_njCnkSimplePlist@8c1e113a
+8c1e1594  mov.l @(0x24,r15),r2  fn=_njCnkSimplePlist@8c1e113a
+8c1e16b8  mov.l @(0x24,r15),r1  fn=_njCnkSimplePlist@8c1e113a
+8c1e16ea  mov.l @(0x24,r15),r1  fn=_njCnkSimplePlist@8c1e113a
+8c1e179e  mov.l @(0x24,r15),r1  fn=_njCnkSimplePlist@8c1e113a
+8c1e17d0  mov.l @(0x24,r15),r1  fn=_njCnkSimplePlist@8c1e113a
+8c1e53ec  mov.l @(0x24,r14),r0  fn=_njInitVertexBuffer@8c1e5332
+8c1e6520  mov.l @(0x24,r14),r3  fn=_gdFsGetStatG@8c1e6476
+8c1e652a  mov.l @(0x24,r14),r3  fn=_gdFsGetStatG@8c1e6476
+8c1e65ee  mov.l @(0x24,r3),r1  fn=_gdFsGetStatG@8c1e6476
+8c1e66b0  mov.l @(0x24,r3),r2  fn=_gdFsGetStatG@8c1e6476
+8c1e66bc  mov.l @(0x24,r2),r3  fn=_gdFsGetStatG@8c1e6476
+8c1e7bb0  mov.l @(0x24,r14),r0  fn=_kdSendFrame@8c1e7adc
+8c1e9fe8  mov.l @(0x24,r15),r0  fn=_syG2Read@8c1e9fb0
+8c1ea94c  mov.l @(0x24,r14),r3  fn=(none)
+8c1eaa62  mov.l @(0x24,r14),r2  fn=(none)
+8c1eaa8e  mov.l @(0x24,r14),r3  fn=(none)
+8c1eddbe  mov.l @(0x24,r13),r3  fn=FUN_8c1edd96@8c1edd96
+8c1ede2e  mov.l @(0x24,r13),r3  fn=FUN_8c1ede00@8c1ede00
+8c1ee0e2  mov.l @(0x24,r14),r4  fn=FUN_8c1ee0c2@8c1ee0c2
+8c1ee10a  mov.l @(0x24,r4),r4  fn=FUN_8c1ee0f4@8c1ee0f4
+8c1ee66a  mov.l @(0x24,r15),r10  fn=_vmsfs_save_file@8c1ee650
+8c1ee69c  mov.l @(0x24,r15),r3  fn=_vmsfs_save_file@8c1ee650
+8c1ee8d4  mov.l @(0x24,r15),r6  fn=_vmsfs_save_exec_file@8c1ee850
+8c1ef3d0  mov.l @(0x24,r4),r7  fn=_ADX_DecodeInfoExLoop@8c1ef2e0
+8c1efdce  mov.l @(0x24,r2),r3  fn=_adxsjd_decexec_start@8c1efdb4
+8c1efe58  mov.l @(0x24,r2),r1  fn=_adxsjd_decexec_start@8c1efdb4
+8c1f026e  mov.l @(0x24,r0),r2  fn=_ADXSTMF_SetupHandleMember@8c1f0234
+8c1f0788  mov.l @(0x24,r3),r2  fn=_adxstmf_stat_exec@8c1f0698
+8c1f07d6  mov.l @(0x24,r14),r6  fn=_adxstmf_stat_exec@8c1f0698
+8c1f0d92  mov.l @(0x24,r15),r5  fn=(none)
+8c1f0dd2  mov.l @(0x24,r15),r5  fn=(none)
+8c1f1348  mov.l @(0x24,r2),r3  fn=_adxt_stat_playing@8c1f1310
+8c1f151e  mov.l @(0x24,r2),r1  fn=FUN_8c1f1634@8c1f1634
+8c1f16f2  mov.l @(0x24,r3),r2  fn=_LSC_Create@8c1f16ac
+8c1f17c6  mov.l @(0x24,r14),r2  fn=_LSC_EntryFname@8c1f1768
+8c1f1826  mov.l @(0x24,r14),r3  fn=_LSC_EntryFname@8c1f1768
+8c1f188c  mov.l @(0x24,r14),r3  fn=_LSC_Start@8c1f185e
+8c1f19d4  mov.l @(0x24,r4),r0  fn=_LSC_GetNumStm@8c1f19be
+8c1f28a8  mov.l @(0x24,r3),r1  fn=_mwlRnaExecSvrHndl@8c1f2838
+8c1f2fc0  mov.l @(0x24,r3),r2  fn=_mwRnaSetSfreq@8c1f2f98
+8c1f395a  mov.l @(0x24,r14),r2  fn=(none)
+8c1f39a6  mov.l @(0x24,r14),r2  fn=(none)
+8c1f3a40  mov.l @(0x24,r14),r2  fn=(none)
+8c1f3a48  mov.l @(0x24,r14),r5  fn=(none)
+8c1f3bd4  mov.l @(0x24,r14),r2  fn=(none)
+8c1f3bf2  mov.l @(0x24,r14),r2  fn=(none)
+8c1f53d8  mov.l @(0x24,r2),r3  fn=_mwlSfdExecDecSvrPlaying@8c1f53ba
+8c1f60f0  mov.l @(0x24,r15),r2  fn=_mwPlySfdCalcWorkFrmBuf@8c1f60b2
+8c1f6158  mov.l @(0x24,r15),r2  fn=_mwPlyCalcWorkSofdec@8c1f6116
+8c1f62e8  mov.l @(0x24,r15),r5  fn=_mwPlySfdCreate@8c1f62bc
+8c1f63c8  mov.l @(0x24,r15),r3  fn=_mwPlySfdCreate@8c1f62bc
+8c1f707a  mov.l @(0x24,r14),r2  fn=_sdMemBlkExecuteCallback@8c1f7068
+8c1f7080  mov.l @(0x24,r14),r0  fn=_sdMemBlkExecuteCallback@8c1f7068
+8c1f708c  mov.l @(0x24,r14),r1  fn=_sdMemBlkExecuteCallback@8c1f7068
+8c1f73be  mov.l @(0x24,r10),r0  fn=_sdMemBlkTransfer@8c1f731c
+8c1f741a  mov.l @(0x24,r10),r0  fn=_sdMemBlkTransfer@8c1f731c
+8c1fdd9e  mov.l @(0x24,r13),r0  fn=FUN_8c1fd700@8c1fd700
+8c1fdda4  mov.l @(0x24,r13),r2  fn=FUN_8c1fd700@8c1fd700
+8c1fe02e  mov.l @(0x24,r1),r0  fn=_kmSetVertexRenderState@8c1fdec0
+8c1fe04c  mov.l @(0x24,r1),r0  fn=_kmSetVertexRenderState@8c1fdec0
+8c1fe0a2  mov.l @(0x24,r1),r1  fn=_kmSetVertexRenderState@8c1fdec0
+8c1febe4  mov.l @(0x24,r14),r6  fn=_kmCreateVertexBuffer@8c1fe9ee
+8c1fefac  mov.l @(0x24,r14),r6  fn=_kmCreateTABuffer@8c1fef00
+8c1ff2d0  mov.l @(0x24,r14),r3  fn=_kmSetSystemConfiguration@8c1ff1e0
+8c200e3e  mov.l @(0x24,r15),r2  fn=_njCnkEasyTextureBumpClip@8c200cb4
+8c208196  mov.l @(0x24,r14),r0  fn=FUN_8c208190@8c208190
+8c208fdc  mov.l @(0x24,r15),r3  fn=_gdFsSearchPath_dds@8c208f32
+8c20a5a6  mov.l @(0x24,r14),r3  fn=FUN_8c20a56c@8c20a56c
+8c20a5f2  mov.l @(0x24,r14),r3  fn=FUN_8c20a56c@8c20a56c
+8c20a5fe  mov.l @(0x24,r14),r0  fn=FUN_8c20a56c@8c20a56c
+8c20d0ea  mov.l @(0x24,r5),r13  fn=_ADXB_EvokeDecode@8c20d0be
+8c20d600  mov.l @(0x24,r2),r1  fn=_lsc_ReqRead@8c20d5f0
+8c20d6a8  mov.l @(0x24,r14),r2  fn=_lsc_StatWait@8c20d694
+8c20d884  mov.l @(0x24,r14),r3  fn=_lsc_StatEnd@8c20d850
+8c20d8a2  mov.l @(0x24,r14),r2  fn=_lsc_StatEnd@8c20d850
+8c20d8de  mov.l @(0x24,r14),r2  fn=_lsc_ExecHndl@8c20d8ca
+8c20f9f4  mov.l @(0x24,r2),r0  fn=_mwRnv2GetNumTxfrm@8c20f9d4
+8c20fa14  mov.l @(0x24,r2),r0  fn=_mwRnv2GetNumTxfrm@8c20f9d4
+8c20fa3a  mov.l @(0x24,r3),r1  fn=_mwRnv2GetNumRoomTex@8c20fa28
+8c212d96  mov.l @(0x24,r15),r3  fn=_sfadxt_CopyFlap@8c212d88
+8c212dee  mov.l @(0x24,r15),r3  fn=_sfadxt_CopyFlap@8c212d88
+8c21317e  mov.l @(0x24,r14),r3  fn=_sfadxt_GetTime@8c21313e
+8c21318e  mov.l @(0x24,r14),r2  fn=_sfadxt_GetTime@8c21313e
+8c213720  mov.l @(0x24,r4),r8  fn=_SFD_GetTimePerFile@8c2136b6
+8c213eb6  mov.l @(0x24,r15),r4  fn=_sfmps_CopyPketData@8c213e72
+8c2140ce  mov.l @(0x24,r3),r2  fn=FUN_8c2140be@8c2140be
+8c214194  mov.l @(0x24,r15),r3  fn=_sfmps_CopyDstBuft@8c214168
+8c21534c  mov.l @(0x24,r4),r3  fn=_sfmpv_ReadTcode@8c215340
+8c215688  mov.l @(0x24,r13),r7  fn=_sfmpv_IsSeekSkip@8c21565e
+8c215b42  mov.l @(0x24,r6),r2  fn=_sfmpv_SetFrmTime@8c215b28
+8c217606  mov.l @(0x24,r6),r3  fn=FUN_8c2175f6@8c2175f6
+8c2176f6  mov.l @(0x24,r14),r6  fn=_SFTIM_GetTimeSub@8c2176b4
+8c219aa0  mov.l @(0x24,r14),r4  fn=_sdMidiServer@8c219a40
+8c219ab0  mov.l @(0x24,r14),r1  fn=_sdMidiServer@8c219a40
+8c219ac6  mov.l @(0x24,r14),r1  fn=_sdMidiServer@8c219a40
+8c219ad2  mov.l @(0x24,r14),r2  fn=_sdMidiServer@8c219a40
+8c219ade  mov.l @(0x24,r14),r1  fn=_sdMidiServer@8c219a40
+8c21a330  mov.l @(0x24,r14),r4  fn=_sdShotServer@8c21a2d0
+8c21a340  mov.l @(0x24,r14),r1  fn=_sdShotServer@8c21a2d0
+8c21a356  mov.l @(0x24,r14),r1  fn=_sdShotServer@8c21a2d0
+8c21a362  mov.l @(0x24,r14),r2  fn=_sdShotServer@8c21a2d0
+8c21a36e  mov.l @(0x24,r14),r1  fn=_sdShotServer@8c21a2d0
+8c21ccea  mov.l @(0x24,r4),r1  fn=_kmiFBalloc@8c21cca0
+8c21cd92  mov.l @(0x24,r4),r1  fn=_kmiFBallocEx@8c21cd4e
+8c220f64  mov.l @(0x24,r15),r14  fn=_kmLoadRectangleTexturePart@8c220f06
+8c225578  mov.l @(0x24,r15),r2  fn=_njCnkSimpleTextureBumpClip@8c2254a8
+8c225616  mov.l @(0x24,r15),r2  fn=_njCnkSimpleTextureBumpClip@8c2254a8
+8c22c630  mov.l @(0x24,r15),r3  fn=_kmiCreateRegionArray@8c22c2a0
+8c22d54e  mov.l @(0x24,r4),r1  fn=FUN_8c22d460@8c22d460
+8c22f464  mov.l @(0x24,r15),r2  fn=_ADX_DecodeInfoAiff@8c22f3f6
+8c22f5ca  mov.l @(0x24,r13),r2  fn=FID_conflict:_ADXB_ExecOneAiff16@8c22f58c
+8c22f5d4  mov.l @(0x24,r13),r4  fn=FID_conflict:_ADXB_ExecOneAiff16@8c22f58c
+8c22f6e8  mov.l @(0x24,r13),r2  fn=FID_conflict:_ADXB_ExecOneAiff8@8c22f6aa
+8c22f6f2  mov.l @(0x24,r13),r4  fn=FID_conflict:_ADXB_ExecOneAiff8@8c22f6aa
+8c22f7f4  mov.l @(0x24,r15),r9  fn=FUN_8c22f7cc@8c22f7cc
+8c22fabc  mov.l @(0x24,r15),r2  fn=_ADX_DecodeInfoAu@8c22fa22
+8c22fc12  mov.l @(0x24,r13),r2  fn=FID_conflict:_ADXB_ExecOneAiff16@8c22fbd4
+8c22fc1c  mov.l @(0x24,r13),r4  fn=FID_conflict:_ADXB_ExecOneAiff16@8c22fbd4
+8c22fd32  mov.l @(0x24,r13),r2  fn=FID_conflict:_ADXB_ExecOneAiff8@8c22fcf4
+8c22fd3c  mov.l @(0x24,r13),r4  fn=FID_conflict:_ADXB_ExecOneAiff8@8c22fcf4
+8c22fe3a  mov.l @(0x24,r13),r2  fn=_ADXB_ExecOneAuUlaw@8c22fdfc
+8c22fe44  mov.l @(0x24,r13),r4  fn=_ADXB_ExecOneAuUlaw@8c22fdfc
+8c22ff4e  mov.l @(0x24,r15),r10  fn=_ADX_DecodeInfoSpsd@8c22ff30
+8c23003e  mov.l @(0x24,r15),r5  fn=_ADXB_DecodeHeaderSpsd@8c22fffc
+8c23011c  mov.l @(0x24,r13),r2  fn=FID_conflict:_ADXB_ExecOneWav16@8c2300e0
+8c230126  mov.l @(0x24,r13),r4  fn=FID_conflict:_ADXB_ExecOneWav16@8c2300e0
+8c2303f2  mov.l @(0x24,r15),r5  fn=_ADXB_DecodeHeaderWav@8c2303b0
+8c2304d4  mov.l @(0x24,r13),r2  fn=FID_conflict:_ADXB_ExecOneWav16@8c230498
+8c2304de  mov.l @(0x24,r13),r4  fn=FID_conflict:_ADXB_ExecOneWav16@8c230498
+8c2305ce  mov.l @(0x24,r13),r2  fn=_ADXB_ExecOneWav8@8c230590
+8c2305d8  mov.l @(0x24,r13),r4  fn=_ADXB_ExecOneWav8@8c230590
+8c2306da  mov.l @(0x24,r13),r2  fn=_ADXB_ExecOneWav4@8c23069c
+8c2306e4  mov.l @(0x24,r13),r4  fn=_ADXB_ExecOneWav4@8c23069c
+8c2308e8  mov.l @(0x24,r15),r5  fn=_ADXT_InsertHdrSfa@8c230838
+8c230b48  mov.l @(0x24,r14),r3  fn=_ADXPD_ExecHndl@8c230ae8
+8c232b66  mov.l @(0x24,r12),r2  fn=_MPV_DecodeFrm@8c232afc
+8c232b94  mov.l @(0x24,r12),r3  fn=_MPV_DecodeFrm@8c232afc
+8c232bb8  mov.l @(0x24,r2),r0  fn=_MPV_DecodeFrm@8c232afc
+8c232cc8  mov.l @(0x24,r3),r0  fn=_MPV_GetPicAtr@8c232c80
+8c2349f6  mov.l @(0x24,r4),r1  fn=_SFBUF_RingGetDlm@8c2349c0
+8c234abc  mov.l @(0x24,r11),r8  fn=_SFBUF_AringGetWrite@8c234a68
+8c234c68  mov.l @(0x24,r11),r12  fn=_SFBUF_AringGetRead@8c234c14
+8c234d78  mov.l @(0x24,r14),r2  fn=_SFBUF_AringAddRead@8c234d40
+8c234d88  mov.l @(0x24,r14),r2  fn=_SFBUF_AringAddRead@8c234d40
+8c2380e8  mov.l @(0x24,r4),r4  fn=_njCnkSimpleTextureD8DbNearClip@8c237d5c
+8c238148  mov.l @(0x24,r4),r4  fn=_njCnkSimpleTextureD8DbNearClip@8c237d5c
+8c238778  mov.l @(0x24,r4),r4  fn=_njCnkSimpleTextureD8EnvDbNearClip@8c2383a0
+8c2387d8  mov.l @(0x24,r4),r4  fn=_njCnkSimpleTextureD8EnvDbNearClip@8c2383a0
+8c238e54  mov.l @(0x24,r4),r4  fn=_njCnkSimpleTextureD8EnvNearClip@8c238a2c
+8c238eb4  mov.l @(0x24,r4),r4  fn=_njCnkSimpleTextureD8EnvNearClip@8c238a2c
+8c2394e6  mov.l @(0x24,r4),r4  fn=_njCnkSimpleTextureD8NearClip@8c239108
+8c239546  mov.l @(0x24,r4),r4  fn=_njCnkSimpleTextureD8NearClip@8c239108
+8c23d086  mov.l @(0x24,r3),r2  fn=_adxsje_get_pcm_data@8c23d056
+8c23d632  mov.l @(0x24,r1),r1  fn=_adxsje_encode_data@8c23d61c
+8c23d6b8  mov.l @(0x24,r3),r2  fn=_adxsje_write_end_code@8c23d676
+8c25b412  mov.l @(0x24,r15),r11  fn=FUN_8c25b3e8@8c25b3e8
+8c27508c  mov.l @(0x24,r14),r3  fn=(none)
+8c27599c  mov.l @(0x24,r4),r0  fn=(none)
+8c275aec  mov.l @(0x24,r4),r0  fn=(none)
+8c275e1e  mov.l @(0x24,r4),r0  fn=(none)
+8c275e5c  mov.l @(0x24,r5),r1  fn=(none)
+8c275f76  mov.l @(0x24,r4),r0  fn=(none)
+8c275fb0  mov.l @(0x24,r5),r1  fn=(none)
+8c2766b4  mov.l @(0x24,r4),r5  fn=(none)
+8c27679a  mov.l @(0x24,r4),r6  fn=(none)
+8c276846  mov.l @(0x24,r4),r6  fn=(none)
+8c2768ea  mov.l @(0x24,r4),r6  fn=(none)
+
+# Functions with hits: 563
+  8c011390 FUN_8c011390 -> 1 hits
+  8c011ab4 FUN_8c011ab4 -> 3 hits
+  8c011c5a FUN_8c011c5a -> 3 hits
+  8c01265e FUN_8c01265e -> 1 hits
+  8c014194 FUN_8c014194 -> 1 hits
+  8c0144bc FUN_8c0144bc -> 2 hits
+  8c014a3c FUN_8c014a3c -> 5 hits
+  8c0159cc FUN_8c0159cc -> 11 hits
+  8c01669e FUN_8c01669e -> 6 hits
+  8c016e94 FUN_8c016e94 -> 3 hits
+  8c017310 FUN_8c017310 -> 4 hits
+  8c0176a4 FUN_8c0176a4 -> 1 hits
+  8c018afc FUN_8c018afc -> 2 hits
+  8c019a72 FUN_8c019a72 -> 1 hits
+  8c019ef8 FUN_8c019ef8 -> 1 hits
+  8c01a2b0 FUN_8c01a2b0 -> 1 hits
+  8c01a66a FUN_8c01a66a -> 1 hits
+  8c01ab04 FUN_8c01ab04 -> 1 hits
+  8c01b020 FUN_8c01b020 -> 1 hits
+  8c01c6d4 FUN_8c01c6d4 -> 1 hits
+  8c01f186 FUN_8c01f186 -> 1 hits
+  8c01f644 FUN_8c01f644 -> 1 hits
+  8c0210b0 FUN_8c0210b0 -> 1 hits
+  8c021594 FUN_8c021594 -> 1 hits
+  8c021b50 FUN_8c021b50 -> 1 hits
+  8c025a30 FUN_8c025a30 -> 1 hits
+  8c02676c FUN_8c02676c -> 12 hits
+  8c026d24 FUN_8c026d24 -> 1 hits
+  8c02722c FUN_8c02722c -> 1 hits
+  8c028f4c FUN_8c028f4c -> 1 hits
+  8c029498 FUN_8c029498 -> 1 hits
+  8c02a220 FUN_8c02a220 -> 2 hits
+  8c02aee0 FUN_8c02aee0 -> 2 hits
+  8c02b588 FUN_8c02b588 -> 1 hits
+  8c02bdd4 FUN_8c02bdd4 -> 2 hits
+  8c02c5ac FUN_8c02c5ac -> 2 hits
+  8c02ce3c FUN_8c02ce3c -> 2 hits
+  8c02d630 FUN_8c02d630 -> 2 hits
+  8c02e6f8 FUN_8c02e6f8 -> 2 hits
+  8c0305a0 FUN_8c0305a0 -> 6 hits
+  8c030bbe FUN_8c030bbe -> 1 hits
+  8c0311fc FUN_8c0311fc -> 1 hits
+  8c031800 FUN_8c031800 -> 1 hits
+  8c03267c FUN_8c03267c -> 2 hits
+  8c032f78 FUN_8c032f78 -> 2 hits
+  8c033b14 FUN_8c033b14 -> 8 hits
+  8c03447c FUN_8c03447c -> 2 hits
+  8c034d10 FUN_8c034d10 -> 5 hits
+  8c035d94 FUN_8c035d94 -> 1 hits
+  8c036754 FUN_8c036754 -> 9 hits
+  8c036f3a FUN_8c036f3a -> 11 hits
+  8c037678 FUN_8c037678 -> 1 hits
+  8c039f92 FUN_8c039f92 -> 1 hits
+  8c03b670 FUN_8c03b670 -> 4 hits
+  8c03bff8 FUN_8c03bff8 -> 4 hits
+  8c03c7e4 FUN_8c03c7e4 -> 1 hits
+  8c03cf5c FUN_8c03cf5c -> 1 hits
+  8c03d2fa FUN_8c03d2fa -> 1 hits
+  8c03e766 FUN_8c03e766 -> 1 hits
+  8c03edcc FUN_8c03edcc -> 4 hits
+  8c03f8cc FUN_8c03f8cc -> 1 hits
+  8c03fe8c FUN_8c03fe8c -> 3 hits
+  8c040bca FUN_8c040bca -> 1 hits
+  8c0448ac FUN_8c0448ac -> 3 hits
+  8c04520c FUN_8c04520c -> 1 hits
+  8c04628c FUN_8c04628c -> 3 hits
+  8c046730 FUN_8c046730 -> 1 hits
+  8c046c28 FUN_8c046c28 -> 1 hits
+  8c046f0c FUN_8c046f0c -> 1 hits
+  8c0470f4 FUN_8c0470f4 -> 2 hits
+  8c047a08 FUN_8c047a08 -> 1 hits
+  8c047aa8 FUN_8c047aa8 -> 1 hits
+  8c047f64 FUN_8c047f64 -> 1 hits
+  8c0480a4 FUN_8c0480a4 -> 1 hits
+  8c048938 FUN_8c048938 -> 5 hits
+  8c0491c4 FUN_8c0491c4 -> 5 hits
+  8c04a768 FUN_8c04a768 -> 4 hits
+  8c04a998 FUN_8c04a998 -> 1 hits
+  8c04d8c8 FUN_8c04d8c8 -> 3 hits
+  8c04e7b4 FUN_8c04e7b4 -> 1 hits
+  8c04f0e8 FUN_8c04f0e8 -> 1 hits
+  8c04f158 FUN_8c04f158 -> 11 hits
+  8c04f934 FUN_8c04f934 -> 1 hits
+  8c04fe50 FUN_8c04fe50 -> 1 hits
+  8c054e24 FUN_8c054e24 -> 1 hits
+  8c0567be FUN_8c0567be -> 1 hits
+  8c0568ea FUN_8c0568ea -> 2 hits
+  8c057994 FUN_8c057994 -> 5 hits
+  8c058ae2 FUN_8c058ae2 -> 1 hits
+  8c0590de FUN_8c0590de -> 1 hits
+  8c0592e6 FUN_8c0592e6 -> 1 hits
+  8c059fa8 FUN_8c059fa8 -> 2 hits
+  8c05a478 FUN_8c05a478 -> 1 hits
+  8c05a7e4 FUN_8c05a7e4 -> 2 hits
+  8c05aaf4 FUN_8c05aaf4 -> 1 hits
+  8c05b432 FUN_8c05b432 -> 2 hits
+  8c05b996 FUN_8c05b996 -> 1 hits
+  8c05c764 FUN_8c05c764 -> 1 hits
+  8c05eb30 FUN_8c05eb30 -> 1 hits
+  8c05ff44 FUN_8c05ff44 -> 1 hits
+  8c063580 FUN_8c063580 -> 1 hits
+  8c064f04 FUN_8c064f04 -> 1 hits
+  8c065148 FUN_8c065148 -> 1 hits
+  8c065588 FUN_8c065588 -> 1 hits
+  8c067a3c FUN_8c067a3c -> 1 hits
+  8c0695d0 FUN_8c0695d0 -> 1 hits
+  8c069a58 FUN_8c069a58 -> 2 hits
+  8c069cd4 FUN_8c069cd4 -> 5 hits
+  8c06a624 FUN_8c06a624 -> 2 hits
+  8c06a83c FUN_8c06a83c -> 1 hits
+  8c06a91e FUN_8c06a91e -> 4 hits
+  8c06b170 FUN_8c06b170 -> 1 hits
+  8c06bb02 FUN_8c06bb02 -> 1 hits
+  8c06bfe0 FUN_8c06bfe0 -> 2 hits
+  8c06c4ac FUN_8c06c4ac -> 9 hits
+  8c06f0d4 FUN_8c06f0d4 -> 2 hits
+  8c071750 FUN_8c071750 -> 1 hits
+  8c07197c FUN_8c07197c -> 1 hits
+  8c071b78 FUN_8c071b78 -> 1 hits
+  8c071e2c FUN_8c071e2c -> 1 hits
+  8c072550 FUN_8c072550 -> 1 hits
+  8c07277c FUN_8c07277c -> 2 hits
+  8c072aa2 FUN_8c072aa2 -> 1 hits
+  8c072c28 FUN_8c072c28 -> 1 hits
+  8c072fb8 FUN_8c072fb8 -> 1 hits
+  8c0730a8 FUN_8c0730a8 -> 1 hits
+  8c0736bc FUN_8c0736bc -> 2 hits
+  8c073f36 FUN_8c073f36 -> 1 hits
+  8c0743ec FUN_8c0743ec -> 2 hits
+  8c074b18 FUN_8c074b18 -> 1 hits
+  8c075108 FUN_8c075108 -> 1 hits
+  8c0756fc FUN_8c0756fc -> 1 hits
+  8c075a78 FUN_8c075a78 -> 2 hits
+  8c0766c0 FUN_8c0766c0 -> 1 hits
+  8c076cde FUN_8c076cde -> 1 hits
+  8c076f12 FUN_8c076f12 -> 1 hits
+  8c077160 FUN_8c077160 -> 2 hits
+  8c0772f8 FUN_8c0772f8 -> 1 hits
+  8c077468 FUN_8c077468 -> 1 hits
+  8c077580 FUN_8c077580 -> 4 hits
+  8c077a1c FUN_8c077a1c -> 1 hits
+  8c077ba8 FUN_8c077ba8 -> 2 hits
+  8c077fce FUN_8c077fce -> 1 hits
+  8c0790f4 FUN_8c0790f4 -> 1 hits
+  8c07b570 FUN_8c07b570 -> 1 hits
+  8c07b7a0 FUN_8c07b7a0 -> 6 hits
+  8c07bfd8 FUN_8c07bfd8 -> 3 hits
+  8c07c5c0 FUN_8c07c5c0 -> 1 hits
+  8c07cafa FUN_8c07cafa -> 2 hits
+  8c07d38c FUN_8c07d38c -> 1 hits
+  8c07d8ac FUN_8c07d8ac -> 3 hits
+  8c07dd36 FUN_8c07dd36 -> 22 hits
+  8c07e2fc FUN_8c07e2fc -> 3 hits
+  8c07f3f0 FUN_8c07f3f0 -> 1 hits
+  8c07f510 FUN_8c07f510 -> 1 hits
+  8c080790 FUN_8c080790 -> 2 hits
+  8c080c7c FUN_8c080c7c -> 1 hits
+  8c0812e4 FUN_8c0812e4 -> 3 hits
+  8c0818c0 FUN_8c0818c0 -> 6 hits
+  8c0827b4 FUN_8c0827b4 -> 1 hits
+  8c082868 FUN_8c082868 -> 1 hits
+  8c0829e8 FUN_8c0829e8 -> 1 hits
+  8c082cee FUN_8c082cee -> 1 hits
+  8c083654 FUN_8c083654 -> 1 hits
+  8c0837e0 FUN_8c0837e0 -> 1 hits
+  8c083c3a FUN_8c083c3a -> 2 hits
+  8c0846e6 FUN_8c0846e6 -> 1 hits
+  8c0849bc FUN_8c0849bc -> 1 hits
+  8c0849ee FUN_8c0849ee -> 1 hits
+  8c084c00 FUN_8c084c00 -> 1 hits
+  8c085170 FUN_8c085170 -> 2 hits
+  8c0856f0 FUN_8c0856f0 -> 4 hits
+  8c085ec0 FUN_8c085ec0 -> 1 hits
+  8c0861a0 FUN_8c0861a0 -> 15 hits
+  8c0869ac FUN_8c0869ac -> 10 hits
+  8c086f64 FUN_8c086f64 -> 10 hits
+  8c0874b8 FUN_8c0874b8 -> 10 hits
+  8c087bf8 FUN_8c087bf8 -> 8 hits
+  8c088ecc FUN_8c088ecc -> 1 hits
+  8c089b84 FUN_8c089b84 -> 4 hits
+  8c08a28c FUN_8c08a28c -> 5 hits
+  8c08a6d8 FUN_8c08a6d8 -> 1 hits
+  8c08a734 FUN_8c08a734 -> 1 hits
+  8c08a8ae FUN_8c08a8ae -> 4 hits
+  8c08ae18 FUN_8c08ae18 -> 2 hits
+  8c08b77e FUN_8c08b77e -> 2 hits
+  8c08b948 FUN_8c08b948 -> 1 hits
+  8c08bc88 FUN_8c08bc88 -> 1 hits
+  8c08be84 FUN_8c08be84 -> 1 hits
+  8c08c054 FUN_8c08c054 -> 1 hits
+  8c08c1aa FUN_8c08c1aa -> 2 hits
+  8c08c300 FUN_8c08c300 -> 2 hits
+  8c08c516 FUN_8c08c516 -> 1 hits
+  8c08c9a6 FUN_8c08c9a6 -> 1 hits
+  8c08c9fc FUN_8c08c9fc -> 1 hits
+  8c08ca8e FUN_8c08ca8e -> 1 hits
+  8c08cb1c FUN_8c08cb1c -> 1 hits
+  8c08cd8c FUN_8c08cd8c -> 1 hits
+  8c08d018 FUN_8c08d018 -> 1 hits
+  8c08d064 FUN_8c08d064 -> 1 hits
+  8c08d0d4 FUN_8c08d0d4 -> 1 hits
+  8c08d214 FUN_8c08d214 -> 1 hits
+  8c08d534 FUN_8c08d534 -> 1 hits
+  8c08da6c FUN_8c08da6c -> 9 hits
+  8c08e350 FUN_8c08e350 -> 3 hits
+  8c08e990 FUN_8c08e990 -> 4 hits
+  8c08ef24 FUN_8c08ef24 -> 3 hits
+  8c08f6d8 FUN_8c08f6d8 -> 1 hits
+  8c08feec FUN_8c08feec -> 3 hits
+  8c09023a FUN_8c09023a -> 4 hits
+  8c0906f4 FUN_8c0906f4 -> 2 hits
+  8c09109c FUN_8c09109c -> 4 hits
+  8c0962a4 FUN_8c0962a4 -> 2 hits
+  8c096928 FUN_8c096928 -> 2 hits
+  8c097266 FUN_8c097266 -> 1 hits
+  8c09a994 FUN_8c09a994 -> 1 hits
+  8c09da18 FUN_8c09da18 -> 1 hits
+  8c09f86a FUN_8c09f86a -> 1 hits
+  8c0a0636 FUN_8c0a0636 -> 1 hits
+  8c0a0c0c FUN_8c0a0c0c -> 1 hits
+  8c0a5acc FUN_8c0a5acc -> 1 hits
+  8c0a7070 FUN_8c0a7070 -> 1 hits
+  8c0a74f4 FUN_8c0a74f4 -> 1 hits
+  8c0a7ff4 FUN_8c0a7ff4 -> 1 hits
+  8c0a8198 FUN_8c0a8198 -> 1 hits
+  8c0a8c94 FUN_8c0a8c94 -> 1 hits
+  8c0aa398 FUN_8c0aa398 -> 1 hits
+  8c0ad4b2 FUN_8c0ad4b2 -> 1 hits
+  8c0ad68e FUN_8c0ad68e -> 1 hits
+  8c0adee2 FUN_8c0adee2 -> 1 hits
+  8c0ae718 FUN_8c0ae718 -> 1 hits
+  8c0af0b8 FUN_8c0af0b8 -> 1 hits
+  8c0af8ac FUN_8c0af8ac -> 1 hits
+  8c0b01dc FUN_8c0b01dc -> 1 hits
+  8c0b0ac8 FUN_8c0b0ac8 -> 1 hits
+  8c0b153c FUN_8c0b153c -> 1 hits
+  8c0b18bc FUN_8c0b18bc -> 1 hits
+  8c0b20b4 FUN_8c0b20b4 -> 1 hits
+  8c0b233c FUN_8c0b233c -> 1 hits
+  8c0b2b58 FUN_8c0b2b58 -> 1 hits
+  8c0b2d36 FUN_8c0b2d36 -> 1 hits
+  8c0b2dc4 FUN_8c0b2dc4 -> 1 hits
+  8c0b31b8 FUN_8c0b31b8 -> 1 hits
+  8c0b33fc FUN_8c0b33fc -> 1 hits
+  8c0b3586 FUN_8c0b3586 -> 1 hits
+  8c0b39b6 FUN_8c0b39b6 -> 1 hits
+  8c0b3cde FUN_8c0b3cde -> 1 hits
+  8c0b4036 FUN_8c0b4036 -> 1 hits
+  8c0b4cb0 FUN_8c0b4cb0 -> 1 hits
+  8c0b4d0c FUN_8c0b4d0c -> 1 hits
+  8c0b4dd4 FUN_8c0b4dd4 -> 1 hits
+  8c0b57fc FUN_8c0b57fc -> 1 hits
+  8c0b5854 FUN_8c0b5854 -> 1 hits
+  8c0b5da8 FUN_8c0b5da8 -> 1 hits
+  8c0b62ba FUN_8c0b62ba -> 1 hits
+  8c0b78e4 FUN_8c0b78e4 -> 1 hits
+  8c0b8420 FUN_8c0b8420 -> 1 hits
+  8c0bb1ce FUN_8c0bb1ce -> 1 hits
+  8c0bc914 FUN_8c0bc914 -> 2 hits
+  8c0bd578 FUN_8c0bd578 -> 1 hits
+  8c0c71a0 FUN_8c0c71a0 -> 6 hits
+  8c0c9ecc FUN_8c0c9ecc -> 3 hits
+  8c0ca1a8 FUN_8c0ca1a8 -> 3 hits
+  8c0ca4b8 FUN_8c0ca4b8 -> 3 hits
+  8c0ca794 FUN_8c0ca794 -> 3 hits
+  8c0cc3ce FUN_8c0cc3ce -> 1 hits
+  8c0cca9c FUN_8c0cca9c -> 2 hits
+  8c0cd2c8 FUN_8c0cd2c8 -> 2 hits
+  8c0cd4bc FUN_8c0cd4bc -> 2 hits
+  8c0cd674 FUN_8c0cd674 -> 2 hits
+  8c0cd9b8 FUN_8c0cd9b8 -> 3 hits
+  8c0ce00c FUN_8c0ce00c -> 2 hits
+  8c0ce318 FUN_8c0ce318 -> 1 hits
+  8c0ce624 FUN_8c0ce624 -> 1 hits
+  8c0ce87e FUN_8c0ce87e -> 2 hits
+  8c0cef04 FUN_8c0cef04 -> 1 hits
+  8c0cf544 FUN_8c0cf544 -> 1 hits
+  8c0cfa82 FUN_8c0cfa82 -> 1 hits
+  8c0cfcba FUN_8c0cfcba -> 1 hits
+  8c0cfdf8 FUN_8c0cfdf8 -> 1 hits
+  8c0d0008 FUN_8c0d0008 -> 1 hits
+  8c0d0550 FUN_8c0d0550 -> 1 hits
+  8c0d08d4 FUN_8c0d08d4 -> 1 hits
+  8c0d0dac FUN_8c0d0dac -> 17 hits
+  8c0d14e4 FUN_8c0d14e4 -> 3 hits
+  8c0d16ac FUN_8c0d16ac -> 4 hits
+  8c0d1888 FUN_8c0d1888 -> 3 hits
+  8c0d1cbe FUN_8c0d1cbe -> 1 hits
+  8c0d2172 FUN_8c0d2172 -> 1 hits
+  8c0d24dc FUN_8c0d24dc -> 1 hits
+  8c0d2572 FUN_8c0d2572 -> 1 hits
+  8c0d271a FUN_8c0d271a -> 2 hits
+  8c0d2878 FUN_8c0d2878 -> 1 hits
+  8c0d2932 FUN_8c0d2932 -> 1 hits
+  8c0d2dbc FUN_8c0d2dbc -> 1 hits
+  8c0d3126 FUN_8c0d3126 -> 1 hits
+  8c0d334c FUN_8c0d334c -> 4 hits
+  8c0d521a FUN_8c0d521a -> 1 hits
+  8c0d7418 FUN_8c0d7418 -> 2 hits
+  8c0d7d14 FUN_8c0d7d14 -> 2 hits
+  8c0d7f14 FUN_8c0d7f14 -> 1 hits
+  8c0d82b4 FUN_8c0d82b4 -> 1 hits
+  8c0d849e FUN_8c0d849e -> 1 hits
+  8c0d85dc FUN_8c0d85dc -> 1 hits
+  8c0da8d8 FUN_8c0da8d8 -> 1 hits
+  8c0db0a4 FUN_8c0db0a4 -> 2 hits
+  8c0dca36 FUN_8c0dca36 -> 1 hits
+  8c0dcbbe FUN_8c0dcbbe -> 2 hits
+  8c0e2a9c FUN_8c0e2a9c -> 1 hits
+  8c0e5056 FUN_8c0e5056 -> 1 hits
+  8c0e5eae FUN_8c0e5eae -> 1 hits
+  8c0e5f5e FUN_8c0e5f5e -> 4 hits
+  8c0e618c FUN_8c0e618c -> 1 hits
+  8c0e6366 FUN_8c0e6366 -> 1 hits
+  8c0e6640 FUN_8c0e6640 -> 2 hits
+  8c0e680e FUN_8c0e680e -> 4 hits
+  8c0e6926 FUN_8c0e6926 -> 1 hits
+  8c0e75de FUN_8c0e75de -> 4 hits
+  8c0e76bc FUN_8c0e76bc -> 3 hits
+  8c0e7924 FUN_8c0e7924 -> 1 hits
+  8c0e79ea FUN_8c0e79ea -> 5 hits
+  8c0e7ae4 FUN_8c0e7ae4 -> 4 hits
+  8c0e7e16 FUN_8c0e7e16 -> 1 hits
+  8c0e7fc8 FUN_8c0e7fc8 -> 2 hits
+  8c0e80f0 FUN_8c0e80f0 -> 1 hits
+  8c0e8340 FUN_8c0e8340 -> 4 hits
+  8c0e8446 FUN_8c0e8446 -> 1 hits
+  8c0e880c FUN_8c0e880c -> 1 hits
+  8c0ea464 FUN_8c0ea464 -> 1 hits
+  8c0ec1b0 FUN_8c0ec1b0 -> 1 hits
+  8c0eca42 FUN_8c0eca42 -> 1 hits
+  8c0ecde4 FUN_8c0ecde4 -> 3 hits
+  8c0edc44 FUN_8c0edc44 -> 1 hits
+  8c0ee404 FUN_8c0ee404 -> 7 hits
+  8c0f2bf4 FUN_8c0f2bf4 -> 1 hits
+  8c0f81a4 _longjmp -> 1 hits
+  8c0f8604 __fmtout -> 3 hits
+  8c0fce64 FUN_8c0fce64 -> 1 hits
+  8c0fcf6a FUN_8c0fcf6a -> 1 hits
+  8c101894 FUN_8c101894 -> 2 hits
+  8c101d7c FUN_8c101d7c -> 2 hits
+  8c103924 FUN_8c103924 -> 2 hits
+  8c104a8c FUN_8c104a8c -> 1 hits
+  8c10555a FUN_8c10555a -> 1 hits
+  8c105a58 FUN_8c105a58 -> 1 hits
+  8c105e84 FUN_8c105e84 -> 1 hits
+  8c10a130 FUN_8c10a130 -> 1 hits
+  8c10a186 FUN_8c10a186 -> 1 hits
+  8c114334 FUN_8c114334 -> 1 hits
+  8c1144ec FUN_8c1144ec -> 1 hits
+  8c11487c FUN_8c11487c -> 1 hits
+  8c115498 FUN_8c115498 -> 3 hits
+  8c116256 FUN_8c116256 -> 1 hits
+  8c116c30 FUN_8c116c30 -> 1 hits
+  8c116dca FUN_8c116dca -> 1 hits
+  8c118552 FUN_8c118552 -> 1 hits
+  8c11a6a8 FUN_8c11a6a8 -> 1 hits
+  8c11d614 FUN_8c11d614 -> 8 hits
+  8c11e392 FUN_8c11e392 -> 1 hits
+  8c11e5f8 FUN_8c11e5f8 -> 1 hits
+  8c120650 FUN_8c120650 -> 1 hits
+  8c121ae4 FUN_8c121ae4 -> 1 hits
+  8c1247ba FUN_8c1247ba -> 3 hits
+  8c127b64 FUN_8c127b64 -> 4 hits
+  8c128578 FUN_8c128578 -> 1 hits
+  8c128c08 FUN_8c128c08 -> 1 hits
+  8c129da4 FUN_8c129da4 -> 3 hits
+  8c12a248 FUN_8c12a248 -> 7 hits
+  8c12a9c8 FUN_8c12a9c8 -> 3 hits
+  8c12ab18 FUN_8c12ab18 -> 2 hits
+  8c12abe2 FUN_8c12abe2 -> 2 hits
+  8c12b0bc FUN_8c12b0bc -> 1 hits
+  8c12bbf0 FUN_8c12bbf0 -> 1 hits
+  8c12cc6c FUN_8c12cc6c -> 1 hits
+  8c12db30 FUN_8c12db30 -> 1 hits
+  8c12f9bc FUN_8c12f9bc -> 8 hits
+  8c133b70 __xtostr -> 2 hits
+  8c134dc0 FUN_8c134dc0 -> 1 hits
+  8c134ff2 FUN_8c134ff2 -> 1 hits
+  8c13525a FUN_8c13525a -> 2 hits
+  8c1368a4 FUN_8c1368a4 -> 2 hits
+  8c136d4c FUN_8c136d4c -> 2 hits
+  8c13842c FUN_8c13842c -> 2 hits
+  8c138d94 FUN_8c138d94 -> 2 hits
+  8c139234 FUN_8c139234 -> 2 hits
+  8c13a8fc FUN_8c13a8fc -> 2 hits
+  8c13c7bc FUN_8c13c7bc -> 3 hits
+  8c13e2e6 FUN_8c13e2e6 -> 1 hits
+  8c13e6a4 FUN_8c13e6a4 -> 1 hits
+  8c13f6f4 FUN_8c13f6f4 -> 1 hits
+  8c140eaa FUN_8c140eaa -> 1 hits
+  8c142044 FUN_8c142044 -> 1 hits
+  8c142670 FUN_8c142670 -> 1 hits
+  8c144c90 FUN_8c144c90 -> 3 hits
+  8c145770 FUN_8c145770 -> 2 hits
+  8c145aca FUN_8c145aca -> 1 hits
+  8c14675c FUN_8c14675c -> 1 hits
+  8c1478fe FUN_8c1478fe -> 1 hits
+  8c149030 FUN_8c149030 -> 1 hits
+  8c149730 FUN_8c149730 -> 1 hits
+  8c14c1b8 FUN_8c14c1b8 -> 1 hits
+  8c14c384 FUN_8c14c384 -> 1 hits
+  8c14c8fc FUN_8c14c8fc -> 2 hits
+  8c14d350 FUN_8c14d350 -> 1 hits
+  8c14dfb4 FUN_8c14dfb4 -> 1 hits
+  8c14f5c8 FUN_8c14f5c8 -> 1 hits
+  8c150e10 FUN_8c150e10 -> 3 hits
+  8c152d58 FUN_8c152d58 -> 4 hits
+  8c15608c FUN_8c15608c -> 3 hits
+  8c156abe FUN_8c156abe -> 1 hits
+  8c156b2c FUN_8c156b2c -> 1 hits
+  8c156c20 FUN_8c156c20 -> 1 hits
+  8c156d66 FUN_8c156d66 -> 1 hits
+  8c1578c6 FUN_8c1578c6 -> 8 hits
+  8c1582f0 FUN_8c1582f0 -> 1 hits
+  8c1584fc FUN_8c1584fc -> 1 hits
+  8c158566 FUN_8c158566 -> 1 hits
+  8c15a47e FUN_8c15a47e -> 4 hits
+  8c15c314 FUN_8c15c314 -> 2 hits
+  8c15c6a2 FUN_8c15c6a2 -> 1 hits
+  8c15dc94 FUN_8c15dc94 -> 2 hits
+  8c1605e0 FUN_8c1605e0 -> 2 hits
+  8c16099c FUN_8c16099c -> 1 hits
+  8c1613d8 FUN_8c1613d8 -> 2 hits
+  8c161774 FUN_8c161774 -> 1 hits
+  8c163e8c FUN_8c163e8c -> 4 hits
+  8c16418c FUN_8c16418c -> 2 hits
+  8c164362 FUN_8c164362 -> 5 hits
+  8c1656a4 FUN_8c1656a4 -> 1 hits
+  8c166418 FUN_8c166418 -> 2 hits
+  8c166b84 FUN_8c166b84 -> 3 hits
+  8c166c30 FUN_8c166c30 -> 2 hits
+  8c167046 FUN_8c167046 -> 3 hits
+  8c167274 FUN_8c167274 -> 8 hits
+  8c169be4 FUN_8c169be4 -> 1 hits
+  8c169ed8 FUN_8c169ed8 -> 5 hits
+  8c16bc80 FUN_8c16bc80 -> 7 hits
+  8c171120 FUN_8c171120 -> 1 hits
+  8c17147c FUN_8c17147c -> 2 hits
+  8c173720 FUN_8c173720 -> 1 hits
+  8c173bd4 FUN_8c173bd4 -> 3 hits
+  8c173cf0 FUN_8c173cf0 -> 2 hits
+  8c174184 FUN_8c174184 -> 5 hits
+  8c1741d8 FUN_8c1741d8 -> 4 hits
+  8c1742cc FUN_8c1742cc -> 2 hits
+  8c175028 FUN_8c175028 -> 3 hits
+  8c177038 FUN_8c177038 -> 1 hits
+  8c1790e8 FUN_8c1790e8 -> 2 hits
+  8c1791b2 FUN_8c1791b2 -> 2 hits
+  8c179248 FUN_8c179248 -> 3 hits
+  8c17931e FUN_8c17931e -> 6 hits
+  8c179582 FUN_8c179582 -> 4 hits
+  8c1796b0 FUN_8c1796b0 -> 6 hits
+  8c1797ce FUN_8c1797ce -> 4 hits
+  8c1798d4 FUN_8c1798d4 -> 2 hits
+  8c179934 FUN_8c179934 -> 5 hits
+  8c179dc8 FUN_8c179dc8 -> 2 hits
+  8c17b058 FUN_8c17b058 -> 4 hits
+  8c17b398 FUN_8c17b398 -> 1 hits
+  8c17c430 FUN_8c17c430 -> 1 hits
+  8c17c9fc FUN_8c17c9fc -> 4 hits
+  8c1d749e FUN_8c1d749e -> 1 hits
+  8c1d929a FUN_8c1d929a -> 1 hits
+  8c1dc728 _ADXT_Create -> 2 hits
+  8c1de788 FID_conflict:_sdMidiSetVol -> 2 hits
+  8c1df2e8 FID_conflict:_sdMidiSetVol -> 2 hits
+  8c1dfd2c _njCnkToonPlist -> 4 hits
+  8c1e07f2 _njCnkEasyPlist -> 1 hits
+  8c1e113a _njCnkSimplePlist -> 7 hits
+  8c1e5332 _njInitVertexBuffer -> 1 hits
+  8c1e6476 _gdFsGetStatG -> 5 hits
+  8c1e7adc _kdSendFrame -> 1 hits
+  8c1e9fb0 _syG2Read -> 1 hits
+  8c1edd96 FUN_8c1edd96 -> 1 hits
+  8c1ede00 FUN_8c1ede00 -> 1 hits
+  8c1ee0c2 FUN_8c1ee0c2 -> 1 hits
+  8c1ee0f4 FUN_8c1ee0f4 -> 1 hits
+  8c1ee650 _vmsfs_save_file -> 2 hits
+  8c1ee850 _vmsfs_save_exec_file -> 1 hits
+  8c1ef2e0 _ADX_DecodeInfoExLoop -> 1 hits
+  8c1efdb4 _adxsjd_decexec_start -> 2 hits
+  8c1f0234 _ADXSTMF_SetupHandleMember -> 1 hits
+  8c1f0698 _adxstmf_stat_exec -> 2 hits
+  8c1f1310 _adxt_stat_playing -> 1 hits
+  8c1f1634 FUN_8c1f1634 -> 1 hits
+  8c1f16ac _LSC_Create -> 1 hits
+  8c1f1768 _LSC_EntryFname -> 2 hits
+  8c1f185e _LSC_Start -> 1 hits
+  8c1f19be _LSC_GetNumStm -> 1 hits
+  8c1f2838 _mwlRnaExecSvrHndl -> 1 hits
+  8c1f2f98 _mwRnaSetSfreq -> 1 hits
+  8c1f53ba _mwlSfdExecDecSvrPlaying -> 1 hits
+  8c1f60b2 _mwPlySfdCalcWorkFrmBuf -> 1 hits
+  8c1f6116 _mwPlyCalcWorkSofdec -> 1 hits
+  8c1f62bc _mwPlySfdCreate -> 2 hits
+  8c1f7068 _sdMemBlkExecuteCallback -> 3 hits
+  8c1f731c _sdMemBlkTransfer -> 2 hits
+  8c1fd700 FUN_8c1fd700 -> 2 hits
+  8c1fdec0 _kmSetVertexRenderState -> 3 hits
+  8c1fe9ee _kmCreateVertexBuffer -> 1 hits
+  8c1fef00 _kmCreateTABuffer -> 1 hits
+  8c1ff1e0 _kmSetSystemConfiguration -> 1 hits
+  8c200cb4 _njCnkEasyTextureBumpClip -> 1 hits
+  8c208190 FUN_8c208190 -> 1 hits
+  8c208f32 _gdFsSearchPath_dds -> 1 hits
+  8c20a56c FUN_8c20a56c -> 3 hits
+  8c20d0be _ADXB_EvokeDecode -> 1 hits
+  8c20d5f0 _lsc_ReqRead -> 1 hits
+  8c20d694 _lsc_StatWait -> 1 hits
+  8c20d850 _lsc_StatEnd -> 2 hits
+  8c20d8ca _lsc_ExecHndl -> 1 hits
+  8c20f9d4 _mwRnv2GetNumTxfrm -> 2 hits
+  8c20fa28 _mwRnv2GetNumRoomTex -> 1 hits
+  8c212d88 _sfadxt_CopyFlap -> 2 hits
+  8c21313e _sfadxt_GetTime -> 2 hits
+  8c2136b6 _SFD_GetTimePerFile -> 1 hits
+  8c213e72 _sfmps_CopyPketData -> 1 hits
+  8c2140be FUN_8c2140be -> 1 hits
+  8c214168 _sfmps_CopyDstBuft -> 1 hits
+  8c215340 _sfmpv_ReadTcode -> 1 hits
+  8c21565e _sfmpv_IsSeekSkip -> 1 hits
+  8c215b28 _sfmpv_SetFrmTime -> 1 hits
+  8c2175f6 FUN_8c2175f6 -> 1 hits
+  8c2176b4 _SFTIM_GetTimeSub -> 1 hits
+  8c219a40 _sdMidiServer -> 5 hits
+  8c21a2d0 _sdShotServer -> 5 hits
+  8c21cca0 _kmiFBalloc -> 1 hits
+  8c21cd4e _kmiFBallocEx -> 1 hits
+  8c220f06 _kmLoadRectangleTexturePart -> 1 hits
+  8c2254a8 _njCnkSimpleTextureBumpClip -> 2 hits
+  8c22c2a0 _kmiCreateRegionArray -> 1 hits
+  8c22d460 FUN_8c22d460 -> 1 hits
+  8c22f3f6 _ADX_DecodeInfoAiff -> 1 hits
+  8c22f58c FID_conflict:_ADXB_ExecOneAiff16 -> 2 hits
+  8c22f6aa FID_conflict:_ADXB_ExecOneAiff8 -> 2 hits
+  8c22f7cc FUN_8c22f7cc -> 1 hits
+  8c22fa22 _ADX_DecodeInfoAu -> 1 hits
+  8c22fbd4 FID_conflict:_ADXB_ExecOneAiff16 -> 2 hits
+  8c22fcf4 FID_conflict:_ADXB_ExecOneAiff8 -> 2 hits
+  8c22fdfc _ADXB_ExecOneAuUlaw -> 2 hits
+  8c22ff30 _ADX_DecodeInfoSpsd -> 1 hits
+  8c22fffc _ADXB_DecodeHeaderSpsd -> 1 hits
+  8c2300e0 FID_conflict:_ADXB_ExecOneWav16 -> 2 hits
+  8c2303b0 _ADXB_DecodeHeaderWav -> 1 hits
+  8c230498 FID_conflict:_ADXB_ExecOneWav16 -> 2 hits
+  8c230590 _ADXB_ExecOneWav8 -> 2 hits
+  8c23069c _ADXB_ExecOneWav4 -> 2 hits
+  8c230838 _ADXT_InsertHdrSfa -> 1 hits
+  8c230ae8 _ADXPD_ExecHndl -> 1 hits
+  8c232afc _MPV_DecodeFrm -> 3 hits
+  8c232c80 _MPV_GetPicAtr -> 1 hits
+  8c2349c0 _SFBUF_RingGetDlm -> 1 hits
+  8c234a68 _SFBUF_AringGetWrite -> 1 hits
+  8c234c14 _SFBUF_AringGetRead -> 1 hits
+  8c234d40 _SFBUF_AringAddRead -> 2 hits
+  8c237d5c _njCnkSimpleTextureD8DbNearClip -> 2 hits
+  8c2383a0 _njCnkSimpleTextureD8EnvDbNearClip -> 2 hits
+  8c238a2c _njCnkSimpleTextureD8EnvNearClip -> 2 hits
+  8c239108 _njCnkSimpleTextureD8NearClip -> 2 hits
+  8c23d056 _adxsje_get_pcm_data -> 1 hits
+  8c23d61c _adxsje_encode_data -> 1 hits
+  8c23d676 _adxsje_write_end_code -> 1 hits
+  8c25b3e8 FUN_8c25b3e8 -> 1 hits
