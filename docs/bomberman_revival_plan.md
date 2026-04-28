@@ -5276,3 +5276,38 @@ Next test expectation:
   sprite-less 2:01 board
 - if either client still diverges, the next evidence to capture is which packet
   follows the immediate reset, not the older 30-second safety path
+
+## 2026-04-28 Follow-up: loser entered local next-map path after immediate reset
+
+Fresh hardware result after commit `4342727`:
+
+- winner returned to Room successfully
+- loser showed `Battle Start`, loaded a map, and got stuck at `2:01` with no player sprites
+- user also saw existing trophy count carry forward plus one new trophy for the win; this does not prove a new multi-trophy packet regression, but it confirms trophy/result handling still needs validation after the room-return split is fixed
+
+Fresh log evidence from `D:\kageserver\logs\kageserver.log` at `10:39`:
+
+- FARKUS2 died (`deadMap=01`), FARKUS won, and the 1-point battle set was complete
+- Kage sent the result sequence to both clients: `cmd=16 -> cmd=19 -> cmd=15`
+- FARKUS2 then emitted `cmd=04` at `+2361ms`; Kage ACKed it, suppressed it, and immediately called `resetForPostMatchRoom("post_battle_next_round_suppressed")`
+- the reset broadcast sent the proven room-state trio to both clients:
+  - occupied slot mask `cmd=0x11`
+  - rule blob `cmd=0x0b`
+  - keyholder sync `cmd=0x0e`
+- after that reset, FARKUS2 kept emitting stale next-map/bootstrap traffic for about 15 seconds: repeated `cmd=04`, repeated `cmd=05`, several `cmd=1a`, `cmd=1b`, and `cmd=0f`
+- Kage correctly suppressed those packets during `postMatchCommandQuarantine`, but it only silent-ACKed/dropped them; it did not keep pushing FARKUS2 back toward the room-state path
+- FARKUS later emitted `cmd=13` and `cmd=0c` around `+17s`; Kage reached `ready_to_start`, but FARKUS2 was still stuck in the quarantined next-map stream and eventually timed out at `10:40:32`
+
+Data-driven correction implemented:
+
+- added `BMRoom::reinforcePostMatchRoom(Player*, reason)`, which re-sends only the room-state trio already proven in the same log: occupied slot mask, rule blob, and keyholder sync
+- when a quarantined post-match stale packet arrives after the first reset, Kage now ACKs/drops the stale payload and sends that room-state trio directly to the offending sender
+- when a later `cmd=0c` rule-sync arrives while quarantine is active, Kage broadcasts the room-state trio to both players again so the two clients converge instead of one remaining in local map-transfer state
+- no new speculative gameplay/result packet was introduced; this patch only repeats packets already observed and used by the existing post-match reset path
+
+Next hardware test expectation:
+
+- after death, first stale `cmd=04` should still trigger immediate `post-match room reset (post_battle_next_round_suppressed)`
+- if the loser keeps sending `cmd=04/05/1a/1b/0f`, logs should now show `post_match_quarantine_*` room-state reinforcement sends to that same player
+- both clients should return to Room/rules state without either loading the sprite-less `2:01` board
+- if trophy count is still wrong after both consoles return cleanly, inspect whether the client increments once from persisted VMU state or multiple times from `cmd=16/19/15`
