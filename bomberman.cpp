@@ -2330,6 +2330,21 @@ void BMRoom::handleBattleEndClientSignal(Player *player, uint16_t word, uint32_t
 	if (state.battleEndPhase != BattleEndPhase::CompletedDeadBits)
 		return;
 
+	const int playerPos = getPlayerPosition(player);
+	const bool deadPlayerInCompletedSet = battleEndDecidedByDeath && isBattleSetComplete()
+		&& playerPos >= 0 && playerPos < 8
+		&& (deadManBitmap & (uint8_t)(1u << playerPos)) != 0;
+	if (deadPlayerInCompletedSet)
+	{
+		INFO_LOG(Game::Bomberman,
+			"%s: dead player %s [%x] sent cmd=10 after cmd=19; marking final without cmd=15 to avoid loser next-map bootstrap",
+			name.c_str(), player->getName().c_str(), player->getId());
+		logEndTimeline("dead_client_signal_no_cmd15", player, 0x10, word, "");
+		state.battleEndPhase = BattleEndPhase::FinalState;
+		resetPostBattleSetAfterFinalMarkers("dead_player_client_signal");
+		return;
+	}
+
 	INFO_LOG(Game::Bomberman, "%s: battle end client progression from %s [%x] word=%04x tail=%08x",
 		name.c_str(), player->getName().c_str(), player->getId(), word, tail);
 	advanceBattleEndSequence(player, state, "client_signal");

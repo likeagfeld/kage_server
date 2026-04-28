@@ -5347,3 +5347,33 @@ Next validation expectation:
 - reset should occur around +600-700ms instead of +2334ms or later
 - no `post_match_rule_sync_quarantine` flood should appear
 - both consoles should converge to Room/rules without winner entering sprite-less `2:01`
+
+## 2026-04-28 Follow-up: dead-player cmd10 predicts loser next-map bootstrap
+
+Hardware result after commit `6621bfc`:
+
+- winner returned to Room successfully
+- loser entered `Battle Start`, reloaded the map, and stuck at `2:01` without player sprites
+- trophy state looked cleaner in this run: zero existing trophies were shown, then one trophy was awarded for the first win
+
+Fresh `D:\kageserver\logs\kageserver.stderr.log` evidence from the `11:09` run:
+
+- FARKUS died at player position 0; FARKUS2 won the one-point battle set
+- server sent the death/result sequence to both clients: `cmd=16`, then `cmd=19`, then `cmd=15`
+- the dead/losing client FARKUS sent `cmd=10` while still in `CompletedDeadBits`
+- the existing client-signal fast path immediately advanced that same dead player to `cmd=15 final_state`
+- after receiving that final-state marker, the same dead player began stale next-map/bootstrap traffic (`cmd=04/05/1a/1b/0f`) and became the console stuck at sprite-less `Battle Start` / `2:01`
+- this matches the cross-run pattern from `10:21`, `10:55`, and `11:09`: the dead player `cmd=10 -> server cmd=15` path predicts the losing console's stale next-map branch
+
+Correction implemented:
+
+- when a dead player in a completed, death-decided battle set sends `cmd=10` after `cmd=19`, Kage now ACKs at the packet layer as before, records that player as final for convergence, but does not send that dead player `cmd=15`
+- surviving/winning players still receive the existing `cmd=15` result marker through the reliable ACK path, preserving the trophy/result path that looked cleaner in the latest test
+- this is intentionally narrower than previous attempts: no room-state reinforcement, no repeated broadcasts, and no change to lobby, room join, rules, start, bomb, movement, or trophy scoring code
+
+Next validation expectation:
+
+- logs should show `dead_client_signal_no_cmd15` for the player who died
+- logs should not show `battle state sync (final_state)` / `cmd=15` sent to that dead player from the `client_signal` path
+- the winner should still receive final result handling and return to Room
+- the loser should stop entering the stale next-map/bootstrap sequence; if stale `cmd=04/05/1a/1b/0f` still appears, the next evidence is whether it happened without any server `cmd=15` to the dead player
