@@ -383,12 +383,20 @@ void BMRoom::sendPostMatchStatNudgeTo(Player *player, uint8_t command)
 		return;
 
 	state.postMatchStatNudgeSent = true;
-	Packet packet;
-	writeRoomAttr(packet, "STAT");
 	INFO_LOG(Game::Bomberman,
-		"%s: post-match STAT nudge -> %s [%x] after suppressed cmd=%02x STAT=%08x",
-		name.c_str(), player->getName().c_str(), player->getId(), command, getAttributes());
-	player->send(packet);
+		"%s: post-match room recovery -> %s [%x] after suppressed cmd=%02x; attrs, roster, slots, rules, keyholder",
+		name.c_str(), player->getName().c_str(), player->getId(), command);
+
+	// A STAT-only nudge was falsified by the 2026-04-29 hardware run:
+	// the winner returned to Room, while the dead loser stayed in the
+	// next-map bootstrap path. Re-send the room-state families Bomberman
+	// consumes during stable room entry, without sending server cmd=13.
+	sendRoomAttrSyncTo(player);
+	sendUserSnapshotTo(player);
+	sendExistingOccupantsToJoiner(player);
+	sendOccupiedSlotMaskTo(player, "post_match_recovery");
+	sendRuleBlobTo(player, "post_match_recovery", 0x8000);
+	sendOwnerKeyholderSyncTo(player, "post_match_recovery");
 }
 
 void BMRoom::sendLobbyJoinEventTo(Player *recipient, const Player *subject) const

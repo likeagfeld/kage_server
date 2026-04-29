@@ -5657,3 +5657,38 @@ Expected next log shape:
 - `suppressing cmd=13 broadcast; battle set was complete before post-match advance handling`
 - no `server start transition (post_match_advance)` after completed-set reset
 - clients should return/stay in the room instead of both entering sprite-less `2:01`
+
+## 2026-04-29 Fix: replace STAT-only post-match nudge with full room recovery
+
+Latest hardware result after `810646e` narrowed the failure:
+
+- the previous completed-set guard worked: logs showed `suppressing cmd=13 broadcast; battle set was complete before post-match advance handling`
+- winner (`FARKUS2`) transitioned back to Room and later sent `cmd=0c` rule sync
+- loser (`FARKUS`) remained in stale next-map/bootstrap traffic after reset: repeated suppressed `cmd=1a/1b/0f`
+- the existing one-shot `post-match STAT nudge` was sent to the loser but did not pull that client back to Room
+- user also observed the Collection Panel overlay still empty; that remains a separate result-payload gap unless logs later prove it gates room return
+
+Evidence conclusion:
+
+- server `cmd=13` is still forbidden after completed-set reset
+- `STAT` alone is falsified as sufficient loser recovery
+- Bomberman's documented room path consumes multiple state families: room attrs, room user snapshot, occupant prop/status, slot mask, rule blob, and keyholder sync
+
+Current Kage correction:
+
+- keep the `peer_return_dead_stale_bootstrap` recovery gate
+- when a quarantined post-match client sends its first stale bootstrap/map command after reset, send a full post-match room recovery sequence:
+  - `STAT/NAME/MAXI/USER` room attrs
+  - `REQ_QRY_USERS` room user snapshot
+  - existing occupant join/prop/status refresh
+  - occupied slot mask (`cmd=11`)
+  - rule blob (`cmd=0b`)
+  - keyholder sync (`cmd=0e`)
+- do not send server `cmd=13`
+
+Expected next log shape:
+
+- `post-match room reset (peer_return_dead_stale_bootstrap)`
+- `suppressing cmd=13 broadcast; battle set was complete before post-match advance handling`
+- on the losing/stale client: `post-match room recovery -> ... attrs, roster, slots, rules, keyholder`
+- desired client result: loser returns to Room instead of remaining at Battle Start / `2:01`
