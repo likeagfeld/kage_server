@@ -3311,16 +3311,19 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 				player->ackPacket(replyPacket, data);
 				if (room != nullptr && room->isBattleEndSent())
 				{
+					const bool completedSetBeforeAdvance = room->isBattleSetComplete();
 					room->notePostMatchAdvance(player, word);
 					// CRITICAL: do NOT broadcast cmd=13 if the BATTLE SET is
 					// complete. Server cmd=13 is the board/start path, while
 					// client cmd=13 is the binary-confirmed post-match return
 					// marker. Completed sets reset only after every current
-					// player has reached that return path.
-					if (room->isBattleSetComplete())
+					// player has reached that return path. Capture this before
+					// notePostMatchAdvance(), because that call may reset the
+					// room and clear isBattleSetComplete() in the same handler.
+					if (completedSetBeforeAdvance)
 					{
 						INFO_LOG(Game::Bomberman,
-							"%s: suppressing cmd=13 broadcast; battle set complete, reset is gated on all post-match return markers",
+							"%s: suppressing cmd=13 broadcast; battle set was complete before post-match advance handling",
 							player->getName().c_str());
 					}
 					else

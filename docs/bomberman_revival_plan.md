@@ -5629,3 +5629,31 @@ Expected next-test signature:
   stale bootstrap proves client left recap`
 - immediate `post-match room reset (peer_return_dead_stale_bootstrap)` instead
   of waiting for the 30-second safety timer
+
+## 2026-04-29 Fix: preserve completed-set state across post-match cmd13 handling
+
+Fresh hardware logs after `peer_return_dead_stale_bootstrap` showed the exact cause of the new "both clients restart to Battle Start / 2:01 with no sprites" regression:
+
+- survivor emitted client `cmd=13` and became `phase=done return=1`
+- recovery accepted the dead stale-bootstrap client and called `post-match room reset (peer_return_dead_stale_bootstrap)`
+- immediately afterward, the same `case 0x13` handler logged `broadcasting cmd=13 start transition in response to post-match advance`
+- both clients received server `cmd=13`, which the binary analysis already identifies as the board/start path, not the completed-match room-return path
+
+Root cause:
+
+- `case 0x13` checked `room->isBattleSetComplete()` after `notePostMatchAdvance()`
+- `notePostMatchAdvance()` can reset the room and clear the completed-set flags
+- the post-reset check therefore flipped false and incorrectly entered the start-transition branch
+
+Current Kage correction:
+
+- capture `completedSetBeforeAdvance = room->isBattleSetComplete()` before `notePostMatchAdvance()`
+- suppress server `cmd=13` if the set was complete before handling the client post-match advance packet
+- keep the dead-stale recovery path intact, but prevent it from falling through into a new board start
+
+Expected next log shape:
+
+- `post-match room reset (peer_return_dead_stale_bootstrap)`
+- `suppressing cmd=13 broadcast; battle set was complete before post-match advance handling`
+- no `server start transition (post_match_advance)` after completed-set reset
+- clients should return/stay in the room instead of both entering sprite-less `2:01`
