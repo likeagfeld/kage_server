@@ -5830,3 +5830,34 @@ Next validation markers:
 - after both client `cmd=13` markers, logs should show full hydration for both `FARKUS` and `FARKUS2`
 - neither client should enter stale board-start/bootstrap traffic
 - both clients should return to the room without a line-disconnect timeout
+
+## 2026-04-29 VALIDATED: full post-match room hydration fixes completed-set room return
+
+Hardware validation after commit `dc3d5e0` confirmed the end-to-end completed-match return path now works:
+
+- after a player death / completed one-point match, both Dreamcasts transitioned back to the room
+- the room was able to start a new game afterward
+- after the second game, both Dreamcasts transitioned back to the room again
+- this validates the `cmd=19 -> ACK -> cmd=15 -> client cmd=13 -> full room hydration` sequence across repeated match cycles
+
+Validated server behavior:
+
+- final/completed death-decided set uses server `cmd=0x19` first
+- server waits for the reliable `cmd=0x19` ACK before sending non-reliable `cmd=0x15`
+- completed-set client `cmd=0x13` is treated as a post-match return marker only; Kage must not rebroadcast server `cmd=0x13` here
+- room reset must wait until all current clients reach the post-match return marker, unless the explicitly logged dead-stale recovery condition applies
+- after the clean reset, Kage must send the full post-match room hydration to every current room occupant:
+  - room attrs `STAT/NAME/MAXI/USER`
+  - room user snapshot
+  - existing occupant join/prop/status replay
+  - occupied slot mask (`cmd=11`)
+  - rule blob (`cmd=0b`)
+  - keyholder sync (`cmd=0e`)
+
+Do not regress this path. Earlier partial post-reset sync with only slots/rules/keyholder caused the loser to line-disconnect after reaching the return marker. Earlier server `cmd=13` after completed-set reset caused clients to restart into a sprite-less `2:01` board.
+
+Remaining work moves beyond room return:
+
+- verify multi-point / multi-round rules use `0x16` for non-final games and `0x19` for final game only
+- fill the result / Collection Panel payloads, which may still be blank
+- continue gameplay completeness: pickup application, death/win stats, match-series bookkeeping, and lobby/room state after longer sessions
