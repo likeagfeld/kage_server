@@ -399,6 +399,29 @@ void BMRoom::sendPostMatchStatNudgeTo(Player *player, uint8_t command)
 	sendOwnerKeyholderSyncTo(player, "post_match_recovery");
 }
 
+void BMRoom::sendPostMatchRoomHydrationTo(Player *player, const char *reason) const
+{
+	if (player == nullptr)
+		return;
+
+	const char *why = reason != nullptr ? reason : "post_match_room";
+	INFO_LOG(Game::Bomberman,
+		"%s: post-match room hydration (%s) -> %s [%x]; attrs, roster, occupants, slots, rules, keyholder",
+		name.c_str(), why, player->getName().c_str(), player->getId());
+
+	// This is deliberately timed after every client has emitted the binary-
+	// observed post-match return marker (client cmd=13). Earlier stale-map
+	// recovery proved these packets are ignored before that point, but the
+	// latest hardware log shows the losing client times out after the clean
+	// reset when it only receives slots/rules/keyholder.
+	sendRoomAttrSyncTo(player);
+	sendUserSnapshotTo(player);
+	sendExistingOccupantsToJoiner(player);
+	sendOccupiedSlotMaskTo(player, why);
+	sendRuleBlobTo(player, why, 0x8000);
+	sendOwnerKeyholderSyncTo(player, why);
+}
+
 void BMRoom::sendPostMatchStartAbortTo(Player *player, uint8_t command)
 {
 	if (player == nullptr || !battleEndSent || !battleEndDecidedByDeath || !isBattleSetComplete())
@@ -2645,12 +2668,12 @@ void BMRoom::resetForPostMatchRoom(const char *reason)
 	liveTickCounter = 0;
 	winCounts = {};
 
-	// Re-broadcast room/rule state so the loser (who may have been moving
-	// down the next-round path with cmd=04/0f) sees the room is back to
-	// the rules screen instead.
-	broadcastOccupiedSlotMask("post_match_room");
-	broadcastRuleBlob("post_match_room", 0x8000);
-	broadcastOwnerKeyholderSync("post_match_room");
+	// Re-send the same state families Bomberman consumes during room entry.
+	// The 2026-04-29 cmd19-first run proved both clients can reach client
+	// cmd=13, then the loser timed out after only slots/rules/keyholder.
+	// Hydrate every current room occupant once at the clean reset boundary.
+	for (Player *player : players)
+		sendPostMatchRoomHydrationTo(player, "all_return_markers");
 }
 
 void BMRoom::resetPostBattleSetAfterFinalMarkers(const char *reason)

@@ -5796,3 +5796,37 @@ Next log markers that make the run high-signal:
 - then either the dead client emits `post-match advance signal cmd=13` or enters stale bootstrap and receives `post-match stale-start abort -> ... cmd=12`
 
 If the same winner/loser split remains after this exact sequence, the final/non-final ordering hypothesis is falsified for our issue and the next target returns to the internal phase `0x10 -> 0x16` writer/stimulus.
+
+## 2026-04-29 Fix: hydrate full room state after clean post-match return markers
+
+Latest hardware result after final-set `cmd=19` first produced a new, narrower failure:
+
+- both clients reached final server `cmd=15`
+- both clients emitted client post-match `cmd=13` return markers
+- Kage reset the completed battle set via `all_post_match_advance_markers`
+- the server only sent `cmd=11` slot mask, `cmd=0b` rule blob, and `cmd=0e` keyholder sync after reset
+- the loser then timed out about 53 seconds later with the Dreamcast line-disconnect popup
+
+Evidence conclusion:
+
+- the `0x19 -> ACK -> 0x15 -> client 0x13` end-state path is working and should not be disturbed
+- the failure moved after the proven post-match return markers, so stale-start abort and server `cmd=13` are not the current target
+- the reset packet set was weaker than the normal Bomberman room-entry contract and did not rehydrate the losing client reliably
+
+Current Kage correction:
+
+- `resetForPostMatchRoom("all_post_match_advance_markers")` now sends one full post-match room hydration to every current room occupant:
+  - `STAT/NAME/MAXI/USER` room attrs
+  - room `REQ_QRY_USERS` snapshot
+  - existing occupant join/prop/status replay
+  - occupied slot mask (`cmd=11`)
+  - rule blob (`cmd=0b`)
+  - keyholder sync (`cmd=0e`)
+- no server `cmd=13` is sent for completed sets
+- the new log marker is `post-match room hydration (all_return_markers)`
+
+Next validation markers:
+
+- after both client `cmd=13` markers, logs should show full hydration for both `FARKUS` and `FARKUS2`
+- neither client should enter stale board-start/bootstrap traffic
+- both clients should return to the room without a line-disconnect timeout

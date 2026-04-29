@@ -296,6 +296,7 @@ private:
 	void sendUserStatusTo(Player *recipient, const Player *subject, bool lobbyScoped) const;
 	void sendExistingOccupantsToJoiner(Player *player) const;
 	void sendUserSnapshotTo(Player *player) const;
+	void sendPostMatchRoomHydrationTo(Player *player, const char *reason) const;
 	void sendJoinInitTo(Player *player);
 	void broadcastLobbyBotJoin(const BotPlayer& bot);
 	void broadcastLobbyBotLeave(const BotPlayer& bot);
