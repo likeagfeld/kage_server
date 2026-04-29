@@ -364,10 +364,8 @@ private:
 	bool liveSlotRefreshSent = false;
 	bool awaitingPostEndMapMarker = false;
 	// Bitmap of dead players by position 0..7. Built from observed live
-	// game-data records: a player whose live record stops updating while
-	// other players continue updating is treated as dead. Sent as the
-	// payload of cmd=0x16 on battle end so the client can pick a winner
-	// instead of treating it as no-winner draw.
+	// game-data records. Sent as the dead-bit payload on battle end: cmd=0x19
+	// for completed/final sets, cmd=0x16 for non-final/timeout settlement.
 	uint8_t deadManBitmap = 0;
 	// Monotonic counter of live-game-data observations across the room.
 	// Compared against per-player lastUpdateTick to detect staleness.

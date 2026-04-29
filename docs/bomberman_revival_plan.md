@@ -5772,3 +5772,27 @@ Next validation:
 
 - if the loser now returns correctly or the stale-start branch is delayed/disappears, this supports Flyinghead's timing discipline
 - if failure remains after `dead status confirmed in cmd=01/02/03`, then the remaining candidate is the unproven `0x16` versus `0x19` final/non-final semantic split
+
+## 2026-04-29 High-value hardware-test build: final set starts with 0x19
+
+Focused Ghidra pass `docs/ghidra_decompile/pass337_end_state_decision` tightened Flyinghead's note:
+
+- `0x8C093A74` / server `cmd=0x16` is a straight settled-dead-bit receiver: it reads/stores the dead-bit payload and refreshes client state `+0x44`
+- `0x8C09392E` / server `cmd=0x19` performs additional 8-slot state walking and one-survivor/winner-ish bookkeeping before storing/refreshing the dead-bit payload
+- `0x8C093B10` / server `cmd=0x15` remains the final cleanup/state-advance command after the dead-bit command ACK
+
+Implementation for the next hardware run:
+
+- completed/final battle set (`battleEndDecidedByDeath && isBattleSetComplete()`) now sends reliable `cmd=0x19` first, then advances to non-reliable `cmd=0x15` on ACK
+- non-final/timeout path still begins with reliable `cmd=0x16` so we do not overfit the untested multi-game branch yet
+- death-decided end is still gated until dead status appears in all three live families (`cmd=01/02/03`, `cmdMask=07`)
+- timer-expired settlement now arms one second after the nominal end frame (`safety_ms=1000`) so the client reaches local zero before server settlement
+
+Next log markers that make the run high-signal:
+
+- `dead status confirmed in cmd=01/02/03`
+- `battle end transition (...) cmd=19 first final-set`
+- `battle state sync (completed_dead_bits_first)`
+- then either the dead client emits `post-match advance signal cmd=13` or enters stale bootstrap and receives `post-match stale-start abort -> ... cmd=12`
+
+If the same winner/loser split remains after this exact sequence, the final/non-final ordering hypothesis is falsified for our issue and the next target returns to the internal phase `0x10 -> 0x16` writer/stimulus.

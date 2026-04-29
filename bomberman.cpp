@@ -2346,10 +2346,13 @@ void BMRoom::startMatchEndTimer(uint32_t endFrame)
 	if (syncState != SyncState::InGame || players.empty() || endFrame == 0)
 		return;
 
-	const uint64_t milliseconds = ((uint64_t)endFrame * 1000u) / BombermanGameFramesPerSecond;
+	// Give the clients one extra second past their local 0:00 display before
+	// server-driven timeout settlement, matching Flyinghead's independent
+	// timing note and avoiding a premature server end marker.
+	const uint64_t milliseconds = ((uint64_t)endFrame * 1000u) / BombermanGameFramesPerSecond + 1000u;
 	matchTimer.expires_after(std::chrono::milliseconds(milliseconds));
 	matchTimer.async_wait(std::bind(&BMRoom::handleMatchEndTimer, this, asio::placeholders::error));
-	INFO_LOG(Game::Bomberman, "%s: match-end timer armed frame=%u ms=%llu",
+	INFO_LOG(Game::Bomberman, "%s: match-end timer armed frame=%u ms=%llu safety_ms=1000",
 		name.c_str(), endFrame, (unsigned long long)milliseconds);
 }
 
@@ -2492,17 +2495,28 @@ void BMRoom::sendBattleEndSequenceTo(Player *player, const char *reason)
 
 	refreshSyncPlayers();
 	SyncPlayerState& state = syncPlayers[player->getId()];
+	const bool completedBattleSet = battleEndDecidedByDeath && isBattleSetComplete();
+	if (completedBattleSet)
+	{
+		// Flyinghead independently observed that 0x19 is the completed/final
+		// dead-bit path, while 0x16 is for non-final games in a multi-game set.
+		// Ghidra supports this split: 0x19 performs extra slot/winner bookkeeping
+		// before refreshing +0x44, whereas 0x16 only stores the dead-bit value.
+		state.battleEndPhase = BattleEndPhase::CompletedDeadBits;
+		INFO_LOG(Game::Bomberman,
+			"%s: battle end transition (%s) -> %s [%x] cmd=19 first final-set deadMap=%02x winsTarget=%u",
+			name.c_str(), reason != nullptr ? reason : "end", player->getName().c_str(), player->getId(),
+			deadManBitmap, pointsToWinSet());
+		player->notifyRoomOnAck();
+		sendBattleStateCommandTo(player, 0x19, deadManBitmap, "completed_dead_bits_first");
+		return;
+	}
+
 	state.battleEndPhase = BattleEndPhase::SettledDeadBits;
-	// The binary dispatches 0x16, 0x19, and 0x15 as separate result-state
-	// handlers. Keep each one reliable and standalone so every step gets an ACK.
-	// 2026-04-27: deadManBitmap is currently always 0 because the staleness-based
-	// detection was reverted (false-positive on idle clients and animation
-	// pauses). Restore value=0 to match the prior stable shape until the real
-	// dead-state byte is proven. The deadManBitmap field stays in place so the
-	// next iteration can wire the proven byte without further plumbing.
-	INFO_LOG(Game::Bomberman, "%s: battle end transition (%s) -> %s [%x] cmd=16 deadMap=%02x",
+	INFO_LOG(Game::Bomberman,
+		"%s: battle end transition (%s) -> %s [%x] cmd=16 first non-final/timeout deadMap=%02x setComplete=%d",
 		name.c_str(), reason != nullptr ? reason : "end", player->getName().c_str(), player->getId(),
-		deadManBitmap);
+		deadManBitmap, isBattleSetComplete() ? 1 : 0);
 	player->notifyRoomOnAck();
 	sendBattleStateCommandTo(player, 0x16, deadManBitmap, "settled_dead_bits");
 }
