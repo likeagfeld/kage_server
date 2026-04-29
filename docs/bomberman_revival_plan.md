@@ -5692,3 +5692,37 @@ Expected next log shape:
 - `suppressing cmd=13 broadcast; battle set was complete before post-match advance handling`
 - on the losing/stale client: `post-match room recovery -> ... attrs, roster, slots, rules, keyholder`
 - desired client result: loser returns to Room instead of remaining at Battle Start / `2:01`
+
+## 2026-04-29 Fix: do not send dead-client cmd15 before cmd19 reliable ACK
+
+Latest hardware run after full room recovery falsified room-packet recovery for the stuck loser:
+
+- full post-match room recovery was delivered to FARKUS after reset (`attrs, roster, slots, rules, keyholder`)
+- FARKUS still continued stale `cmd=1a/1b/0f` and timed out
+- winner returned to Room and later sent `cmd=0c`
+- the Collection Panel remained empty
+
+Fresh log comparison found a concrete sequence difference:
+
+- dead loser FARKUS sent client `cmd=10` at `+344ms` while its state was still `CompletedDeadBits`
+- Kage immediately sent non-reliable server `cmd=15` from the special dead-client `cmd=10` handler
+- only later, at `+592ms`, the reliable ACK for server `cmd=19` arrived from FARKUS, but state was already `FinalState`, so Kage logged `rudp_ack_no_advance`
+- winner FARKUS2 reached server `cmd=15` through the normal `cmd=19` ACK path and returned successfully
+
+Evidence conclusion:
+
+- the loser divergence is caused by premature dead-client `cmd=15`, not by missing room recovery after reset
+- empty Collection Panel is consistent with this out-of-order final-state path
+
+Current Kage correction:
+
+- dead-client `cmd=10` while still in `CompletedDeadBits` is ACKed/logged only
+- Kage leaves the player's phase as `CompletedDeadBits`
+- the later reliable ACK for server `cmd=19` must drive the normal `0x19 -> 0x15` final transition, matching the winner path
+
+Expected next log shape:
+
+- dead client: `dead_client_cmd10_wait_for_cmd19_ack`
+- then later: `battle end completion (acked) from <dead> cmd=19 -> cmd=15`
+- no `rudp_ack_no_advance` for the dead client's cmd19 ACK
+- desired client result: both clients leave the result/collection flow consistently instead of loser entering stale `2:01`

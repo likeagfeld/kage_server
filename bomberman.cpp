@@ -2391,17 +2391,16 @@ void BMRoom::handleBattleEndClientSignal(Player *player, uint16_t word, uint32_t
 	if (deadPlayerInCompletedSet)
 	{
 		INFO_LOG(Game::Bomberman,
-			"%s: dead player %s [%x] sent cmd=10 after cmd=19; sending cmd=15 but waiting for cmd=13 before room reset",
+			"%s: dead player %s [%x] sent cmd=10 after cmd=19; acking client signal and waiting for cmd=19 reliable ack before cmd=15",
 			name.c_str(), player->getName().c_str(), player->getId());
-		logEndTimeline("dead_client_signal_cmd15_no_reset", player, 0x10, word, "");
-		state.battleEndPhase = BattleEndPhase::FinalState;
-		// The 2026-04-29 log separated two variables: without cmd=15, the dead
-		// client reached cmd=10 but never reached the binary-confirmed room-return
-		// phase that emits cmd=13. Send the same final-state stimulus as the
-		// surviving client, but keep the newer rule that cmd=10/cmd=15 alone must
-		// not reset the completed set.
-		sendBattleStateCommandTo(player, 0x15, 0, "dead_final_state_after_cmd10");
-		dumpPostMatchReturnState("dead_client_signal_cmd15_no_reset");
+		logEndTimeline("dead_client_cmd10_wait_for_cmd19_ack", player, 0x10, word, "");
+		// Latest hardware logs proved this cmd=10 can arrive before the dead
+		// client's reliable ACK for server cmd=19. Sending cmd=15 here moves the
+		// loser to FinalState early; the later cmd=19 ACK then logs
+		// rudp_ack_no_advance and the client falls into stale next-map bootstrap
+		// with an empty Collection Panel. Leave the phase at CompletedDeadBits so
+		// the normal ACK-stepped 0x19 -> 0x15 path matches the returning winner.
+		dumpPostMatchReturnState("dead_client_cmd10_wait_for_cmd19_ack");
 		return;
 	}
 
