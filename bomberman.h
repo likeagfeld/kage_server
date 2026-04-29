@@ -168,6 +168,8 @@ public:
 	void resetForPostMatchRoom(const char *reason);
 	bool isPostMatchCommandQuarantine() const { return postMatchCommandQuarantine; }
 	void resetPostBattleSetAfterFinalMarkers(const char *reason);
+	void notePostMatchAdvance(Player *player, uint16_t word);
+	void resetPostBattleSetAfterAdvanceMarkers(const char *reason);
 	uint32_t matchDurationSeconds() const;
 	// rules[2] is the points-to-win count for the battle set. After a
 	// player accumulates this many round wins, the battle set is over and
@@ -225,6 +227,7 @@ private:
 		bool startAcked = false;
 		bool postMapMarkerSeen = false;
 		bool postMatchStatNudgeSent = false;
+		bool postMatchAdvanceSeen = false;
 		BattleEndPhase battleEndPhase = BattleEndPhase::None;
 	};
 

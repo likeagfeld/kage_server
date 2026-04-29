@@ -5460,3 +5460,26 @@ Next safest implementation target:
 - do not reset the completed battle set merely because all current players have reached `FinalState`; wait for every real player to reach `post_match_advance` (`cmd=13`) or recovery
 - if a dead/losing client emits stale `cmd=04/05/1a/1b/0f` before `cmd=13`, classify it as `missing_post_match_advance` and apply a targeted recovery, not a global room reset
 - next trace target, before another risky hardware test, is the exact writer/stimulus that advances active phase from `+0x48 = 0x10` to `+0x48 = 0x16`
+
+## 2026-04-28 Implementation: reset only after post-match advance markers
+
+Server change implemented from the Ghidra boundary above:
+
+- added per-player `postMatchAdvanceSeen`
+- client outbound `cmd=13` now records a real post-match advance marker and marks that player `Done`
+- completed-set room reset now waits for every current real player to emit client outbound `cmd=13`
+- `FinalState` / server `cmd=15` no longer triggers completed-set room reset by itself
+- dead-player client `cmd=10` still avoids server `cmd=15`, but now also avoids final-marker reset
+- suppressed stale next-map/bootstrap commands `cmd=04/05/09/0d/0e/0f/1a/1b` are still ACKed and suppressed, but no longer force a global room reset
+
+Why this is the evidence-backed change:
+
+- binary trace proves client `cmd=10` is internal phase `0x10`
+- binary trace proves room-return generation is later client `cmd=13` / internal phase `0x16`
+- the failing logs prove the stuck loser reaches `cmd=10` but never `cmd=13`, while the returning winner does reach `cmd=13`
+- therefore resetting on `FinalState` or on the first stale map packet was premature and could race the losing console before it reached the real room-return path
+
+Build status:
+
+- direct `mingw32-make -f Makefile.win` build succeeded after stopping the running `kageserver.exe`
+- the wrapper `tools/build-ucrt64.bat` still cannot refresh packages because `packages.yaul.org` presents a certificate mismatch; this is environmental and not a compile failure

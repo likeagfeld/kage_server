@@ -913,6 +913,7 @@ void BMRoom::resetMatchSync()
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
+		state.postMatchAdvanceSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
 	}
 	syncState = SyncState::Idle;
@@ -1783,6 +1784,8 @@ void BMRoom::onRulesConfigured(Player *player, const uint8_t *p)
 		state.rulesAccepted = false;
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
+		state.postMatchStatNudgeSent = false;
+		state.postMatchAdvanceSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
 	}
 	gameTimeInfoSent = false;
@@ -1849,6 +1852,7 @@ bool BMRoom::beginStartBattle(Player *player)
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
+		state.postMatchAdvanceSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
 	}
 	gameTimeInfoSent = false;
@@ -1990,6 +1994,7 @@ void BMRoom::prepareNextRoundFromPostEndFlow(Player *player, uint8_t command)
 	{
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
+		state.postMatchAdvanceSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
 	}
 	stopInGameLiveness();
@@ -2241,7 +2246,11 @@ void BMRoom::startMatchEndTimer(uint32_t endFrame)
 	postMatchCommandQuarantine = false;
 	refreshSyncPlayers();
 	for (auto& [id, state] : syncPlayers)
+	{
 		state.battleEndPhase = BattleEndPhase::None;
+		state.postMatchAdvanceSeen = false;
+		state.postMatchStatNudgeSent = false;
+	}
 	if (syncState != SyncState::InGame || players.empty() || endFrame == 0)
 		return;
 
@@ -2318,7 +2327,9 @@ void BMRoom::advanceBattleEndSequence(Player *player, SyncPlayerState& state, co
 			name.c_str(), reason != nullptr ? reason : "acked", player->getName().c_str(), player->getId());
 		state.battleEndPhase = BattleEndPhase::FinalState;
 		sendBattleStateCommandTo(player, 0x15, 0, "final_state");
-		resetPostBattleSetAfterFinalMarkers("both_final_markers_sent");
+		// Ghidra pass331/pass334 shows FinalState only leads to client outbound
+		// cmd=10 (internal phase 0x10). Room return is the later client outbound
+		// cmd=13 (internal phase 0x16), so do not reset the completed set here.
 		// 2026-04-27 22:00: REMOVED cmd=0x17 send. Empirical evidence from the
 		// 19:44 hardware test shows each of cmd=16, cmd=19, cmd=15, cmd=17
 		// carries deadManBitmap (or implies a winner) and the CLIENT increments
@@ -2363,7 +2374,8 @@ void BMRoom::handleBattleEndClientSignal(Player *player, uint16_t word, uint32_t
 			name.c_str(), player->getName().c_str(), player->getId());
 		logEndTimeline("dead_client_signal_no_cmd15", player, 0x10, word, "");
 		state.battleEndPhase = BattleEndPhase::FinalState;
-		resetPostBattleSetAfterFinalMarkers("dead_player_client_signal");
+		// Do not reset from cmd=10. The binary-confirmed room-return marker is
+		// cmd=13; resetting here races the loser into stale next-map bootstrap.
 		return;
 	}
 
@@ -2495,6 +2507,7 @@ void BMRoom::resetForPostMatchRoom(const char *reason)
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
+		state.postMatchAdvanceSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
 		// Keep rulesAccepted as the players were just in-game with rules set;
 		// the upcoming rule blob broadcast will let them re-confirm.
@@ -2540,6 +2553,48 @@ void BMRoom::resetPostBattleSetAfterFinalMarkers(const char *reason)
 
 	INFO_LOG(Game::Bomberman,
 		"%s: all clients have final result marker; resetting completed battle set before stale next-map bootstrap",
+		name.c_str());
+	resetForPostMatchRoom(reason);
+}
+
+void BMRoom::notePostMatchAdvance(Player *player, uint16_t word)
+{
+	if (player == nullptr || !battleEndSent)
+		return;
+
+	refreshSyncPlayers();
+	SyncPlayerState& state = syncPlayers[player->getId()];
+	state.postMatchAdvanceSeen = true;
+	state.battleEndPhase = BattleEndPhase::Done;
+	logEndTimeline("post_match_advance", player, 0x13, word, "");
+
+	INFO_LOG(Game::Bomberman,
+		"%s: post-match advance marker from %s [%x] word=%04x",
+		name.c_str(), player->getName().c_str(), player->getId(), word);
+
+	resetPostBattleSetAfterAdvanceMarkers("all_post_match_advance_markers");
+}
+
+void BMRoom::resetPostBattleSetAfterAdvanceMarkers(const char *reason)
+{
+	if (!battleEndSent || !battleEndDecidedByDeath || !isBattleSetComplete())
+		return;
+
+	for (Player *player : players)
+	{
+		auto it = syncPlayers.find(player->getId());
+		if (it == syncPlayers.end() || !it->second.postMatchAdvanceSeen)
+		{
+			INFO_LOG(Game::Bomberman,
+				"%s: waiting for post-match cmd=13 before room reset; missing %s [%x]",
+				name.c_str(), player != nullptr ? player->getName().c_str() : "(null)",
+				player != nullptr ? player->getId() : 0);
+			return;
+		}
+	}
+
+	INFO_LOG(Game::Bomberman,
+		"%s: all clients reached post-match cmd=13; resetting completed battle set to room",
 		name.c_str());
 	resetForPostMatchRoom(reason);
 }
@@ -2676,7 +2731,11 @@ bool BMRoom::shouldResetPostBattleOnSuppressedCommand(uint8_t command) const
 	case 0x0f:
 	case 0x1a:
 	case 0x1b:
-		return true;
+		// Ghidra pass331/pass334 plus the 16:10 log show that these stale
+		// bootstrap packets can arrive before the losing client reaches its
+		// real room-return marker (client cmd=13). ACK/suppress them, but do
+		// not globally reset the room from stale map traffic.
+		return false;
 	default:
 		return false;
 	}
@@ -3123,6 +3182,7 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 				player->ackPacket(replyPacket, data);
 				if (room != nullptr && room->isBattleEndSent())
 				{
+					room->notePostMatchAdvance(player, word);
 					// CRITICAL: do NOT broadcast cmd=13 if the BATTLE SET is
 					// complete (winner reached pointsToWinSet). The 20:08:51
 					// hardware capture showed cmd=13 being broadcast after
