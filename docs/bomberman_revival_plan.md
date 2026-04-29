@@ -5573,3 +5573,15 @@ The next test should now be conclusive about which boundary fails:
 Key log marker to search after the test:
 
 - `POST_MATCH_RETURN_STATE`
+
+## 2026-04-29 Additional Blind-Spot Closure Before Hardware Test
+
+Added two more diagnostic-only snapshots:
+
+- before `resetForPostMatchRoom` clears battle-end state, so the final pre-reset
+  per-player phase/return evidence is preserved
+- when stale post-match bootstrap/map commands are suppressed, so a failed run
+  shows whether the stuck client was still `completed19`, already `final15`, or
+  had reached `return=1` before entering the stale `cmd=04/05/1a/1b/0f` stream
+
+These are intentionally non-behavioral logging changes only.

@@ -2509,6 +2509,7 @@ void BMRoom::resetForPostMatchRoom(const char *reason)
 		battleEndDecidedByDeath ? 1 : 0, deadManBitmap);
 	logEndTimeline("reset_for_post_match", nullptr, 0, deadManBitmap,
 		reason != nullptr ? reason : "post_match");
+	dumpPostMatchReturnState(reason != nullptr ? reason : "reset_for_post_match");
 
 	cancelPostMatchSafetyTimer();
 	stopInGameLiveness();
@@ -2803,6 +2804,7 @@ bool BMRoom::shouldSuppressPostBattleCommand(Player *player, uint8_t command) co
 			awaitingFinalPostBattleReset
 				? "battle set complete, awaiting all post-match return markers"
 				: "post-match quarantine until next Start Battle");
+		dumpPostMatchReturnState("suppressed_post_battle_bootstrap");
 		return true;
 	default:
 		return false;
