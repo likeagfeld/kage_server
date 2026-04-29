@@ -5748,3 +5748,27 @@ Next validation markers:
 - `POST_MATCH_RETURN_STATE` now includes `abort12=1` for the targeted dead client
 - if `cmd12` is the correct missing cleanup stimulus, the dead client should stop the stale `cmd=05/1a/1b/0f` stream and either emit its own post-match return marker or be able to consume the later room reset
 - if the same stale map stream continues after `abort12=1`, then `cmd12` is falsified and the remaining target is the internal phase `0x10 -> 0x16` stimulus before stale bootstrap begins
+
+## 2026-04-29 Flyinghead hypothesis: dead status and 0x16/0x19 split
+
+Treat this as high-value but not yet proven for our Kage flow:
+
+- Flyinghead reports that `0x16` / "settle dead bits" appears to be for non-final games inside a multi-game match, while `0x19` / "completed dead bits" appears to be for the final game of a match.
+- Flyinghead also reports that the server must wait until the game truly knows the game is over before sending either message:
+  - in-game timer has reached zero, with about one second server-side safety margin
+  - dead player status has appeared in live game data packets `cmd=01`, `cmd=02`, and `cmd=03`
+- He reports multi-game matches can play when following that discipline, but lobby return is still unresolved.
+
+Current Kage validation response:
+
+- do not yet change the `0x16` / `0x19` sequence solely on this report, because our previous hardware traces and decomp have only proven both handlers exist and that ACK-stepped standalone packets are safer than bundled packets
+- implement the directly testable wait discipline for death-decided rounds: Kage now delays `broadcastBattleEndSequence("last_player_standing")` until each dead player's byte-2 death status has been observed in all three live packet families (`cmd=01/02/03`)
+- logs now expose `cmdMask` for dead status confirmation:
+  - `01` means cmd01 only
+  - `03` means cmd01+cmd02
+  - `07` means cmd01+cmd02+cmd03, which is now required before battle-end is sent
+
+Next validation:
+
+- if the loser now returns correctly or the stale-start branch is delayed/disappears, this supports Flyinghead's timing discipline
+- if failure remains after `dead status confirmed in cmd=01/02/03`, then the remaining candidate is the unproven `0x16` versus `0x19` final/non-final semantic split

@@ -246,6 +246,8 @@ private:
 		uint8_t lowNibble = 0;
 		std::array<uint8_t, 4> playerRecord {};
 		std::array<uint8_t, 164> cmd02Payload {};
+		uint8_t deadRecordCommandMask = 0;
+		uint8_t lastLoggedDeadWaitMask = 0xff;
 		// Tick counter at last record observation; used to flag stale (likely
 		// dead) players when other players continue updating.
 		uint64_t lastUpdateTick = 0;

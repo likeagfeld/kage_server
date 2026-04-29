@@ -1306,6 +1306,16 @@ void BMRoom::noteLiveGameData(Player *player, uint8_t command, const uint8_t *pa
 		}
 	}
 
+	if (state.playerRecord[2] == 0)
+	{
+		state.deadRecordCommandMask = 0;
+		state.lastLoggedDeadWaitMask = 0xff;
+	}
+	else
+	{
+		state.deadRecordCommandMask |= (uint8_t)(1u << (command - 1));
+	}
+
 	// cmd=02 object-table diff probe. Bomb-up items render as compact records
 	// with the f00X family; powerup pickup events should show as a non-default
 	// record reverting to default at the same tick the player walks across the
@@ -1398,25 +1408,53 @@ void BMRoom::noteLiveGameData(Player *player, uint8_t command, const uint8_t *pa
 		{
 			deadManBitmap |= (uint8_t)(1u << playerPosition);
 			INFO_LOG(Game::Bomberman,
-				"%s: player %s [%x] pos=%d entered dead state (rec byte2=%02x); deadMap=%02x",
+				"%s: player %s [%x] pos=%d entered dead state (rec byte2=%02x cmdMask=%02x); deadMap=%02x",
 				name.c_str(), player->getName().c_str(), player->getId(), playerPosition,
-				state.playerRecord[2], deadManBitmap);
+				state.playerRecord[2], state.deadRecordCommandMask, deadManBitmap);
+		}
 
-			// Compute alive count: all room players minus those whose bit is
-			// set in deadManBitmap. Players who never sent a live record yet
-			// are treated as alive so a slow joiner cannot end the match.
-			uint8_t aliveBitmap = 0;
+		// Compute alive count: all room players minus those whose bit is
+		// set in deadManBitmap. Players who never sent a live record yet
+		// are treated as alive so a slow joiner cannot end the match.
+		uint8_t aliveBitmap = 0;
+		for (Player *peer : players)
+		{
+			const int peerPos = getPlayerPosition(peer);
+			if (peerPos < 0 || peerPos >= 8)
+				continue;
+			if ((deadManBitmap & (uint8_t)(1u << peerPos)) == 0)
+				aliveBitmap |= (uint8_t)(1u << peerPos);
+		}
+		const int aliveCount = __builtin_popcount(aliveBitmap);
+		if (aliveCount <= 1)
+		{
+			bool allDeadStatusesConfirmed = true;
 			for (Player *peer : players)
 			{
 				const int peerPos = getPlayerPosition(peer);
-				if (peerPos < 0 || peerPos >= 8)
+				if (peerPos < 0 || peerPos >= 8
+					|| (deadManBitmap & (uint8_t)(1u << peerPos)) == 0)
 					continue;
-				if ((deadManBitmap & (uint8_t)(1u << peerPos)) == 0)
-					aliveBitmap |= (uint8_t)(1u << peerPos);
+
+				LivePlayerState& peerState = livePlayerStates[peer->getId()];
+				if ((peerState.deadRecordCommandMask & 0x07) != 0x07)
+				{
+					allDeadStatusesConfirmed = false;
+					if (peerState.lastLoggedDeadWaitMask != peerState.deadRecordCommandMask)
+					{
+						peerState.lastLoggedDeadWaitMask = peerState.deadRecordCommandMask;
+						INFO_LOG(Game::Bomberman,
+							"%s: waiting for dead status in cmd=01/02/03 before ending battle; %s [%x] pos=%d cmdMask=%02x deadMap=%02x",
+							name.c_str(), peer->getName().c_str(), peer->getId(), peerPos,
+							peerState.deadRecordCommandMask, deadManBitmap);
+					}
+				}
 			}
-			const int aliveCount = __builtin_popcount(aliveBitmap);
-			if (aliveCount <= 1)
+			if (allDeadStatusesConfirmed)
 			{
+				INFO_LOG(Game::Bomberman,
+					"%s: dead status confirmed in cmd=01/02/03 for deadMap=%02x; ending battle",
+					name.c_str(), deadManBitmap);
 				INFO_LOG(Game::Bomberman,
 					"%s: alive count %d after death (alive=%02x dead=%02x); ending battle",
 					name.c_str(), aliveCount, aliveBitmap, deadManBitmap);
