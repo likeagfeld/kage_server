@@ -5483,3 +5483,72 @@ Build status:
 
 - direct `mingw32-make -f Makefile.win` build succeeded after stopping the running `kageserver.exe`
 - the wrapper `tools/build-ucrt64.bat` still cannot refresh packages because `packages.yaul.org` presents a certificate mismatch; this is environmental and not a compile failure
+
+## 2026-04-29 Correction: dead cmd10 still needs cmd15 stimulus
+
+Fresh hardware result after `971d07f`:
+
+- one client returned to Room successfully
+- the other client entered `Battle Start`, reloaded the map, and stuck at `2:01` without player sprites
+- trophy count still looked clean: zero existing trophies, then one first-win trophy
+
+Fresh `D:\kageserver\logs\kageserver.log` evidence from `06:47`:
+
+- `deadMap=01`; FARKUS2 was slot 0 / dead, FARKUS was slot 1 / surviving winner
+- dead FARKUS2 reached client outbound `cmd=10` at `+317ms`
+- because of the prior guard, Kage did not send server `cmd=15` to FARKUS2
+- surviving FARKUS received server `cmd=15` at `+667ms`
+- surviving FARKUS later emitted client outbound `cmd=13` at `+16837ms`, marked post-match advance, and returned
+- dead FARKUS2 never emitted `cmd=13`; it entered stale next-map/bootstrap traffic (`cmd=04/05/1a/1b/0f`) and timed out
+
+What this falsifies:
+
+- withholding `cmd=15` from the dead client does not prevent the stale next-map branch
+- the older `dead cmd10 -> cmd15 -> stale map` correlation was confounded by the then-existing premature reset after final markers
+
+Correction implemented:
+
+- dead-player client `cmd=10` now receives server `cmd=15` again via reason `dead_final_state_after_cmd10`
+- Kage still does not reset from `cmd=10`, `cmd=15`, or stale map/bootstrap traffic
+- completed-set room reset remains gated on real client outbound `cmd=13` markers, preserving the binary-confirmed `0x10 -> 0x16` boundary
+
+Next validation expectation:
+
+- logs should show `dead_client_signal_cmd15_no_reset`
+- the dead/losing client should receive `battle state sync (dead_final_state_after_cmd10) ... cmd=15`
+- if `cmd=15` is the missing stimulus, that same client should later emit `post-match advance signal cmd=13`
+- when both current players have returned, logs should show `all clients reached post-match return markers; resetting completed battle set to room`
+
+## 2026-04-29 Correction: cmd0c must not bypass the cmd13 return gate
+
+Fresh source audit after the `dead cmd10 -> cmd15` correction found one remaining
+premature-reset path that contradicted the Ghidra/log conclusion:
+
+- `case 0x0c` still called `resetForPostMatchRoom("post_battle_rule_sync")`
+  whenever `battleEndSent && isBattleSetComplete()` was true
+- that meant the first client to reach the rules screen could globally reset the
+  completed set before the other client emitted the binary-confirmed client
+  `cmd=13` room-return marker
+- this matches the observed flip-flop failures where whichever side returned
+  first could leave the other side stranded on `Battle Start` / `2:01`
+
+Correction implemented:
+
+- added `BMRoom::notePostMatchRuleSync(Player*, uint16_t)`
+- `cmd=0c` now marks only that sender as returned/advanced and then calls the
+  same all-player return-marker gate
+- completed-set reset now requires every current player to have either emitted
+  client `cmd=13` or reached later `cmd=0c`; one returned client can no longer
+  pull the room out from under the other
+- stale next-map/bootstrap packets remain ACKed/suppressed while waiting
+- the dead-client `cmd=10` path still sends `cmd=15` as the missing stimulus,
+  but reset remains gated on the all-player return condition
+
+Next validation expectation:
+
+- dead/losing client logs `dead_client_signal_cmd15_no_reset` and receives
+  `dead_final_state_after_cmd10` `cmd=15`
+- both clients eventually log either `post_match_advance` (`cmd=13`) or
+  `post_match_rule_sync` (`cmd=0c`)
+- reset happens only after the second return marker, with no early single-client
+  `post_battle_rule_sync` reset

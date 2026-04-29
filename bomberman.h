@@ -169,6 +169,7 @@ public:
 	bool isPostMatchCommandQuarantine() const { return postMatchCommandQuarantine; }
 	void resetPostBattleSetAfterFinalMarkers(const char *reason);
 	void notePostMatchAdvance(Player *player, uint16_t word);
+	void notePostMatchRuleSync(Player *player, uint16_t counter);
 	void resetPostBattleSetAfterAdvanceMarkers(const char *reason);
 	uint32_t matchDurationSeconds() const;
 	// rules[2] is the points-to-win count for the battle set. After a

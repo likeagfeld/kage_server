@@ -1975,16 +1975,14 @@ void BMRoom::prepareNextRoundFromPostEndFlow(Player *player, uint8_t command)
 
 	// Multi-round battle handling. If the just-ended round was death-decided
 	// AND the winner has reached pointsToWinSet() round wins, the BATTLE SET
-	// is over — we expect the winner's cmd=0xc rule-sync to drop both
-	// clients back to the rules screen via resetForPostMatchRoom. If the
-	// round was death-decided but we're still mid-battle-set (the winner
-	// has not hit the target win count), let the regular next-round recycle
-	// run; both clients will go through their per-round results screen and
-	// then load the next map.
+	// is over. Suppress stale next-round bootstrap until every current
+	// client reaches the post-match return path. If the round was
+	// death-decided but we are still mid-battle-set, let the regular
+	// next-round recycle run.
 	if (battleEndDecidedByDeath && isBattleSetComplete())
 	{
 		INFO_LOG(Game::Bomberman,
-			"%s: ignoring next-round prep cmd=%02x from %s [%x]; battle set complete, awaiting post-match rule sync",
+			"%s: ignoring next-round prep cmd=%02x from %s [%x]; battle set complete, awaiting post-match return markers",
 			name.c_str(), command, player->getName().c_str(), player->getId());
 		return;
 	}
@@ -2370,12 +2368,16 @@ void BMRoom::handleBattleEndClientSignal(Player *player, uint16_t word, uint32_t
 	if (deadPlayerInCompletedSet)
 	{
 		INFO_LOG(Game::Bomberman,
-			"%s: dead player %s [%x] sent cmd=10 after cmd=19; marking final without cmd=15 to avoid loser next-map bootstrap",
+			"%s: dead player %s [%x] sent cmd=10 after cmd=19; sending cmd=15 but waiting for cmd=13 before room reset",
 			name.c_str(), player->getName().c_str(), player->getId());
-		logEndTimeline("dead_client_signal_no_cmd15", player, 0x10, word, "");
+		logEndTimeline("dead_client_signal_cmd15_no_reset", player, 0x10, word, "");
 		state.battleEndPhase = BattleEndPhase::FinalState;
-		// Do not reset from cmd=10. The binary-confirmed room-return marker is
-		// cmd=13; resetting here races the loser into stale next-map bootstrap.
+		// The 2026-04-29 log separated two variables: without cmd=15, the dead
+		// client reached cmd=10 but never reached the binary-confirmed room-return
+		// phase that emits cmd=13. Send the same final-state stimulus as the
+		// surviving client, but keep the newer rule that cmd=10/cmd=15 alone must
+		// not reset the completed set.
+		sendBattleStateCommandTo(player, 0x15, 0, "dead_final_state_after_cmd10");
 		return;
 	}
 
@@ -2461,7 +2463,7 @@ void BMRoom::noteRoundWinByDeath(uint8_t deadBitmap)
 	if (isBattleSetComplete())
 	{
 		INFO_LOG(Game::Bomberman,
-			"%s: battle set complete (pos=%d hit %u points); awaiting cmd=0xc rule sync from clients",
+			"%s: battle set complete (pos=%d hit %u points); awaiting post-match return markers",
 			name.c_str(), winnerPos, pointsToWinSet());
 	}
 }
@@ -2487,10 +2489,9 @@ uint32_t BMRoom::matchDurationSeconds() const
 
 void BMRoom::resetForPostMatchRoom(const char *reason)
 {
-	// Triggered when the match ended by a kill and one of the clients is
-	// already back at the rules screen (cmd=0xc rule sync arrived while
-	// battleEndSent). Bring both clients onto the same rules-screen path so
-	// they don't desync into "loading new map" vs "waiting in room".
+	// Triggered only after every current client has reached the post-match
+	// return path. Bring both clients onto the same rules-screen path so they
+	// don't desync into "loading new map" vs "waiting in room".
 	INFO_LOG(Game::Bomberman,
 		"%s: post-match room reset (%s); battleEndSent=%d battleEndDecidedByDeath=%d deadMap=%02x",
 		name.c_str(), reason != nullptr ? reason : "post_match", battleEndSent ? 1 : 0,
@@ -2575,6 +2576,24 @@ void BMRoom::notePostMatchAdvance(Player *player, uint16_t word)
 	resetPostBattleSetAfterAdvanceMarkers("all_post_match_advance_markers");
 }
 
+void BMRoom::notePostMatchRuleSync(Player *player, uint16_t counter)
+{
+	if (player == nullptr || !battleEndSent || !battleEndDecidedByDeath || !isBattleSetComplete())
+		return;
+
+	refreshSyncPlayers();
+	SyncPlayerState& state = syncPlayers[player->getId()];
+	state.postMatchAdvanceSeen = true;
+	state.battleEndPhase = BattleEndPhase::Done;
+	logEndTimeline("post_match_rule_sync", player, 0x0c, counter, "marks returned client only");
+
+	INFO_LOG(Game::Bomberman,
+		"%s: post-match rule sync from %s [%x] counter=%04x; marking that client returned, reset still waits for all",
+		name.c_str(), player->getName().c_str(), player->getId(), counter);
+
+	resetPostBattleSetAfterAdvanceMarkers("all_post_match_return_markers");
+}
+
 void BMRoom::resetPostBattleSetAfterAdvanceMarkers(const char *reason)
 {
 	if (!battleEndSent || !battleEndDecidedByDeath || !isBattleSetComplete())
@@ -2594,7 +2613,7 @@ void BMRoom::resetPostBattleSetAfterAdvanceMarkers(const char *reason)
 	}
 
 	INFO_LOG(Game::Bomberman,
-		"%s: all clients reached post-match cmd=13; resetting completed battle set to room",
+		"%s: all clients reached post-match return markers; resetting completed battle set to room",
 		name.c_str());
 	resetForPostMatchRoom(reason);
 }
@@ -2613,19 +2632,17 @@ void BMRoom::broadcastBattleEndSequence(const char *reason)
 		sendBattleEndSequenceTo(player, reason);
 
 	// Safety net for the battle-set-complete -> back-to-room transition.
-	// Normal flow: surviving client emits cmd=0xc rule sync after watching
-	// its results screen (~19 sec in 09:21 capture); the cmd=0xc handler
-	// then drives resetForPostMatchRoom. If for any reason cmd=0xc never
-	// arrives (e.g. client gets stuck), this safety timer drives the
-	// reset 30 sec after the cmd=15 send so both clients still converge
-	// on the rules screen instead of timing out into "line disconnect".
-	// Cancelled by resetForPostMatchRoom on the natural path.
+	// Normal flow: each client emits cmd=13 when it reaches the binary-confirmed
+	// room-return phase; cmd=0c may follow for clients already back at the rules
+	// screen. Reset only after every current player has one of those return
+	// markers. If a client gets stuck, this fallback keeps the room from hanging
+	// forever.
 	//
 	// 2026-04-28: the 09:26 BATTLE_END_TIMELINE capture showed that a 3-second
 	// reset is too early. The loser is still in recap/next-round preparation,
-	// and a rule-blob-bearing reset can leave the two consoles split. Let the
-	// natural winner cmd=0x0c arrive first (observed at about +19s) and use the
-	// timer only as a fallback.
+	// and a rule-blob-bearing reset can leave the two consoles split. Use the
+	// timer only as a fallback after giving the natural return markers time to
+	// arrive.
 	if (battleEndDecidedByDeath)
 		armPostMatchSafetyTimer(30, reason);
 }
@@ -2655,7 +2672,7 @@ void BMRoom::handlePostMatchSafetyTimer(const std::error_code& ec)
 		return;
 	}
 	INFO_LOG(Game::Bomberman,
-		"%s: post-match safety timer fired - cmd=0xc rule sync did not arrive within 30 sec; driving room reset",
+		"%s: post-match safety timer fired - not all return markers arrived within 30 sec; driving room reset",
 		name.c_str());
 	logEndTimeline("safety_timer_fire", nullptr, 0, 0, "");
 	resetForPostMatchRoom("safety_timer");
@@ -2708,7 +2725,7 @@ bool BMRoom::shouldSuppressPostBattleCommand(Player *player, uint8_t command) co
 			player != nullptr ? player->getName().c_str() : "?",
 			player != nullptr ? player->getId() : 0,
 			awaitingFinalPostBattleReset
-				? "battle set complete, awaiting cmd=0x0c reset"
+				? "battle set complete, awaiting all post-match return markers"
 				: "post-match quarantine until next Start Battle");
 		return true;
 	default:
@@ -3105,16 +3122,12 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 					player->ackPacket(replyPacket, data);
 					INFO_LOG(Game::Bomberman, "%s: rule sync state -> %s (%u/%zu accepted)", room->getName().c_str(),
 						room->getSyncStateName(), room->getAcceptedRuleCount(), room->getPlayers().size());
-					// Surviving player sends cmd=0xc rule sync after a death-
-					// decided round end. In a 1-point match this means the
-					// battle set is over and we should reset to the rules
-					// screen. In a multi-round battle (e.g. 3-of-5) the
-					// cmd=0xc on non-final rounds is just a recap-screen
-					// handshake — the round still needs to recycle. Only
-					// reset to rules screen when the battle set is actually
-					// complete (some slot has reached pointsToWinSet).
+					// cmd=0c can arrive after a client is already back at the
+					// rules screen. Treat it as a return marker for this
+					// sender only; do not reset the room until every current
+					// player has reached the post-match return path.
 					if (room->isBattleEndSent() && room->isBattleSetComplete())
-						room->resetForPostMatchRoom("post_battle_rule_sync");
+						room->notePostMatchRuleSync(player, counter);
 				}
 				break;
 			}
@@ -3184,20 +3197,14 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 				{
 					room->notePostMatchAdvance(player, word);
 					// CRITICAL: do NOT broadcast cmd=13 if the BATTLE SET is
-					// complete (winner reached pointsToWinSet). The 20:08:51
-					// hardware capture showed cmd=13 being broadcast after
-					// the 1-point match was won, which triggered both
-					// clients to start a NEW battle instead of returning to
-					// the rules screen — caused FARKUS2 to land on a 2:01
-					// timer board with no character sprites and FARKUS to
-					// disconnect. When battle set is complete, the
-					// post_battle_rule_sync path (cmd=0xc from clients)
-					// drives resetForPostMatchRoom which is the correct
-					// post-set transition.
+					// complete. Server cmd=13 is the board/start path, while
+					// client cmd=13 is the binary-confirmed post-match return
+					// marker. Completed sets reset only after every current
+					// player has reached that return path.
 					if (room->isBattleSetComplete())
 					{
 						INFO_LOG(Game::Bomberman,
-							"%s: suppressing cmd=13 broadcast — battle set complete, awaiting post-match rule sync",
+							"%s: suppressing cmd=13 broadcast; battle set complete, reset is gated on all post-match return markers",
 							player->getName().c_str());
 					}
 					else
