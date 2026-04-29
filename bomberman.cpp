@@ -399,6 +399,39 @@ void BMRoom::sendPostMatchStatNudgeTo(Player *player, uint8_t command)
 	sendOwnerKeyholderSyncTo(player, "post_match_recovery");
 }
 
+void BMRoom::sendPostMatchStartAbortTo(Player *player, uint8_t command)
+{
+	if (player == nullptr || !battleEndSent || !battleEndDecidedByDeath || !isBattleSetComplete())
+		return;
+
+	refreshSyncPlayers();
+	SyncPlayerState& state = syncPlayers[player->getId()];
+	if (state.postMatchStartAbortSent)
+		return;
+
+	const int playerPos = getPlayerPosition(player);
+	const bool deadPlayer = playerPos >= 0 && playerPos < 8
+		&& (deadManBitmap & (uint8_t)(1u << playerPos)) != 0;
+	if (!deadPlayer || state.postMatchAdvanceSeen)
+		return;
+
+	state.postMatchStartAbortSent = true;
+	UdpCommand cmd {};
+	cmd.command = 0x12;
+	Packet packet;
+	packet.init(Packet::REQ_CHAT);
+	packet.flags |= Packet::FLAG_RUDP;
+	packet.writeData(cmd.full);
+	packet.writeData((uint16_t)0);
+	INFO_LOG(Game::Bomberman,
+		"%s: post-match stale-start abort -> %s [%x] server cmd=12 after suppressed cmd=%02x",
+		name.c_str(), player->getName().c_str(), player->getId(), command);
+	logEndTimeline("post_match_stale_start_abort", player, 0x12, command, "server_cmd12");
+	dumpPostMatchReturnState("post_match_stale_start_abort");
+	player->notifyRoomOnAck();
+	player->send(packet);
+}
+
 void BMRoom::sendLobbyJoinEventTo(Player *recipient, const Player *subject) const
 {
 	Packet packet;
@@ -921,6 +954,7 @@ void BMRoom::resetMatchSync()
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
+		state.postMatchStartAbortSent = false;
 		state.postMatchAdvanceSeen = false;
 		state.postMatchBootstrapSuppressedSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
@@ -1794,6 +1828,7 @@ void BMRoom::onRulesConfigured(Player *player, const uint8_t *p)
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
+		state.postMatchStartAbortSent = false;
 		state.postMatchAdvanceSeen = false;
 		state.postMatchBootstrapSuppressedSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
@@ -1862,6 +1897,7 @@ bool BMRoom::beginStartBattle(Player *player)
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
+		state.postMatchStartAbortSent = false;
 		state.postMatchAdvanceSeen = false;
 		state.postMatchBootstrapSuppressedSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
@@ -2008,6 +2044,7 @@ void BMRoom::prepareNextRoundFromPostEndFlow(Player *player, uint8_t command)
 	{
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
+		state.postMatchStartAbortSent = false;
 		state.postMatchAdvanceSeen = false;
 		state.postMatchBootstrapSuppressedSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
@@ -2265,6 +2302,7 @@ void BMRoom::startMatchEndTimer(uint32_t endFrame)
 		state.battleEndPhase = BattleEndPhase::None;
 		state.postMatchAdvanceSeen = false;
 		state.postMatchStatNudgeSent = false;
+		state.postMatchStartAbortSent = false;
 		state.postMatchBootstrapSuppressedSeen = false;
 	}
 	if (syncState != SyncState::InGame || players.empty() || endFrame == 0)
@@ -2532,6 +2570,7 @@ void BMRoom::resetForPostMatchRoom(const char *reason)
 		state.startAcked = false;
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
+		state.postMatchStartAbortSent = false;
 		state.postMatchAdvanceSeen = false;
 		state.postMatchBootstrapSuppressedSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
@@ -2805,6 +2844,7 @@ void BMRoom::dumpPostMatchReturnState(const char *reason) const
 			<< " phase=" << phaseName(state.battleEndPhase)
 			<< " return=" << (state.postMatchAdvanceSeen ? 1 : 0)
 			<< " stale=" << (state.postMatchBootstrapSuppressedSeen ? 1 : 0)
+			<< " abort12=" << (state.postMatchStartAbortSent ? 1 : 0)
 			<< " rules=" << (state.rulesAccepted ? 1 : 0)
 			<< " startAck=" << (state.startAcked ? 1 : 0);
 	}
@@ -2850,6 +2890,8 @@ bool BMRoom::shouldSuppressPostBattleCommand(Player *player, uint8_t command)
 				? "battle set complete, awaiting all post-match return markers"
 				: "post-match quarantine until next Start Battle");
 		dumpPostMatchReturnState("suppressed_post_battle_bootstrap");
+		if (awaitingFinalPostBattleReset)
+			sendPostMatchStartAbortTo(player, command);
 		return true;
 	default:
 		return false;

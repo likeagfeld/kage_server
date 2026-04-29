@@ -166,6 +166,7 @@ public:
 	bool shouldSuppressPostBattleCommand(Player *player, uint8_t command);
 	bool shouldResetPostBattleOnSuppressedCommand(uint8_t command) const;
 	void sendPostMatchStatNudgeTo(Player *player, uint8_t command);
+	void sendPostMatchStartAbortTo(Player *player, uint8_t command);
 	void resetForPostMatchRoom(const char *reason);
 	bool isPostMatchCommandQuarantine() const { return postMatchCommandQuarantine; }
 	void resetPostBattleSetAfterFinalMarkers(const char *reason);
@@ -229,6 +230,7 @@ private:
 		bool startAcked = false;
 		bool postMapMarkerSeen = false;
 		bool postMatchStatNudgeSent = false;
+		bool postMatchStartAbortSent = false;
 		bool postMatchAdvanceSeen = false;
 		bool postMatchBootstrapSuppressedSeen = false;
 		BattleEndPhase battleEndPhase = BattleEndPhase::None;

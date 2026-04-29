@@ -1886,3 +1886,15 @@ Consequence:
 - the post-match loser bug is now bounded to the missing client transition from phase `0x10` / outbound `cmd=10` to phase `0x16` / outbound `cmd=13`
 - Kage should not treat `FinalState` alone as complete room-return readiness
 - Kage should not broadcast server `cmd=13` as a completed-set fix
+
+### 2026-04-29 server cmd12 post-match cleanup probe
+
+- `0x8C093CE0` `confirmed`
+  - server command `0x12` is a failed-start / cleanup receiver
+  - if local counters/state are aligned it returns through cleanup helpers without the popup path
+  - otherwise it can display `A game was not able to be started.` and writes local state `8`
+
+Implementation consequence:
+
+- after post-reset room recovery was falsified, Kage now sends one reliable server `cmd=0x12` to the dead client at the first suppressed stale post-match bootstrap command, before the client gets deeper into the sprite-less next-map path
+- this is a targeted dead-client cleanup probe, not a replacement for the normal completed-set `cmd=10 -> cmd=13` return marker path

@@ -5726,3 +5726,25 @@ Expected next log shape:
 - then later: `battle end completion (acked) from <dead> cmd=19 -> cmd=15`
 - no `rudp_ack_no_advance` for the dead client's cmd19 ACK
 - desired client result: both clients leave the result/collection flow consistently instead of loser entering stale `2:01`
+
+## 2026-04-29 Fix: one-shot server cmd12 on dead-client stale start
+
+Latest hardware result after `db371cb` showed no client-side change:
+
+- the dead loser still entered stale next-map/bootstrap traffic after the result sequence
+- full post-match room recovery was delivered after reset, but the stuck client ignored it and stayed on `Battle Start` / `2:01` without sprites
+- this falsifies post-reset room recovery as the functional root cause
+
+Evidence-backed correction now implemented:
+
+- when a completed battle set is still waiting for post-match return markers and the dead client sends its first suppressed stale bootstrap/map command (`cmd=04/05/09/0d/0e/0f/1a/1b`), Kage sends that same dead client one reliable server command `0x12`
+- Ghidra decomp for `0x8C093CE0` shows server `cmd=0x12` is Bomberman's explicit failed-start cleanup path; depending on local state alignment it either runs cleanup helpers or shows `A game was not able to be started.` and writes local state `8`
+- this is intentionally sent before the stale client gets deeper into the next-map path, not after the post-match room reset
+- server `cmd=13` remains forbidden for completed sets because binary analysis proves it is the room-to-board/start command, not room return
+
+Next validation markers:
+
+- log should show `post-match stale-start abort -> <dead player> server cmd=12 after suppressed cmd=04` at the first stale bootstrap
+- `POST_MATCH_RETURN_STATE` now includes `abort12=1` for the targeted dead client
+- if `cmd12` is the correct missing cleanup stimulus, the dead client should stop the stale `cmd=05/1a/1b/0f` stream and either emit its own post-match return marker or be able to consume the later room reset
+- if the same stale map stream continues after `abort12=1`, then `cmd12` is falsified and the remaining target is the internal phase `0x10 -> 0x16` stimulus before stale bootstrap begins

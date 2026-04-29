@@ -1,0 +1,8 @@
+# Instructions referencing address 0x8c195398 in 1ST_READ.BIN
+
+
+# Data words equal to 0x8c195398
+
+8c1c3174  word=8c195398  fn=(none) entry=(none)
+
+# total instructions matched: 0
