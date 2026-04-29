@@ -5585,3 +5585,47 @@ Added two more diagnostic-only snapshots:
   had reached `return=1` before entering the stale `cmd=04/05/1a/1b/0f` stream
 
 These are intentionally non-behavioral logging changes only.
+
+## 2026-04-29 Recovery: peer returned while dead client is final15 plus stale bootstrap
+
+Fresh hardware result after diagnostic commits `c8db3ed` / `e76655d`:
+
+- FARKUS died and became the missing/stuck client.
+- FARKUS received server `cmd=15` via `dead_final_state_after_cmd10` at `+356ms`.
+- FARKUS stayed `phase=final15 return=0` for the rest of the capture.
+- FARKUS began stale next-map/bootstrap traffic at about `+2390ms` and continued
+  through `cmd=04`, `cmd=05`, `cmd=1a`, `cmd=1b`, and `cmd=0f`.
+- FARKUS2, the survivor/winner, emitted client `cmd=13` at `+16757ms` and became
+  `phase=done return=1`.
+- The 30-second safety reset finally fired at `+30003ms`, but the loser had
+  already committed to the bad `Battle Start` / `2:01` path and timed out later.
+
+This proves two important boundaries:
+
+- Restored `cmd=15` is delivered to the dead client, but by itself does not make
+  that client emit `cmd=13`.
+- Waiting after a real peer return marker is not helping; the dead client remains
+  `final15 return=0` while streaming stale bootstrap.
+
+Current recovery change:
+
+- Track `postMatchBootstrapSuppressedSeen` per player whenever a completed-set
+  stale bootstrap/map packet is suppressed.
+- Completed-set reset still waits for normal all-player return markers when they
+  arrive.
+- New narrow recovery: if at least one peer has a real return marker, and the
+  only missing player is the dead player in `FinalState` with suppressed stale
+  bootstrap already seen, accept that missing dead client as unrecoverably past
+  the normal return path and reset immediately via
+  `peer_return_dead_stale_bootstrap`.
+- This is not the older failed “reset on first stale cmd04” behavior; it requires
+  a real peer return marker first.
+
+Expected next-test signature:
+
+- dead loser: `phase=final15 return=0 stale=1`
+- survivor: `phase=done return=1`
+- log: `post-match recovery accepts missing dead client ... peer returned and
+  stale bootstrap proves client left recap`
+- immediate `post-match room reset (peer_return_dead_stale_bootstrap)` instead
+  of waiting for the 30-second safety timer

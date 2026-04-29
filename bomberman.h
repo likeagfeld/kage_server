@@ -163,7 +163,7 @@ public:
 		uint32_t value, const char *extra) const;
 	void dumpPostMatchReturnState(const char *reason) const;
 	void traceInboundIfBattleEnd(Player *player, uint8_t cmd, uint16_t word);
-	bool shouldSuppressPostBattleCommand(Player *player, uint8_t command) const;
+	bool shouldSuppressPostBattleCommand(Player *player, uint8_t command);
 	bool shouldResetPostBattleOnSuppressedCommand(uint8_t command) const;
 	void sendPostMatchStatNudgeTo(Player *player, uint8_t command);
 	void resetForPostMatchRoom(const char *reason);
@@ -230,6 +230,7 @@ private:
 		bool postMapMarkerSeen = false;
 		bool postMatchStatNudgeSent = false;
 		bool postMatchAdvanceSeen = false;
+		bool postMatchBootstrapSuppressedSeen = false;
 		BattleEndPhase battleEndPhase = BattleEndPhase::None;
 	};
 

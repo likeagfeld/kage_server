@@ -914,6 +914,7 @@ void BMRoom::resetMatchSync()
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
 		state.postMatchAdvanceSeen = false;
+		state.postMatchBootstrapSuppressedSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
 	}
 	syncState = SyncState::Idle;
@@ -1786,6 +1787,7 @@ void BMRoom::onRulesConfigured(Player *player, const uint8_t *p)
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
 		state.postMatchAdvanceSeen = false;
+		state.postMatchBootstrapSuppressedSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
 	}
 	gameTimeInfoSent = false;
@@ -1853,6 +1855,7 @@ bool BMRoom::beginStartBattle(Player *player)
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
 		state.postMatchAdvanceSeen = false;
+		state.postMatchBootstrapSuppressedSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
 	}
 	gameTimeInfoSent = false;
@@ -1998,6 +2001,7 @@ void BMRoom::prepareNextRoundFromPostEndFlow(Player *player, uint8_t command)
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
 		state.postMatchAdvanceSeen = false;
+		state.postMatchBootstrapSuppressedSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
 	}
 	stopInGameLiveness();
@@ -2253,6 +2257,7 @@ void BMRoom::startMatchEndTimer(uint32_t endFrame)
 		state.battleEndPhase = BattleEndPhase::None;
 		state.postMatchAdvanceSeen = false;
 		state.postMatchStatNudgeSent = false;
+		state.postMatchBootstrapSuppressedSeen = false;
 	}
 	if (syncState != SyncState::InGame || players.empty() || endFrame == 0)
 		return;
@@ -2521,6 +2526,7 @@ void BMRoom::resetForPostMatchRoom(const char *reason)
 		state.postMapMarkerSeen = false;
 		state.postMatchStatNudgeSent = false;
 		state.postMatchAdvanceSeen = false;
+		state.postMatchBootstrapSuppressedSeen = false;
 		state.battleEndPhase = BattleEndPhase::None;
 		// Keep rulesAccepted as the players were just in-game with rules set;
 		// the upcoming rule blob broadcast will let them re-confirm.
@@ -2613,11 +2619,35 @@ void BMRoom::resetPostBattleSetAfterAdvanceMarkers(const char *reason)
 	if (!battleEndSent || !battleEndDecidedByDeath || !isBattleSetComplete())
 		return;
 
+	bool sawReturnMarker = false;
+	for (Player *player : players)
+	{
+		auto it = syncPlayers.find(player->getId());
+		if (it != syncPlayers.end() && it->second.postMatchAdvanceSeen)
+			sawReturnMarker = true;
+	}
+
+	bool recoveredDeadStaleBootstrap = false;
 	for (Player *player : players)
 	{
 		auto it = syncPlayers.find(player->getId());
 		if (it == syncPlayers.end() || !it->second.postMatchAdvanceSeen)
 		{
+			const int pos = player != nullptr ? getPlayerPosition(player) : -1;
+			const bool dead = pos >= 0 && pos < 8 && (deadManBitmap & (uint8_t)(1u << pos)) != 0;
+			const bool deadFinalStaleBootstrap = sawReturnMarker && it != syncPlayers.end()
+				&& dead
+				&& it->second.battleEndPhase == BattleEndPhase::FinalState
+				&& it->second.postMatchBootstrapSuppressedSeen;
+			if (deadFinalStaleBootstrap)
+			{
+				recoveredDeadStaleBootstrap = true;
+				INFO_LOG(Game::Bomberman,
+					"%s: post-match recovery accepts missing dead client %s [%x]; peer returned and stale bootstrap proves client left recap",
+					name.c_str(), player != nullptr ? player->getName().c_str() : "(null)",
+					player != nullptr ? player->getId() : 0);
+				continue;
+			}
 			INFO_LOG(Game::Bomberman,
 				"%s: waiting for post-match cmd=13 before room reset; missing %s [%x]",
 				name.c_str(), player != nullptr ? player->getName().c_str() : "(null)",
@@ -2628,10 +2658,15 @@ void BMRoom::resetPostBattleSetAfterAdvanceMarkers(const char *reason)
 	}
 
 	INFO_LOG(Game::Bomberman,
-		"%s: all clients reached post-match return markers; resetting completed battle set to room",
-		name.c_str());
+		"%s: %s; resetting completed battle set to room",
+		name.c_str(),
+		recoveredDeadStaleBootstrap
+			? "peer return plus missing dead stale-bootstrap recovery reached"
+			: "all clients reached post-match return markers");
 	dumpPostMatchReturnState(reason != nullptr ? reason : "all_return_markers");
-	resetForPostMatchRoom(reason);
+	resetForPostMatchRoom(recoveredDeadStaleBootstrap
+		? "peer_return_dead_stale_bootstrap"
+		: reason);
 }
 
 void BMRoom::broadcastBattleEndSequence(const char *reason)
@@ -2762,6 +2797,7 @@ void BMRoom::dumpPostMatchReturnState(const char *reason) const
 			<< " dead=" << (dead ? 1 : 0)
 			<< " phase=" << phaseName(state.battleEndPhase)
 			<< " return=" << (state.postMatchAdvanceSeen ? 1 : 0)
+			<< " stale=" << (state.postMatchBootstrapSuppressedSeen ? 1 : 0)
 			<< " rules=" << (state.rulesAccepted ? 1 : 0)
 			<< " startAck=" << (state.startAcked ? 1 : 0);
 	}
@@ -2780,7 +2816,7 @@ void BMRoom::traceInboundIfBattleEnd(Player *player, uint8_t cmd, uint16_t word)
 	logEndTimeline("inbound", player, cmd, (uint32_t)word, "");
 }
 
-bool BMRoom::shouldSuppressPostBattleCommand(Player *player, uint8_t command) const
+bool BMRoom::shouldSuppressPostBattleCommand(Player *player, uint8_t command)
 {
 	const bool awaitingFinalPostBattleReset = battleEndSent && battleEndDecidedByDeath && isBattleSetComplete();
 	if (!awaitingFinalPostBattleReset && !postMatchCommandQuarantine)
@@ -2796,6 +2832,8 @@ bool BMRoom::shouldSuppressPostBattleCommand(Player *player, uint8_t command) co
 	case 0x0f: // post-end map marker
 	case 0x1a: // map block
 	case 0x1b: // map block
+		if (awaitingFinalPostBattleReset && player != nullptr)
+			syncPlayers[player->getId()].postMatchBootstrapSuppressedSeen = true;
 		INFO_LOG(Game::Bomberman,
 			"%s: suppressing post-battle cmd=%02x from %s [%x]; %s",
 			name.c_str(), command,
