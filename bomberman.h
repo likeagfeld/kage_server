@@ -161,6 +161,7 @@ public:
 	// hardware logs much easier to line up against the Dreamcast UI.
 	void logEndTimeline(const char *event, const Player *player, uint8_t cmd,
 		uint32_t value, const char *extra) const;
+	void dumpPostMatchReturnState(const char *reason) const;
 	void traceInboundIfBattleEnd(Player *player, uint8_t cmd, uint16_t word);
 	bool shouldSuppressPostBattleCommand(Player *player, uint8_t command) const;
 	bool shouldResetPostBattleOnSuppressedCommand(uint8_t command) const;

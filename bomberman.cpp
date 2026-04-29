@@ -1909,6 +1909,11 @@ void BMRoom::rudpAcked(Player *player)
 		advanceBattleEndSequence(player, state, "acked");
 		return;
 	}
+	if (syncState == SyncState::InGame && battleEndSent)
+	{
+		logEndTimeline("rudp_ack_no_advance", player, 0, (uint32_t)state.battleEndPhase, "");
+		dumpPostMatchReturnState("rudp_ack_no_advance");
+	}
 
 	if (syncState != SyncState::StartPending)
 		return;
@@ -2294,7 +2299,10 @@ void BMRoom::sendBattleStateCommandTo(Player *player, uint8_t command, uint32_t 
 		name.c_str(), reason != nullptr ? reason : "battle", player->getName().c_str(), player->getId(),
 		command, value, command != 0x15 ? 1 : 0);
 	if (battleEndSent)
+	{
 		logEndTimeline("send", player, command, value, reason);
+		dumpPostMatchReturnState(reason != nullptr ? reason : "send_battle_state");
+	}
 	player->send(packet);
 }
 
@@ -2349,6 +2357,8 @@ void BMRoom::advanceBattleEndSequence(Player *player, SyncPlayerState& state, co
 	default:
 		break;
 	}
+	if (battleEndSent)
+		dumpPostMatchReturnState(reason != nullptr ? reason : "ack_advance");
 }
 
 void BMRoom::handleBattleEndClientSignal(Player *player, uint16_t word, uint32_t tail)
@@ -2378,6 +2388,7 @@ void BMRoom::handleBattleEndClientSignal(Player *player, uint16_t word, uint32_t
 		// surviving client, but keep the newer rule that cmd=10/cmd=15 alone must
 		// not reset the completed set.
 		sendBattleStateCommandTo(player, 0x15, 0, "dead_final_state_after_cmd10");
+		dumpPostMatchReturnState("dead_client_signal_cmd15_no_reset");
 		return;
 	}
 
@@ -2572,6 +2583,7 @@ void BMRoom::notePostMatchAdvance(Player *player, uint16_t word)
 	INFO_LOG(Game::Bomberman,
 		"%s: post-match advance marker from %s [%x] word=%04x",
 		name.c_str(), player->getName().c_str(), player->getId(), word);
+	dumpPostMatchReturnState("client_cmd13_return_marker");
 
 	resetPostBattleSetAfterAdvanceMarkers("all_post_match_advance_markers");
 }
@@ -2590,6 +2602,7 @@ void BMRoom::notePostMatchRuleSync(Player *player, uint16_t counter)
 	INFO_LOG(Game::Bomberman,
 		"%s: post-match rule sync from %s [%x] counter=%04x; marking that client returned, reset still waits for all",
 		name.c_str(), player->getName().c_str(), player->getId(), counter);
+	dumpPostMatchReturnState("client_cmd0c_return_marker");
 
 	resetPostBattleSetAfterAdvanceMarkers("all_post_match_return_markers");
 }
@@ -2608,6 +2621,7 @@ void BMRoom::resetPostBattleSetAfterAdvanceMarkers(const char *reason)
 				"%s: waiting for post-match cmd=13 before room reset; missing %s [%x]",
 				name.c_str(), player != nullptr ? player->getName().c_str() : "(null)",
 				player != nullptr ? player->getId() : 0);
+			dumpPostMatchReturnState(reason != nullptr ? reason : "waiting_for_return_markers");
 			return;
 		}
 	}
@@ -2615,6 +2629,7 @@ void BMRoom::resetPostBattleSetAfterAdvanceMarkers(const char *reason)
 	INFO_LOG(Game::Bomberman,
 		"%s: all clients reached post-match return markers; resetting completed battle set to room",
 		name.c_str());
+	dumpPostMatchReturnState(reason != nullptr ? reason : "all_return_markers");
 	resetForPostMatchRoom(reason);
 }
 
@@ -2675,6 +2690,7 @@ void BMRoom::handlePostMatchSafetyTimer(const std::error_code& ec)
 		"%s: post-match safety timer fired - not all return markers arrived within 30 sec; driving room reset",
 		name.c_str());
 	logEndTimeline("safety_timer_fire", nullptr, 0, 0, "");
+	dumpPostMatchReturnState("safety_timer_fire");
 	resetForPostMatchRoom("safety_timer");
 }
 
@@ -2694,6 +2710,66 @@ void BMRoom::logEndTimeline(const char *event, const Player *player, uint8_t cmd
 		"%s: BATTLE_END_TIMELINE +%lldms event=%s player=%s [%x] cmd=0x%02x value=%08x %s",
 		name.c_str(), elapsedMs, event != nullptr ? event : "?", who, whoId, cmd, value,
 		extra != nullptr ? extra : "");
+}
+
+void BMRoom::dumpPostMatchReturnState(const char *reason) const
+{
+	if (!battleEndSent)
+		return;
+
+	const auto phaseName = [](BattleEndPhase phase) -> const char * {
+		switch (phase)
+		{
+		case BattleEndPhase::None: return "none";
+		case BattleEndPhase::SettledDeadBits: return "settled16";
+		case BattleEndPhase::CompletedDeadBits: return "completed19";
+		case BattleEndPhase::FinalState: return "final15";
+		case BattleEndPhase::Done: return "done";
+		default: return "?";
+		}
+	};
+
+	using namespace std::chrono;
+	long long elapsedMs = -1;
+	if (battleEndStartTime != steady_clock::time_point{})
+	{
+		elapsedMs = duration_cast<milliseconds>(
+			steady_clock::now() - battleEndStartTime).count();
+	}
+
+	std::ostringstream oss;
+	bool first = true;
+	for (const Player *player : players)
+	{
+		if (!first)
+			oss << " | ";
+		first = false;
+
+		const auto it = syncPlayers.find(player->getId());
+		if (it == syncPlayers.end())
+		{
+			oss << player->getName() << "[" << std::hex << player->getId() << std::dec
+				<< "]=missing";
+			continue;
+		}
+
+		const SyncPlayerState& state = it->second;
+		const int pos = getPlayerPosition(player);
+		const bool dead = pos >= 0 && pos < 8 && (deadManBitmap & (uint8_t)(1u << pos)) != 0;
+		oss << player->getName() << "[" << std::hex << player->getId() << std::dec
+			<< "] pos=" << pos
+			<< " dead=" << (dead ? 1 : 0)
+			<< " phase=" << phaseName(state.battleEndPhase)
+			<< " return=" << (state.postMatchAdvanceSeen ? 1 : 0)
+			<< " rules=" << (state.rulesAccepted ? 1 : 0)
+			<< " startAck=" << (state.startAcked ? 1 : 0);
+	}
+
+	INFO_LOG(Game::Bomberman,
+		"%s: POST_MATCH_RETURN_STATE +%lldms reason=%s setComplete=%d deadMap=%02x quarantine=%d players={%s}",
+		name.c_str(), elapsedMs, reason != nullptr ? reason : "?",
+		isBattleSetComplete() ? 1 : 0, deadManBitmap,
+		postMatchCommandQuarantine ? 1 : 0, oss.str().c_str());
 }
 
 void BMRoom::traceInboundIfBattleEnd(Player *player, uint8_t cmd, uint16_t word)

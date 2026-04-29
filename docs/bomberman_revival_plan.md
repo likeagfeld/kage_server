@@ -5552,3 +5552,24 @@ Next validation expectation:
   `post_match_rule_sync` (`cmd=0c`)
 - reset happens only after the second return marker, with no early single-client
   `post_battle_rule_sync` reset
+
+## 2026-04-29 High-Value Post-Match Diagnostic Instrumentation
+
+Added diagnostic-only `POST_MATCH_RETURN_STATE` snapshots before the next hardware
+run. This does not change packet behavior or reset gates; it only records the
+per-player state at each post-match decision point.
+
+The next test should now be conclusive about which boundary fails:
+
+- if dead client receives `dead_final_state_after_cmd10` and later shows
+  `return=1`, the `cmd=15` stimulus worked
+- if dead client stays `phase=final15 return=0`, then the missing stimulus is
+  after server `cmd=15`
+- if one client reaches `return=1` and the other does not, reset should wait and
+  the snapshot will name the missing client
+- if both clients reach `return=1` but room reset still fails, the bug is in the
+  reset broadcast path, not the post-match phase transition
+
+Key log marker to search after the test:
+
+- `POST_MATCH_RETURN_STATE`
