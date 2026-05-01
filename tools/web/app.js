@@ -3,6 +3,7 @@ const elements = {
   configBadge: document.getElementById("configBadge"),
   serverBadge: document.getElementById("serverBadge"),
   binaryStatus: document.getElementById("binaryStatus"),
+  platformStatus: document.getElementById("platformStatus"),
   buildStatus: document.getElementById("buildStatus"),
   serverStatus: document.getElementById("serverStatus"),
   logPath: document.getElementById("logPath"),
@@ -99,7 +100,10 @@ function renderStatus(payload) {
 
   elements.serverIp.value = payload.config.SERVER_IP || "";
   elements.dataDir.value = payload.config.DATADIR || "data";
-  elements.binaryStatus.textContent = payload.binary_exists ? "kageserver.exe is ready" : "Missing";
+  elements.binaryStatus.textContent = payload.binary_exists
+    ? `${payload.platform?.server_binary || "kageserver"} is ready`
+    : "Missing";
+  elements.platformStatus.textContent = `${payload.platform?.label || "Unknown"} (${payload.platform?.build_mode || "build"})`;
   elements.buildStatus.textContent = formatBuild(payload.build);
   elements.serverStatus.textContent = formatServer(payload.server);
   elements.logPath.textContent = payload.paths.server_log;

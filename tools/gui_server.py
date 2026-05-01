@@ -4,6 +4,9 @@ import ipaddress
 import json
 import mimetypes
 import os
+import platform
+import shutil
+import signal
 import socket
 import subprocess
 import threading
@@ -24,15 +27,17 @@ STATE_PATH = STATE_DIR / "server.json"
 LOG_DIR = ROOT_DIR / "logs"
 DATA_DIR = ROOT_DIR / "data"
 CONFIG_PATH = ROOT_DIR / "kage.cfg"
-BUILD_SCRIPT = TOOLS_DIR / "build-ucrt64.bat"
+WINDOWS_BUILD_SCRIPT = TOOLS_DIR / "build-ucrt64.bat"
 FIREWALL_SCRIPT = TOOLS_DIR / "Add-Kage-Firewall-Rules.bat"
-SERVER_EXE = ROOT_DIR / "kageserver.exe"
 SERVER_LOG = LOG_DIR / "kageserver.log"
-BUILD_LOG = LOG_DIR / "build-ucrt64.log"
+BUILD_LOG = LOG_DIR / "build.log"
 BOMBERMAN_ADMIN_PATH = STATE_DIR / "bomberman_bots.ini"
 BOMBERMAN_RUNTIME_PATH = STATE_DIR / "bomberman_runtime.ini"
 HOST = "127.0.0.1"
 PORT = 8766
+IS_WINDOWS = os.name == "nt"
+SERVER_BINARY = ROOT_DIR / ("kageserver.exe" if IS_WINDOWS else "kageserver")
+PLATFORM_LABEL = f"{platform.system()} {platform.machine()}".strip()
 
 PORTS = {
     "udp": ["9090", "9091", "9092", "9093"],
@@ -108,6 +113,8 @@ def process_alive(process: subprocess.Popen[str] | None) -> bool:
 
 def hidden_process_flags() -> int:
     flags = 0
+    if not IS_WINDOWS:
+        return flags
     if hasattr(subprocess, "CREATE_NO_WINDOW"):
         flags |= subprocess.CREATE_NO_WINDOW
     if hasattr(subprocess, "CREATE_NEW_PROCESS_GROUP"):
@@ -116,28 +123,45 @@ def hidden_process_flags() -> int:
 
 
 def find_kage_process_pid() -> int | None:
+    if IS_WINDOWS:
+        try:
+            output = subprocess.check_output(
+                ["tasklist", "/FI", "IMAGENAME eq kageserver.exe", "/FO", "CSV", "/NH"],
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                creationflags=hidden_process_flags(),
+            )
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return None
+
+        for raw_line in output.splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("INFO:"):
+                continue
+            columns = [part.strip().strip('"') for part in line.split('","')]
+            if not columns or columns[0].lower() != "kageserver.exe":
+                continue
+            try:
+                return int(columns[1])
+            except (IndexError, ValueError):
+                return None
+        return None
+
     try:
         output = subprocess.check_output(
-            ["tasklist", "/FI", "IMAGENAME eq kageserver.exe", "/FO", "CSV", "/NH"],
+            ["pgrep", "-x", "kageserver"],
             text=True,
             encoding="utf-8",
             errors="replace",
-            creationflags=hidden_process_flags(),
         )
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
-
-    for raw_line in output.splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("INFO:"):
-            continue
-        columns = [part.strip().strip('"') for part in line.split('","')]
-        if not columns or columns[0].lower() != "kageserver.exe":
-            continue
+    for line in output.splitlines():
         try:
-            return int(columns[1])
-        except (IndexError, ValueError):
-            return None
+            return int(line.strip())
+        except ValueError:
+            continue
     return None
 
 
@@ -207,6 +231,7 @@ class RuntimeState:
     build_exit_code: int | None = None
     server_started_at: float | None = None
     server_exit_code: int | None = None
+    server_stop_requested: bool = False
     last_message: str = ""
 
     def write_state(self) -> None:
@@ -220,7 +245,13 @@ class RuntimeState:
             "config_valid": valid,
             "config_error": validation_error,
             "server_ip_private": private_ip if valid else False,
-            "binary_exists": SERVER_EXE.exists(),
+            "binary_exists": SERVER_BINARY.exists(),
+            "platform": {
+                "label": PLATFORM_LABEL,
+                "is_windows": IS_WINDOWS,
+                "server_binary": str(SERVER_BINARY),
+                "build_mode": "MSYS2 UCRT64" if IS_WINDOWS else "native make",
+            },
             "build": {
                 "running": process_alive(self.build_process),
                 "pid": self.build_process.pid if process_alive(self.build_process) else None,
@@ -242,7 +273,7 @@ class RuntimeState:
                 "logs": str(LOG_DIR),
                 "server_log": str(SERVER_LOG),
                 "build_log": str(BUILD_LOG),
-                "firewall_script": str(FIREWALL_SCRIPT),
+                "firewall_script": str(FIREWALL_SCRIPT) if IS_WINDOWS else "",
             },
             "ports": PORTS,
             "message": self.last_message,
@@ -254,7 +285,22 @@ STATE = RuntimeState()
 
 
 def open_path(path: Path) -> None:
-    os.startfile(str(path))
+    if IS_WINDOWS:
+        os.startfile(str(path))
+        return
+    opener = shutil.which("xdg-open") or shutil.which("open")
+    if opener is None:
+        raise RuntimeError("No desktop opener was found on this system.")
+    subprocess.Popen([opener, str(path)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def build_command() -> list[str]:
+    if IS_WINDOWS:
+        return ["cmd.exe", "/c", str(WINDOWS_BUILD_SCRIPT)]
+    make = shutil.which("make")
+    if make is None:
+        raise RuntimeError("make was not found. Install build-essential, libasio-dev, libdcserver, and libsqlite3-dev.")
+    return [make, "clean", "all"]
 
 
 def launch_build() -> tuple[bool, str]:
@@ -267,8 +313,13 @@ def launch_build() -> tuple[bool, str]:
         ensure_runtime_dirs()
         BUILD_LOG.write_text("", encoding="utf-8")
         log_handle = BUILD_LOG.open("a", encoding="utf-8")
+        try:
+            command = build_command()
+        except RuntimeError as exc:
+            return False, str(exc)
+
         process = subprocess.Popen(
-            ["cmd.exe", "/c", str(BUILD_SCRIPT)],
+            command,
             cwd=str(ROOT_DIR),
             stdout=log_handle,
             stderr=subprocess.STDOUT,
@@ -304,8 +355,8 @@ def launch_server() -> tuple[bool, str]:
     valid, error, _private = validate_config(config)
     if not valid:
         return False, error or "Invalid configuration."
-    if not SERVER_EXE.exists():
-        return False, "kageserver.exe does not exist yet. Run Build/Repair first."
+    if not SERVER_BINARY.exists():
+        return False, f"{SERVER_BINARY.name} does not exist yet. Run Build/Repair first."
 
     with STATE.lock:
         if process_alive(STATE.build_process):
@@ -319,15 +370,16 @@ def launch_server() -> tuple[bool, str]:
         SERVER_LOG.parent.mkdir(parents=True, exist_ok=True)
 
         env = os.environ.copy()
-        env["PATH"] = (
-            f"{ROOT_DIR / 'local' / 'ucrt64' / 'bin'};"
-            f"C:\\msys64\\ucrt64\\bin;"
-            + env.get("PATH", "")
-        )
+        if IS_WINDOWS:
+            env["PATH"] = (
+                f"{ROOT_DIR / 'local' / 'ucrt64' / 'bin'};"
+                f"C:\\msys64\\ucrt64\\bin;"
+                + env.get("PATH", "")
+            )
 
         log_handle = SERVER_LOG.open("a", encoding="utf-8")
         process = subprocess.Popen(
-            [str(SERVER_EXE), CONFIG_PATH.name],
+            [str(SERVER_BINARY), CONFIG_PATH.name],
             cwd=str(ROOT_DIR),
             env=env,
             stdout=log_handle,
@@ -339,6 +391,7 @@ def launch_server() -> tuple[bool, str]:
         STATE.server_process = process
         STATE.server_started_at = time.time()
         STATE.server_exit_code = None
+        STATE.server_stop_requested = False
         STATE.last_message = "Kage server started."
         STATE.write_state()
 
@@ -348,12 +401,14 @@ def launch_server() -> tuple[bool, str]:
         with STATE.lock:
             STATE.server_exit_code = exit_code
             STATE.server_process = None
-            if STATE.last_message == "Stop requested.":
+            if STATE.server_stop_requested:
                 STATE.last_message = "Kage server stopped."
+                STATE.server_exit_code = 0
             elif exit_code == 0:
                 STATE.last_message = "Kage server exited cleanly."
             else:
                 STATE.last_message = f"Kage server exited with code {exit_code}."
+            STATE.server_stop_requested = False
             STATE.write_state()
 
     threading.Thread(target=wait_for_server, daemon=True).start()
@@ -370,16 +425,24 @@ def stop_server() -> tuple[bool, str]:
                 STATE.last_message = "The server is not running."
                 STATE.write_state()
                 return True, "The server is not running."
-            subprocess.run(
-                ["taskkill", "/PID", str(external_pid), "/T", "/F"],
-                check=False,
-                creationflags=hidden_process_flags(),
-            )
+            if IS_WINDOWS:
+                subprocess.run(
+                    ["taskkill", "/PID", str(external_pid), "/T", "/F"],
+                    check=False,
+                    creationflags=hidden_process_flags(),
+                )
+            else:
+                try:
+                    os.kill(external_pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
             STATE.server_process = None
             STATE.server_exit_code = 0
+            STATE.server_stop_requested = False
             STATE.last_message = "Kage server stopped."
             STATE.write_state()
             return True, "Kage server stopped."
+        STATE.server_stop_requested = True
         STATE.last_message = "Stop requested."
         STATE.write_state()
 
@@ -392,8 +455,9 @@ def stop_server() -> tuple[bool, str]:
         process.wait(timeout=4)
 
     with STATE.lock:
-        STATE.server_exit_code = process.returncode
+        STATE.server_exit_code = 0
         STATE.server_process = None
+        STATE.server_stop_requested = False
         STATE.last_message = "Kage server stopped."
         STATE.write_state()
     return True, "Kage server stopped."
@@ -532,6 +596,9 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == "/api/open/firewall":
+            if not IS_WINDOWS:
+                self.send_json({"ok": False, "message": "Firewall helper is Windows-only."}, status=HTTPStatus.BAD_REQUEST)
+                return
             open_path(FIREWALL_SCRIPT)
             self.send_json({"ok": True, "message": "Opened the firewall helper script."})
             return
