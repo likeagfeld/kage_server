@@ -1082,8 +1082,12 @@ inline unsigned bmPhasePriority(unsigned phase) {
 		case 0xa: return 4;   // APPEARING + pickup flag
 		case 3:   return 5;   // VISIBLE
 		case 0xb: return 6;   // VISIBLE + pickup flag (picked up, transient)
-		case 4:   return 7;   // CONSUMED — final
-		case 0xc: return 7;   // CONSUMED + pickup flag — final, same priority as 4
+		case 0xe: return 7;   // GRANTED by server; triggers local inventory apply
+		case 5:   return 8;   // ACQUIRED by the picker after grant
+		case 4:   return 9;   // CONSUMED/GONE — terminal board cleanup
+		case 0xc: return 9;   // CONSUMED + pickup flag — terminal, same priority as 4
+		case 0xd: return 6;   // RELEASED in hyper bomber; allow later visible/random handling
+		case 0xf: return 4;   // RANDOM/released item before appearing/visible
 		default:  return 0;   // invalid phase — treat as uninit (don't adopt)
 	}
 }
@@ -1131,23 +1135,14 @@ bool BMRoom::resolvePickupsFromCmd2(Player *sender, uint8_t *payload, size_t pay
 			current.param = incoming.param;
 			if (incoming.pos.full != 0)
 				current.pos = incoming.pos;
-			// Phase b (picked up, transient) gets COLLAPSED to phase 4
-			// (CONSUMED) at the server. The 04/28 08:26 test showed clients
-			// reaching phase b but never auto-transitioning to phase 4 —
-			// because FUN_8c07dd36's cell state machine has handlers ONLY
-			// for bVar5 == 1 (HIDDEN), 3 (VISIBLE), 4 (CONSUMED). Phase b
-			// has no handler — receiving clients stall there.
-			//
-			// By collapsing b -> 4 in the server's authoritative state, the
-			// rewritten relay payload always carries a phase the client can
-			// process. The picked-up flag (bit 0x8 of phase nibble) is
-			// transient — once it triggers the consumed transition on the
-			// picker's binary, neither side needs to keep observing phase b.
+			// Flyinghead's current working branch proves successful pickup is
+			// Claimed -> Granted -> Acquired, not Claimed -> Consumed. Collapsing
+			// directly to phase 4 removes the board item but skips the inventory
+			// grant path, which matches our "Judge!! / no bomb capacity increase"
+			// symptom. Preserve the low subtype/slot bits and flip only the phase.
 			if (incomingPhase == 0xb)
 			{
-				// Preserve sub-state bits (low nibble of byte[2], + byte[3])
-				// while flipping the phase nibble from 0xb to 0x4.
-				current.param = (uint16_t)((current.param & 0x0fff) | 0x4000);
+				current.param = (uint16_t)((current.param & 0x0fff) | 0xe000);
 			}
 			if (prevPhase != incomingPhase)
 			{
@@ -1157,8 +1152,10 @@ bool BMRoom::resolvePickupsFromCmd2(Player *sender, uint8_t *payload, size_t pay
 					prevParam, incoming.param,
 					sender != nullptr ? sender->getName().c_str() : "?",
 					incomingPhase == 4 ? " [CONSUMED]" :
-					incomingPhase == 0xb ? " [PICKED UP]" : "");
-				if (incomingPhase == 4)
+					incomingPhase == 5 ? " [ACQUIRED]" :
+					incomingPhase == 0xe ? " [GRANTED]" :
+					incomingPhase == 0xb ? " [CLAIMED->GRANTED]" : "");
+				if (incomingPhase == 0xb || incomingPhase == 5)
 					serverPickupCount++;
 			}
 		}
@@ -1944,7 +1941,10 @@ bool BMRoom::updateRuleAcceptance(Player *player, bool accepted)
 
 bool BMRoom::canStartBattle() const
 {
-	return syncState == SyncState::ReadyToStart && getPlayerCount() >= 2 && allHumanPlayersJoined();
+	return syncState == SyncState::ReadyToStart
+		&& getPlayerCount() >= 2
+		&& allHumanPlayersJoined()
+		&& allHumanPlayersAccepted();
 }
 
 bool BMRoom::beginStartBattle(Player *player)
@@ -1983,6 +1983,27 @@ bool BMRoom::beginStartBattle(Player *player)
 	}
 	syncState = SyncState::StartPending;
 	return true;
+}
+
+void BMRoom::sendPreStartGateStateTo(Player *player, const char *reason) const
+{
+	if (player == nullptr)
+		return;
+
+	const char *why = reason != nullptr ? reason : "pre_start_gate";
+	INFO_LOG(Game::Bomberman,
+		"%s: pre-start gate refresh (%s) -> %s [%x]; state=%s accepted=%u/%zu joined=%u/%zu slots=%u",
+		name.c_str(), why, player->getName().c_str(), player->getId(), getSyncStateName(),
+		getAcceptedRuleCount(), players.size(), getJoinedPlayerCount(), players.size(), getPlayerCount());
+
+	sendRoomAttrSyncTo(player);
+	sendUserSnapshotTo(player);
+	sendExistingOccupantsToJoiner(player);
+	for (Player *subject : players)
+		sendUserStatusTo(player, subject, false);
+	sendOccupiedSlotMaskTo(player, why);
+	sendRuleBlobTo(player, why, 0x8000);
+	sendOwnerKeyholderSyncTo(player, why);
 }
 
 void BMRoom::rudpAcked(Player *player)
@@ -3316,12 +3337,18 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 					WARN_LOG(Game::Bomberman, "%s: start rejected in state %s (%u/%zu accepted, slots %u)",
 						room->getName().c_str(), room->getSyncStateName(), room->getAcceptedRuleCount(),
 						room->getPlayers().size(), room->getPlayerCount());
+					player->send(replyPacket);
+					replyPacket.reset();
+					room->sendPreStartGateStateTo(player, "start_rejected");
 					break;
 				}
 				if (!room->beginStartBattle(player))
 				{
 					WARN_LOG(Game::Bomberman, "%s: start requested by non-owner %s", room->getName().c_str(),
 						player->getName().c_str());
+					player->send(replyPacket);
+					replyPacket.reset();
+					room->sendPreStartGateStateTo(player, "start_rejected_non_owner");
 					break;
 				}
 				INFO_LOG(Game::Bomberman, "%s: start sync armed (%u/%zu local acked)", room->getName().c_str(),
@@ -3734,6 +3761,18 @@ bool BombermanServer::handlePacket(Player *player, const uint8_t *data, size_t l
 							|| relayPayload != &data[0x10]
 							|| memcmp(relayPayload, &data[0x10], relayPayloadSize) != 0;
 						relayPacket.writeData(relayPayload, (int)relayPayloadSize);
+						if (cmd.command == 0x2 && relayPayloadChanged)
+						{
+							Packet selfPacket;
+							selfPacket.init(Packet::REQ_CHAT);
+							write32(selfPacket.data, selfPacket.startOffset + 4, player->getId());
+							selfPacket.writeData(relayPayload, (int)relayPayloadSize);
+							player->send(selfPacket);
+							INFO_LOG(Game::Bomberman,
+								"%s: cmd=02 self-authoritative pickup/object echo size=%zu word=%04x",
+								player->getName().c_str(), relayPayloadSize,
+								relayPayloadSize >= 4 ? read16(relayPayload, 2) : 0);
+						}
 						const bool selfDispatchCmd01 = room != nullptr
 							&& cmd.command == 0x1
 							&& activeCmd01Lane

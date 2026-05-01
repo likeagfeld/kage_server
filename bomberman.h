@@ -146,6 +146,7 @@ public:
 	bool acceptRules(Player *player);
 	bool updateRuleAcceptance(Player *player, bool accepted);
 	bool beginStartBattle(Player *player);
+	void sendPreStartGateStateTo(Player *player, const char *reason) const;
 	void notePostMapMarker(Player *player);
 	void notePostMapMarker(Player *player, const char *reason);
 	void prepareNextRoundFromPostEndFlow(Player *player, uint8_t command);
