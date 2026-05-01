@@ -851,11 +851,14 @@ RankAcceptor *RankAcceptor::Instance;
 
 RankAcceptor::RankAcceptor(asio::io_context& io_context, const std::string& dbpath)
 	: io_context(io_context),
-	  acceptor(asio::ip::tcp::acceptor(io_context,
-			asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 10100)))
+	  acceptor(io_context)
 {
+	asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), 10100);
 	asio::socket_base::reuse_address option(true);
+	acceptor.open(endpoint.protocol());
 	acceptor.set_option(option);
+	acceptor.bind(endpoint);
+	acceptor.listen();
 	database.open(dbpath);
 	Statement stmt(database, "SELECT name FROM sqlite_master WHERE type='table' AND name='ranking'");
 	if (!stmt.step()) {

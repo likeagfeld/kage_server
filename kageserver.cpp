@@ -246,13 +246,21 @@ static void loadConfig(const std::string& path)
 
 	std::istream istream(&fb);
 	std::string line;
+	auto trim = [](std::string value) {
+		const char *whitespace = " \t\r\n";
+		size_t start = value.find_first_not_of(whitespace);
+		if (start == std::string::npos)
+			return std::string();
+		size_t end = value.find_last_not_of(whitespace);
+		return value.substr(start, end - start + 1);
+	};
 	while (std::getline(istream, line))
 	{
 		if (line.empty() || line[0] == '#')
 			continue;
 		auto pos = line.find_first_of("=:");
 		if (pos != std::string::npos)
-			Config[line.substr(0, pos)] = line.substr(pos + 1);
+			Config[trim(line.substr(0, pos))] = trim(line.substr(pos + 1));
 		else
 			ERROR_LOG(Game::None, "config file syntax error: %s", line.c_str());
 	}

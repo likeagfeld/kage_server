@@ -304,10 +304,13 @@ public:
 
 	Server(uint16_t port, asio::io_context& io_context)
 		: io_context(io_context),
-		  socket(io_context, asio::ip::udp::endpoint(asio::ip::udp::v4(), port))
+		  socket(io_context)
 	{
+		asio::ip::udp::endpoint endpoint(asio::ip::udp::v4(), port);
 		asio::socket_base::reuse_address option(true);
+		socket.open(endpoint.protocol());
 		socket.set_option(option);
+		socket.bind(endpoint);
 	}
 
 	void start() {
